@@ -11,6 +11,8 @@
             --bubble-other: #fff; --bubble-other-text: #111;
             --header-bg: #f5f5f5; --border-color: #dcdcdc; --font-size-base: 16px;
             --accent: #888;
+            --custom-font: "SimSun", "Songti SC", serif;
+            --custom-bubble-css: ;
         }
         [data-theme="dark"] {
             --bg-color: #000; --chat-bg: #111; --text-color: #eee;
@@ -18,17 +20,18 @@
             --bubble-other: #222; --bubble-other-text: #eee;
             --header-bg: #111; --border-color: #333; --accent: #666;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: "SimSun", "Songti SC", serif; transition: background 0.2s, color 0.2s; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--custom-font); transition: background 0.2s, color 0.2s; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg-color); color: var(--text-color); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; font-size: var(--font-size-base); user-select: none; -webkit-user-select: none; }
         svg { fill: currentColor; width: 24px; height: 24px; }
         img { object-fit: cover; }
 
-        /* 页面基础 */
+        /* 首页 */
         #home-screen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 50px 20px; align-content: start; height: 100%; overflow-y: auto; }
         .app-icon { background: var(--header-bg); border-radius: 20px; aspect-ratio: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; border: 1px solid var(--border-color); }
         .app-icon:active { transform: scale(0.92); }
         .app-icon span { font-size: 13px; margin-top: 8px; font-weight: bold; }
 
+        /* 页面基础 */
         .page { display: none; flex-direction: column; height: 100%; background: var(--bg-color); position: absolute; top: 0; left: 0; width: 100%; z-index: 10; }
         .page.active { display: flex; }
         .header { padding: 15px 20px; padding-top: max(15px, env(safe-area-inset-top)); background: var(--header-bg); display: flex; align-items: center; border-bottom: 1px solid var(--border-color); font-weight: bold; font-size: 17px; flex-shrink: 0; }
@@ -36,7 +39,7 @@
         .header-right { display: flex; gap: 15px; align-items: center;}
         .header-btn { cursor:pointer; padding: 5px; display: flex; align-items: center;}
 
-        /* 聊天界面 */
+        /* 聊天区域 */
         .chat-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; background-color: var(--chat-bg); background-size: cover; background-position: center; -webkit-overflow-scrolling: touch; }
         .msg-row { display: flex; width: 100%; align-items: flex-start; gap: 10px; flex-shrink: 0; }
         .msg-row.user { justify-content: flex-end; }
@@ -44,6 +47,7 @@
         
         .avatar-container { display: flex; flex-direction: column; align-items: center; gap:4px; flex-shrink:0; width: 38px;}
         .avatar { width: 38px; height: 38px; border-radius: 6px; object-fit: cover; background: #ddd; cursor: pointer; }
+        .msg-time-avatar { font-size: 10px; color: #999; text-align: center; line-height: 1; margin-top: 2px; }
         
         .msg-content-wrapper { display: flex; flex-direction: column; max-width: 70%; position: relative; }
         .msg-row.user .msg-content-wrapper { align-items: flex-end; }
@@ -51,18 +55,21 @@
         .msg-row.user .msg-header { justify-content: flex-end; }
         .msg-name { font-size: 12px; color: #888; margin-left: 2px; }
 
-        /* 通用气泡 */
-        .msg { padding: 10px 14px; border-radius: 12px; line-height: 1.5; word-break: break-all; position: relative; cursor: pointer; border: 1px solid transparent; }
+        /* 气泡 */
+        .msg { padding: 10px 14px; border-radius: 12px; line-height: 1.5; word-break: break-all; position: relative; cursor: pointer; border: 1px solid transparent; var(--custom-bubble-css); }
         .msg.user { background: var(--bubble-user); color: var(--bubble-user-text); border-top-right-radius: 2px; }
         .msg.other { background: var(--bubble-other); color: var(--bubble-other-text); border-top-left-radius: 2px; border-color: var(--border-color); }
+        .msg.quote { font-size: 12px; opacity: 0.6; border-left: 2px solid var(--accent); padding-left: 8px; margin-bottom: 5px; display: block; }
         .msg img { max-width: 100%; max-height: 200px; border-radius: 8px; margin-top: 5px; display: block; }
         
+        .msg-time-bottom { font-size: 11px; color: #999; margin-top: 4px; display: none; text-align: center; }
+        .msg-time-bottom.show { display: block; }
         .read-status { font-size: 11px; color: #999; text-align: right; margin-top: 2px; display: none; }
         .read-status.show { display: block; }
         .typing-status { font-size: 12px; color: #888; padding: 0 15px 10px; display: none; flex-shrink: 0; }
         .sys-msg { text-align: center; font-size: 12px; color: #888; margin: 10px 0; width: 100%; flex-shrink: 0; }
 
-        /* 红包/转账卡片 */
+        /* 红包/转账 */
         .money-card { width: 220px; border-radius: 10px; overflow: hidden; color: #fff; cursor: pointer; }
         .money-card.red { background: #fa5151; }
         .money-card.transfer { background: #fa9d3b; }
@@ -81,18 +88,45 @@
         .btn-send { padding: 0; background: var(--bubble-user); color: var(--bubble-user-text); border: none; border-radius: 8px; width: 50px; height: 38px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-weight: bold; }
 
         /* 面板 */
-        #extra-panel { display: none; background: var(--header-bg); border-top: 1px solid var(--border-color); padding: 15px; height: 130px; gap: 20px; flex-wrap: wrap; }
-        #extra-panel.show { display: flex; }
+        #extra-panel, #emoji-panel { display: none; background: var(--header-bg); border-top: 1px solid var(--border-color); padding: 15px; flex-shrink: 0; }
+        #extra-panel { height: 130px; gap: 20px; flex-wrap: wrap; }
+        #extra-panel.show, #emoji-panel.show { display: flex; }
         .panel-action { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; width: 60px; }
-        .panel-action .icon-box { width: 60px; height: 60px; background: var(--bg-color); border-radius: 12px; border: 1px solid var(--border-color); display: flex; justify-content: center; align-items: center; }
+        .panel-action .icon-box { width: 60px; height: 60px; background: var(--bg-color); border-radius: 12px; border: 1px solid var(--border-color); display: flex; justify-content: center; align-items: center; font-size: 24px; }
         .panel-action span { font-size: 12px; color: #666; }
-
-        #emoji-panel { display: none; background: var(--header-bg); border-top: 1px solid var(--border-color); padding: 15px; height: 250px; flex-direction: column; }
-        #emoji-panel.show { display: flex; }
-        .emoji-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; overflow-y: auto; flex: 1; }
+        
+        #emoji-panel { flex-direction: column; height: 250px; }
+        .emoji-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; overflow-y: auto; flex: 1; margin-top: 10px; }
         .emoji-grid img { width: 100%; aspect-ratio: 1; object-fit: contain; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); padding: 5px; }
 
-        /* 弹窗和菜单 */
+        /* 列表 */
+        .list-container { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; -webkit-overflow-scrolling: touch; }
+        .card-item { background: var(--header-bg); padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
+        .card-item span { flex: 1; font-size: 14px; }
+        .cards-toolbar { padding: 10px; background: var(--header-bg); display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;}
+        .btn-tool { flex: 1; padding: 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; cursor: pointer; text-align: center;}
+
+        /* 设置 */
+        .settings-content { padding: 20px; overflow-y: auto; flex: 1; padding-bottom: 100px; }
+        .setting-item { margin-bottom: 20px; background: var(--header-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); }
+        .setting-item label { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; font-size: 14px; }
+        .setting-item input[type="text"], .setting-item input[type="number"], .setting-item select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 5px; background: var(--bg-color); color: var(--text-color); font-size: 14px;}
+        .setting-item input[type="range"] { width: 100%; margin: 10px 0; }
+        .switch-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .toggle { appearance: none; width: 44px; height: 24px; background: #ddd; border-radius: 12px; position: relative; outline: none; }
+        .toggle:checked { background: #333; }
+        .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: #fff; border-radius: 50%; transition: 0.3s; }
+        .toggle:checked::after { transform: translateX(20px); }
+
+        /* 音乐 */
+        .music-player { padding: 20px; background: var(--header-bg); text-align: center; border-bottom: 1px solid var(--border-color); }
+        .music-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; }
+        .music-progress { display: flex; align-items: center; gap: 10px; font-size: 12px; margin-bottom: 15px; }
+        .music-progress input { flex: 1; }
+        .music-controls { display: flex; justify-content: center; gap: 25px; }
+        .music-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-color); }
+
+        /* 弹窗与菜单 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 200; justify-content: center; align-items: center; }
         .modal.show { display: flex; }
         .modal-content { background: var(--header-bg); color: var(--text-color); width: 90%; max-width: 400px; border-radius: 15px; padding: 20px; display: flex; flex-direction: column; gap: 15px; border: 1px solid var(--border-color); }
@@ -108,36 +142,19 @@
         .action-btn.danger { color: #ff3b30; }
         .action-cancel { margin-top: 8px; border-bottom: none; border-top: 8px solid var(--border-color); font-weight: bold; }
 
-        /* 列表和设置 */
-        .list-container { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; -webkit-overflow-scrolling: touch;}
-        .card-item { background: var(--header-bg); padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
-        .card-item span { flex: 1; font-size: 14px; }
-        .cards-toolbar { padding: 10px; background: var(--header-bg); display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;}
-        .btn-tool { flex: 1; padding: 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; cursor: pointer; text-align: center;}
-
-        .settings-content { padding: 20px; overflow-y: auto; flex: 1; padding-bottom: 100px; }
-        .setting-item { margin-bottom: 20px; background: var(--header-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); }
-        .setting-item label { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; font-size: 14px; }
-        .setting-item input[type="text"], .setting-item input[type="number"] { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 5px; background: var(--bg-color); color: var(--text-color); font-size: 14px;}
-        .setting-item input[type="range"] { width: 100%; margin: 10px 0; }
-        .switch-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .toggle { appearance: none; width: 44px; height: 24px; background: #ddd; border-radius: 12px; position: relative; outline: none; }
-        .toggle:checked { background: #333; }
-        .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: #fff; border-radius: 50%; transition: 0.3s; }
-        .toggle:checked::after { transform: translateX(20px); }
-
-        /* 音乐 */
-        .music-player { padding: 20px; background: var(--header-bg); text-align: center; border-bottom: 1px solid var(--border-color); }
-        .music-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; }
-        .music-progress { display: flex; align-items: center; gap: 10px; font-size: 12px; margin-bottom: 15px; }
-        .music-progress input { flex: 1; }
-        .music-controls { display: flex; justify-content: center; gap: 25px; }
-        .music-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-color); }
+        /* 通话界面 */
+        #call-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111; z-index: 500; display: none; flex-direction: column; align-items: center; justify-content: center; color: #fff; }
+        #call-overlay.show { display: flex; }
+        .call-avatar { width: 100px; height: 100px; border-radius: 50%; margin-bottom: 20px; }
+        .call-name { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+        .call-status { font-size: 16px; color: #aaa; margin-bottom: 50px; }
+        .call-actions { display: flex; gap: 50px; }
+        .call-btn { width: 60px; height: 60px; border-radius: 50%; border: none; color: #fff; font-size: 16px; cursor: pointer; }
+        .btn-reject { background: #ff3b30; }
+        .btn-answer { background: #4cd964; }
     </style>
 </head>
 <body>
-
-    <!-- 首页 -->
     <div id="home-screen">
         <div class="app-icon" onclick="App.openApp('chat-app')"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg><span>聊天</span></div>
         <div class="app-icon" onclick="App.openApp('cards-app')"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" /></svg><span>字卡库</span></div>
@@ -148,61 +165,44 @@
         <div class="app-icon" onclick="App.openApp('settings-app')"><svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" /></svg><span>设置</span></div>
     </div>
 
-    <!-- 聊天 -->
+    <!-- 聊天页 -->
     <div id="chat-app" class="page">
         <div class="header">
             <div class="back-btn" onclick="App.closeApp('chat-app')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div>
             <div style="flex:1;" id="chat-title">对方</div>
-            <div class="header-right"><div class="header-btn" onclick="Chat.clear()"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" /></svg></div></div>
+            <div class="header-right">
+                <div class="header-btn" onclick="Call.start(false)"><svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></div>
+                <div class="header-btn" onclick="Call.start(true)"><svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg></div>
+                <div class="header-btn" onclick="Chat.clear()"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" /></svg></div>
+            </div>
         </div>
         <div class="chat-area" id="chat-area"></div>
         <div class="typing-status" id="typing-status">对方正在输入...</div>
         
         <div id="extra-panel">
-            <div class="panel-action" onclick="App.openMoneyModal('red')"><div class="icon-box" style="color:#fa5151;"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V6h16v12zM8 10h8v2H8z"/></svg></div><span>红包</span></div>
-            <div class="panel-action" onclick="App.openMoneyModal('transfer')"><div class="icon-box" style="color:#fa9d3b;"><svg viewBox="0 0 24 24"><path d="M21 7.28V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-2.28c.59-.35 1-.98 1-1.72V9c0-.74-.41-1.37-1-1.72zM20 9v6h-7V9h7zM5 19V5h14v2h-6c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h6v2H5z"/><circle cx="16" cy="12" r="1.5"/></svg></div><span>转账</span></div>
+            <div class="panel-action" onclick="App.openMoneyModal('red')"><div class="icon-box" style="color:#fa5151;">🧧</div><span>红包</span></div>
+            <div class="panel-action" onclick="App.openMoneyModal('transfer')"><div class="icon-box" style="color:#fa9d3b;">💸</div><span>转账</span></div>
+            <div class="panel-action" onclick="App.toggleEmoji()"><div class="icon-box">😀</div><span>表情</span></div>
         </div>
+        
         <div id="emoji-panel">
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>表情包</span><span onclick="App.toggleEmoji()" style="cursor:pointer; font-weight:bold;">✕</span></div>
+            <div style="display:flex; justify-content:space-between;"><span>表情包</span><span onclick="App.toggleEmoji()" style="cursor:pointer;">✕</span></div>
             <div class="emoji-grid" id="emoji-grid-panel"></div>
         </div>
 
         <div class="input-area">
             <button class="btn-icon" onclick="App.toggleExtra()"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" /></svg></button>
-            <button class="btn-icon" onclick="App.toggleEmoji()"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" /></svg></button>
             <input type="text" id="msg-input" placeholder="输入消息...">
             <button class="btn-send" onclick="Chat.sendMsg()">发送</button>
         </div>
     </div>
 
-    <!-- 字卡库 -->
-    <div id="cards-app" class="page">
-        <div class="header"><div class="back-btn" onclick="App.closeApp('cards-app')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">字卡库</div></div>
-        <div class="cards-toolbar"><button class="btn-tool" onclick="Cards.add()">+ 单条添加</button></div>
-        <div class="list-container" id="cards-list"></div>
-    </div>
-
-    <!-- 拍一拍 -->
-    <div id="pat-app" class="page">
-        <div class="header"><div class="back-btn" onclick="App.closeApp('pat-app')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">拍一拍</div></div>
-        <div class="cards-toolbar"><button class="btn-tool" onclick="Pat.add()">+ 单条添加</button></div>
-        <div class="list-container" id="pat-list"></div>
-    </div>
-
-    <!-- 表情包 -->
-    <div id="emoji-app" class="page">
-        <div class="header"><div class="back-btn" onclick="App.closeApp('emoji-app')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">表情包</div></div>
-        <div class="cards-toolbar"><button class="btn-tool" onclick="Emoji.add()">+ 添加网络图</button></div>
-        <div class="list-container"><div class="emoji-grid" id="emoji-grid-full" style="grid-template-columns: repeat(4, 1fr); display:grid; gap:10px;"></div></div>
-    </div>
-
-    <!-- 信箱 -->
-    <div id="letter-app" class="page">
-        <div class="header"><div class="back-btn" onclick="App.closeApp('letter-app')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">信箱</div></div>
-        <div class="list-container" id="letters-list"></div>
-    </div>
-
-    <!-- 音乐 -->
+    <!-- 其他功能页 -->
+    <div id="cards-app" class="page"><div class="header"><div class="back-btn" onclick="App.closeApp('cards-app')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">字卡库</div></div><div class="cards-toolbar"><button class="btn-tool" onclick="Cards.add()">+ 单条添加</button></div><div class="list-container" id="cards-list"></div></div>
+    <div id="pat-app" class="page"><div class="header"><div class="back-btn" onclick="App.closeApp('pat-app')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">拍一拍</div></div><div class="cards-toolbar"><button class="btn-tool" onclick="Pat.add()">+ 单条添加</button></div><div class="list-container" id="pat-list"></div></div>
+    <div id="emoji-app" class="page"><div class="header"><div class="back-btn" onclick="App.closeApp('emoji-app')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">表情包</div></div><div class="cards-toolbar"><button class="btn-tool" onclick="Emoji.add()">+ 添加网络图</button></div><div class="list-container"><div class="emoji-grid" id="emoji-grid-full"></div></div></div>
+    <div id="letter-app" class="page"><div class="header"><div class="back-btn" onclick="App.closeApp('letter-app')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">信箱</div></div><div class="cards-toolbar"><button class="btn-tool" onclick="Letters.write()">+ 写信</button></div><div class="list-container" id="letters-list"></div></div>
+    
     <div id="music-app" class="page">
         <div class="header"><div class="back-btn" onclick="App.closeApp('music-app')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">音乐</div></div>
         <div class="music-player">
@@ -214,327 +214,314 @@
         <div class="list-container" id="music-list"></div>
     </div>
 
-    <!-- 设置 -->
+    <!-- 设置页 -->
     <div id="settings-app" class="page">
         <div class="header"><div class="back-btn" onclick="App.closeApp('settings-app')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">设置</div></div>
         <div class="settings-content">
-            <h3 style="font-size:16px; margin-bottom:10px;">钱包与交易逻辑</h3>
+            <h3 style="font-size:16px; margin-bottom:10px;">系统与通知</h3>
+            <div class="setting-item">
+                <div class="switch-row"><label>桌面消息通知</label><input type="checkbox" class="toggle" id="set-notify" onchange="Settings.save()"></div>
+                <div class="switch-row"><label>后台保活</label><input type="checkbox" class="toggle" id="set-keep-alive" onchange="Settings.save()"></div>
+            </div>
+            <h3 style="font-size:16px; margin:20px 0 10px;">钱包与交易逻辑</h3>
             <div class="setting-item">
                 <label>我的余额 (元)</label><input type="number" id="set-my-balance" step="0.01" onchange="Settings.save()">
                 <label style="margin-top:10px;">对方余额 (元)</label><input type="number" id="set-bot-balance" step="0.01" onchange="Settings.save()">
-                <div style="margin-top:10px; font-size:12px; color:#888;">注：对方偶尔会向网站申请增加余额。</div>
-            </div>
-            <div class="setting-item">
-                <label>发红包/转账概率 (%) <span id="val-give">10%</span></label><input type="range" id="set-give-prob" min="0" max="100" value="10" oninput="Settings.save()">
+                <label style="margin-top:10px;">发红包/转账概率 (%) <span id="val-give">10%</span></label><input type="range" id="set-give-prob" min="0" max="100" value="10" oninput="Settings.save()">
                 <label style="margin-top:10px;">收下红包概率 (%) <span id="val-receive">80%</span></label><input type="range" id="set-receive-prob" min="0" max="100" value="80" oninput="Settings.save()">
                 <label style="margin-top:10px;">退回红包概率 (%) <span id="val-return">20%</span></label><input type="range" id="set-return-prob" min="0" max="100" value="20" oninput="Settings.save()">
             </div>
-
             <h3 style="font-size:16px; margin:20px 0 10px;">角色与外观</h3>
             <div class="setting-item">
                 <label>我的名字</label><input type="text" id="set-my-name" onchange="Settings.save()">
                 <label style="margin-top:10px;">对方名字</label><input type="text" id="set-bot-name" onchange="Settings.save()">
                 <div class="switch-row" style="margin-top:15px;"><label>显示头像</label><input type="checkbox" class="toggle" id="set-show-avatar" onchange="Settings.save()"></div>
                 <div class="switch-row"><label>显示已读</label><input type="checkbox" class="toggle" id="set-show-read" onchange="Settings.save()"></div>
+                <div class="switch-row"><label>音效开关</label><input type="checkbox" class="toggle" id="set-sound" onchange="Settings.save()"></div>
             </div>
-            
-            <button class="btn-confirm" style="width:100%; padding:15px; border-radius:10px; margin-top:20px; margin-bottom:50px;" onclick="Settings.save(); App.toast('已保存')">保存设置</button>
+            <div class="setting-item">
+                <label>字体大小 (<span id="val-size">16</span>px)</label><input type="range" id="set-font-size" min="12" max="24" value="16" oninput="document.getElementById('val-size').innerText=this.value; Settings.save();">
+                <label style="margin-top:10px;">自定义字体 (如 '楷体')</label><input type="text" id="set-font-url" onchange="Settings.save()">
+                <label style="margin-top:10px;">气泡 CSS</label><input type="text" id="set-bubble-css" placeholder="如: background: red;" onchange="Settings.save()">
+            </div>
+            <h3 style="font-size:16px; margin:20px 0 10px;">聊天与通话概率</h3>
+            <div class="setting-item">
+                <label>主动发消息间隔 (分，0关)</label><div style="display:flex; gap:10px;"><input type="number" id="set-proactive-min" min="0" placeholder="最小" onchange="Settings.save()"><input type="number" id="set-proactive-max" min="0" placeholder="最大" onchange="Settings.save()"></div>
+                <label style="margin-top:10px;">已读不回 (%) <span id="val-ignore">20%</span></label><input type="range" id="set-ignore" min="0" max="100" value="20" oninput="Settings.save()">
+                <label style="margin-top:10px;">引用回复 (%) <span id="val-quote">30%</span></label><input type="range" id="set-quote" min="0" max="100" value="30" oninput="Settings.save()">
+                <label style="margin-top:10px;">主动拍一拍 (%) <span id="val-pat">10%</span></label><input type="range" id="set-pat-prob" min="0" max="100" value="10" oninput="Settings.save()">
+                <label style="margin-top:10px;">对方来电 (%) <span id="val-call">5%</span></label><input type="range" id="set-call-prob" min="0" max="100" value="5" oninput="Settings.save()">
+                <label style="margin-top:10px;">对方接听 (%) <span id="val-answer">80%</span></label><input type="range" id="set-answer-prob" min="0" max="100" value="80" oninput="Settings.save()">
+            </div>
+            <h3 style="font-size:16px; margin:20px 0 10px;">写信逻辑</h3>
+            <div class="setting-item">
+                <label>主动写信间隔 (分，0关)</label><div style="display:flex; gap:10px;"><input type="number" id="set-letter-min" min="0" placeholder="最小" onchange="Settings.save()"><input type="number" id="set-letter-max" min="0" placeholder="最大" onchange="Settings.save()"></div>
+                <label style="margin-top:10px;">主动写信 (%) <span id="val-letter">10%</span></label><input type="range" id="set-letter-prob" min="0" max="100" value="10" oninput="Settings.save()">
+                <label style="margin-top:10px;">回信 (%) <span id="val-reply">80%</span></label><input type="range" id="set-reply-prob" min="0" max="100" value="80" oninput="Settings.save()">
+            </div>
+            <button class="btn-confirm" style="width:100%; padding:15px; border-radius:10px; margin-top:20px; margin-bottom:50px;" onclick="Settings.save(); App.toast('设置已生效')">保存所有设置</button>
         </div>
     </div>
 
-    <!-- 弹窗 -->
+    <!-- 弹窗和遮罩 -->
     <div id="action-sheet" onclick="App.hideSheet(event)"><div id="action-content" onclick="event.stopPropagation()"></div></div>
     
     <div id="money-modal" class="modal">
         <div class="modal-content">
             <h3 id="money-modal-title" style="text-align:center;">发红包</h3>
-            <input type="number" id="money-amount" placeholder="金额 (元)" step="0.01">
+            <input type="number" id="money-amount" placeholder="金额 (元，支持小数点)" step="0.01">
             <input type="text" id="money-note" placeholder="备注（可留空）">
-            <div style="font-size:12px; color:#888;">提示：对方回复时，系统会自动从字卡库抽取一句作为备注。</div>
-            <div class="modal-btns"><button class="btn-cancel" onclick="App.closeModal('money-modal')">取消</button><button class="btn-confirm" onclick="Chat.sendMoney()">塞钱进红包</button></div>
+            <div class="modal-btns"><button class="btn-cancel" onclick="App.closeModal('money-modal')">取消</button><button class="btn-confirm" onclick="Chat.sendMoney()">确定</button></div>
+        </div>
+    </div>
+
+    <div id="call-overlay">
+        <img id="call-avatar" class="call-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=bot">
+        <div id="call-name" class="call-name">对方</div>
+        <div id="call-status" class="call-status">正在呼叫...</div>
+        <div class="call-actions" id="call-actions">
+            <button class="call-btn btn-reject" onclick="Call.hangup()">挂断</button>
         </div>
     </div>
 
     <script>
-        // 彻底更换版本号，强制清空历史脏数据，杜绝白屏！
-        const DB_KEY = 'app_v17_final_safe';
-
+        const DB_KEY = 'love_app_v18_final';
+        
         const App = {
             data: {
-                messages: [],
-                cards: ['你好', '晚安', '今天过得怎么样？'],
-                pats: ['拍了拍', '抱了抱你'],
-                emojis: [],
-                letters: [],
-                music: [], currentMusicIdx: -1,
+                messages: [], cards: ['你好', '晚安'], pats: ['拍了拍', '抱了抱你'], emojis: [], letters: [], music: [], currentMusicIdx: -1,
                 wallet: { my: 520.22, bot: 100.00 },
                 settings: {
-                    myName: '我', botName: '对方', showAvatar: true, showRead: true,
-                    giveProb: 10, receiveProb: 80, returnProb: 20
+                    myName: '我', botName: '对方', showAvatar: true, showRead: true, sound: true, fontSize: 16, fontUrl: '', bubbleCss: '', desktopNotify: false, keepAlive: false,
+                    giveProb: 10, receiveProb: 80, returnProb: 20, proactiveMin: 0, proactiveMax: 0, ignoreProb: 20, quoteProb: 30, patProb: 10, callProb: 5, answerProb: 80, letterMin: 0, letterMax: 0, letterProb: 10, replyProb: 80
                 }
             },
-            
+            timers: [],
             init: function() {
-                try { 
-                    const saved = localStorage.getItem(DB_KEY); 
-                    if(saved) { 
-                        const p = JSON.parse(saved); 
-                        this.data = { ...this.data, ...p, settings: { ...this.data.settings, ...p.settings }, wallet: { ...this.data.wallet, ...p.wallet } }; 
-                    } 
-                } catch(e) { console.warn('数据恢复失败，已重置'); }
-                
-                Chat.init(); 
-                Settings.init(); 
-                Music.init(); 
-                Cards.render(); 
-                Pat.render(); 
-                Emoji.render();
-                
-                // 后台随机触发逻辑
+                try { const saved = localStorage.getItem(DB_KEY); if(saved) { const p = JSON.parse(saved); this.data = { ...this.data, ...p, settings: { ...this.data.settings, ...p.settings }, wallet: { ...this.data.wallet, ...p.wallet } }; } } catch(e) {}
+                this.applyStyles(); Chat.init(); Settings.init(); Music.init(); Cards.render(); Pat.render(); Emoji.render(); Letters.render();
+                this.setupTimers();
                 setInterval(() => this.backgroundTasks(), 60000);
             },
-            
             save: function() { try { localStorage.setItem(DB_KEY, JSON.stringify(this.data)); } catch(e) {} },
-            
             openApp: function(id) { document.getElementById(id).classList.add('active'); if(id==='chat-app') Chat.render(); },
             closeApp: function(id) { document.getElementById(id).classList.remove('active'); },
-            toggleExtra: function() { document.getElementById('extra-panel').classList.toggle('show'); },
+            toggleExtra: function() { document.getElementById('extra-panel').classList.toggle('show'); document.getElementById('emoji-panel').classList.remove('show'); },
             toggleEmoji: function() {
-                const p = document.getElementById('emoji-panel');
-                p.classList.toggle('show');
-                if(p.classList.contains('show')) {
-                    document.getElementById('emoji-grid-panel').innerHTML = App.data.emojis.map(url => `<img src="${url}" onclick="Chat.sendImg('${url}')">`).join('') || '<div style="text-align:center;color:#888;width:100%;grid-column:1/-1;">暂无表情包</div>';
-                }
+                const p = document.getElementById('emoji-panel'); p.classList.toggle('show'); document.getElementById('extra-panel').classList.remove('show');
+                if(p.classList.contains('show')) document.getElementById('emoji-grid-panel').innerHTML = App.data.emojis.map(u => `<img src="${u}" onclick="Chat.sendImg('${u}')">`).join('') || '<div style="text-align:center;width:100%;color:#888;">暂无表情</div>';
             },
             showSheet: function(html) { document.getElementById('action-content').innerHTML = html; document.getElementById('action-sheet').classList.add('show'); },
             hideSheet: function(e) { if(e.target.id==='action-sheet') document.getElementById('action-sheet').classList.remove('show'); },
             closeModal: function(id) { document.getElementById(id).classList.remove('show'); },
             toast: function(msg) { const d=document.createElement('div'); d.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:#fff;padding:10px 20px;border-radius:8px;z-index:9999;font-size:14px;'; d.innerText=msg; document.body.appendChild(d); setTimeout(()=>d.remove(), 1500); },
-
             openMoneyModal: function(type) {
                 document.getElementById('money-modal-title').innerText = type === 'red' ? '发红包' : '转账';
                 document.getElementById('money-modal-title').dataset.type = type;
-                document.getElementById('money-amount').value = '';
-                document.getElementById('money-note').value = '';
+                document.getElementById('money-amount').value = ''; document.getElementById('money-note').value = '';
                 document.getElementById('money-modal').classList.add('show');
             },
-
-            backgroundTasks: function() {
-                if (Math.random() < 0.05) {
-                    const amt = (Math.random() * 100 + 10).toFixed(2);
-                    Chat.pushMsg({ role: 'system', content: `对方发送了余额申请，网站已批准并向对方钱包发放了 ${amt} 元。`, time: Date.now() });
-                    this.data.wallet.bot = (parseFloat(this.data.wallet.bot) + parseFloat(amt)).toFixed(2);
-                    this.save();
-                    if (document.getElementById('chat-app').classList.contains('active')) Chat.render();
+            applyStyles: function() {
+                const s = this.data.settings;
+                document.documentElement.style.setProperty('--font-size-base', s.fontSize + 'px');
+                document.documentElement.style.setProperty('--custom-font', s.fontUrl || '"SimSun", "Songti SC", serif');
+                document.documentElement.style.setProperty('--custom-bubble-css', s.bubbleCss || ' ');
+            },
+            setupTimers: function() {
+                this.timers.forEach(clearTimeout); this.timers = [];
+                const s = this.data.settings;
+                // 主动发消息
+                if(s.proactiveMin > 0) {
+                    const schedule = () => {
+                        const d = (Math.random()*(s.proactiveMax-s.proactiveMin)+s.proactiveMin)*60000;
+                        this.timers.push(setTimeout(() => {
+                            Chat.pushMsg({role:'other', content: App.data.cards[Math.floor(Math.random()*App.data.cards.length)]||'嗯', time: Date.now()});
+                            if(document.getElementById('chat-app').classList.contains('active')) Chat.render();
+                            if(s.desktopNotify && Notification.permission === 'granted') new Notification(s.botName, {body: '发来一条消息'});
+                            schedule();
+                        }, d));
+                    }; schedule();
                 }
-                if (Math.random() * 100 < this.data.settings.giveProb) {
-                    const amt = (Math.random() * 50 + 1).toFixed(2);
-                    Chat.pushMsg({ role: 'other', type: 'red', amount: amt, note: '给你个红包', status: 'unread', time: Date.now() });
-                    if (document.getElementById('chat-app').classList.contains('active')) Chat.render();
+                // 主动来信
+                if(s.letterMin > 0) {
+                    const schedule = () => {
+                        const d = (Math.random()*(s.letterMax-s.letterMin)+s.letterMin)*60000;
+                        this.timers.push(setTimeout(() => { if(Math.random()*100 < s.letterProb) Letters.receive(); schedule(); }, d));
+                    }; schedule();
+                }
+                // 主动来电
+                if(s.callProb > 0) {
+                    this.timers.push(setInterval(() => { if(Math.random()*100 < s.callProb) Call.start(false, true); }, 60000));
+                }
+            },
+            backgroundTasks: function() {
+                if(Math.random() < 0.05) {
+                    const amt = (Math.random()*100+10).toFixed(2);
+                    Chat.pushMsg({role:'system', content:`对方申请了余额，网站下发了 ${amt} 元`, time: Date.now()});
+                    this.data.wallet.bot = (parseFloat(this.data.wallet.bot)+parseFloat(amt)).toFixed(2);
+                    this.save(); if(document.getElementById('chat-app').classList.contains('active')) Chat.render();
                 }
             }
         };
 
         const Chat = {
             init: function() { this.render(); },
-            clear: function() { if(confirm('清空聊天记录？')) { App.data.messages = []; this.render(); App.save(); } },
-            pushMsg: function(msg) { App.data.messages.push(msg); App.save(); },
-            
+            clear: function() { if(confirm('清空记录？')) { App.data.messages = []; this.render(); App.save(); } },
+            pushMsg: function(m) { App.data.messages.push(m); App.save(); },
             sendMsg: function() {
-                const i = document.getElementById('msg-input');
-                if(!i.value.trim()) return;
-                App.data.messages.push({ role: 'user', content: i.value.trim(), time: Date.now() });
-                i.value = ''; this.render(); App.save();
-                this.autoReply();
+                const i = document.getElementById('msg-input'); if(!i.value.trim()) return;
+                App.data.messages.push({role:'user', content: i.value.trim(), time: Date.now()});
+                i.value=''; this.render(); App.save(); this.autoReply();
             },
-            
-            sendImg: function(url) {
-                App.data.messages.push({ role: 'user', content: url, isImg: true, time: Date.now() });
-                App.toggleEmoji(); this.render(); App.save(); this.autoReply();
+            sendImg: function(url) { App.data.messages.push({role:'user', content:url, isImg:true, time:Date.now()}); App.toggleEmoji(); this.render(); App.save(); this.autoReply(); },
+            autoReply: function() {
+                const s = App.data.settings;
+                if(Math.random()*100 < s.ignoreProb) return; // 已读不回
+                document.getElementById('typing-status').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('typing-status').style.display = 'none';
+                    let m = {role:'other', content: App.data.cards[Math.floor(Math.random()*App.data.cards.length)]||'嗯', time: Date.now()};
+                    if(Math.random()*100 < s.quoteProb && App.data.messages.length>0) {
+                        const u = App.data.messages.filter(x=>x.role==='user');
+                        if(u.length>0) m.quote = u[Math.floor(Math.random()*u.length)].content;
+                    }
+                    this.pushMsg(m); this.render();
+                }, 1500);
             },
-
             sendMoney: function() {
                 const amt = parseFloat(document.getElementById('money-amount').value);
                 const note = document.getElementById('money-note').value.trim();
                 const type = document.getElementById('money-modal-title').dataset.type;
-                if(!amt || amt <= 0) return App.toast('请输入正确金额');
+                if(!amt || amt<=0) return App.toast('金额错误');
                 if(parseFloat(App.data.wallet.my) < amt) return App.toast('余额不足');
-
-                App.data.wallet.my = (parseFloat(App.data.wallet.my) - amt).toFixed(2);
-                App.data.messages.push({ role: 'user', type: type, amount: amt.toFixed(2), note: note || (type === 'red' ? '恭喜发财' : '转账给你'), status: 'unread', time: Date.now() });
+                App.data.wallet.my = (parseFloat(App.data.wallet.my)-amt).toFixed(2);
+                App.data.messages.push({role:'user', type, amount: amt.toFixed(2), note: note||'恭喜发财', status: 'unread', time: Date.now()});
                 App.closeModal('money-modal'); this.render(); App.save();
-                
                 setTimeout(() => {
                     const s = App.data.settings;
-                    if (Math.random() * 100 < s.receiveProb) {
-                        App.data.wallet.bot = (parseFloat(App.data.wallet.bot) + amt).toFixed(2);
-                        let replyNote = App.data.cards.length > 0 && Math.random() < 0.5 ? App.data.cards[Math.floor(Math.random()*App.data.cards.length)] : '';
-                        App.data.messages.push({ role: 'other', type: type, amount: amt.toFixed(2), note: replyNote || '已收款', status: 'opened', time: Date.now() });
-                        this.pushMsg({ role: 'system', content: `对方已收下你的${type === 'red' ? '红包' : '转账'} ${amt.toFixed(2)} 元`, time: Date.now() });
+                    if(Math.random()*100 < s.receiveProb) {
+                        App.data.wallet.bot = (parseFloat(App.data.wallet.bot)+amt).toFixed(2);
+                        const rNote = Math.random()<0.5 && App.data.cards.length>0 ? App.data.cards[Math.floor(Math.random()*App.data.cards.length)] : '已收款';
+                        App.data.messages.push({role:'other', type, amount: amt.toFixed(2), note: rNote, status: 'opened', time: Date.now()});
+                        this.pushMsg({role:'system', content:`对方收下了你的${type==='red'?'红包':'转账'}`, time: Date.now()});
                     } else {
-                        App.data.wallet.my = (parseFloat(App.data.wallet.my) + amt).toFixed(2);
-                        App.data.messages.push({ role: 'system', content: `对方退回了你的${type === 'red' ? '红包' : '转账'} ${amt.toFixed(2)} 元`, time: Date.now() });
+                        App.data.wallet.my = (parseFloat(App.data.wallet.my)+amt).toFixed(2);
+                        this.pushMsg({role:'system', content:`对方退回了你的${type==='red'?'红包':'转账'}`, time: Date.now()});
                     }
                     this.render(); App.save();
                 }, 2000);
             },
-
-            autoReply: function() {
-                document.getElementById('typing-status').style.display = 'block';
-                setTimeout(() => {
-                    document.getElementById('typing-status').style.display = 'none';
-                    const texts = App.data.cards.length > 0 ? App.data.cards : ['好的', '嗯嗯'];
-                    const reply = texts[Math.floor(Math.random()*texts.length)];
-                    this.pushMsg({ role: 'other', content: reply, time: Date.now() });
-                    this.render();
-                }, 1500);
-            },
-
-            openCard: function(index) {
-                const m = App.data.messages[index];
-                if (m.status === 'opened') return App.toast('该笔款项已领取');
-                if (m.role === 'user') return App.toast('等待对方领取');
-
-                m.status = 'opened';
-                App.data.wallet.my = (parseFloat(App.data.wallet.my) + parseFloat(m.amount)).toFixed(2);
-                this.pushMsg({ role: 'system', content: `你已领取了对方的${m.type === 'red' ? '红包' : '转账'} ${m.amount} 元`, time: Date.now() });
+            openCard: function(i) {
+                const m = App.data.messages[i];
+                if(m.status === 'opened') return App.toast('已领取');
+                if(m.role === 'user') return App.toast('等对方领取');
+                m.status = 'opened'; App.data.wallet.my = (parseFloat(App.data.wallet.my)+parseFloat(m.amount)).toFixed(2);
+                this.pushMsg({role:'system', content:`你领取了对方的${m.type==='red'?'红包':'转账'} ${m.amount} 元`, time: Date.now()});
                 this.render(); App.save();
             },
-
             render: function() {
-                const area = document.getElementById('chat-area');
-                const s = App.data.settings;
-                let html = '';
-                
-                // 纯文本渲染，绝对不白屏
+                const s = App.data.settings; let html = '';
                 App.data.messages.forEach((m, i) => {
-                    if(m.role === 'system') {
-                        html += `<div class="sys-msg">${m.content}</div>`;
-                        return;
-                    }
-                    const isMe = m.role === 'user';
-                    const av = s.showAvatar ? `<img class="avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=${isMe?'me':'bot'}">` : '';
-                    
+                    if(m.role === 'system') { html += `<div class="sys-msg">${m.content}</div>`; return; }
+                    const isMe = m.role === 'user'; const av = s.showAvatar ? `<img class="avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=${isMe?'me':'bot'}" ondblclick="Chat.pat(${isMe})">` : '';
                     if(m.type === 'red' || m.type === 'transfer') {
-                        const isOpened = m.status === 'opened' ? 'opened' : '';
-                        const icon = m.type === 'red' ? '🧧' : '💸';
-                        html += `
-                        <div class="msg-row ${m.role}">
-                            ${!isMe ? av : ''}
-                            <div class="msg-content-wrapper">
-                                <div class="msg-name">${isMe?s.myName:s.botName}</div>
-                                <div class="money-card ${m.type} ${isOpened}" onclick="Chat.openCard(${i})">
-                                    <div class="money-card-top">
-                                        <div class="money-icon">${icon}</div>
-                                        <div class="money-info"><h4>${m.note}</h4><p>¥${m.amount}</p></div>
-                                    </div>
-                                    <div class="money-card-bottom">${isOpened ? '已领取' : '点击拆开'}</div>
-                                </div>
-                            </div>
-                            ${isMe ? av : ''}
-                        </div>`;
+                        html += `<div class="msg-row ${m.role}">${!isMe?av:''}<div class="msg-content-wrapper"><div class="msg-name">${isMe?s.myName:s.botName}</div><div class="money-card ${m.type} ${m.status==='opened'?'opened':''}" onclick="Chat.openCard(${i})"><div class="money-card-top"><div class="money-icon">${m.type==='red'?'🧧':'💸'}</div><div class="money-info"><h4>${m.note}</h4><p>¥${m.amount}</p></div></div><div class="money-card-bottom">${m.status==='opened'?'已领取':'点击拆开'}</div></div></div>${isMe?av:''}</div>`;
                     } else {
-                        const content = m.isImg ? `<img src="${m.content}">` : m.content;
-                        html += `
-                        <div class="msg-row ${m.role}">
-                            ${!isMe ? av : ''}
-                            <div class="msg-content-wrapper">
-                                <div class="msg-name">${isMe?s.myName:s.botName}</div>
-                                <div class="msg ${m.role}" onclick="Chat.showActions(${i})">${content}</div>
-                                ${isMe && s.showRead ? `<div class="read-status show">已读</div>` : ''}
-                            </div>
-                            ${isMe ? av : ''}
-                        </div>`;
+                        const c = m.isImg ? `<img src="${m.content}">` : m.content;
+                        const q = m.quote ? `<div class="msg quote">${m.quote}</div>` : '';
+                        html += `<div class="msg-row ${m.role}">${!isMe?av:''}<div class="msg-content-wrapper"><div class="msg-name">${isMe?s.myName:s.botName}</div><div class="msg ${m.role}" onclick="Chat.act(${i})">${q}${c}</div>${isMe&&s.showRead?`<div class="read-status show">已读</div>`:''}</div>${isMe?av:''}</div>`;
                     }
                 });
-                area.innerHTML = html;
-                area.scrollTop = area.scrollHeight;
+                const a = document.getElementById('chat-area'); a.innerHTML = html; a.scrollTop = a.scrollHeight;
             },
-            showActions: function(index) {
-                const m = App.data.messages[index];
-                if(m.role !== 'user') return;
-                App.showSheet(`<div class="action-btn danger" onclick="App.data.messages.splice(${index},1); Chat.render(); App.save(); App.hideSheet({target:{id:'action-sheet'}})">删除</div><div class="action-cancel" onclick="App.hideSheet({target:{id:'action-sheet'}})">取消</div>`);
+            pat: function(isMe) {
+                const s = App.data.settings; const p = App.data.pats[Math.floor(Math.random()*App.data.pats.length)];
+                this.pushMsg({role:'system', content:`${isMe?s.myName:s.botName} ${p} ${isMe?s.botName:s.myName}`, time: Date.now()});
+                this.render();
+            },
+            act: function(i) {
+                if(App.data.messages[i].role !== 'user') return;
+                App.showSheet(`<div class="action-btn danger" onclick="App.data.messages.splice(${i},1); Chat.render(); App.save(); App.hideSheet({target:{id:'action-sheet'}})">删除</div><div class="action-cancel" onclick="App.hideSheet({target:{id:'action-sheet'}})">取消</div>`);
             }
+        };
+
+        const Call = {
+            start: function(isVideo, isIncoming = false) {
+                const s = App.data.settings;
+                document.getElementById('call-name').innerText = s.botName;
+                document.getElementById('call-overlay').classList.add('show');
+                document.getElementById('call-status').innerText = isIncoming ? '邀请你通话...' : '正在呼叫...';
+                const acts = document.getElementById('call-actions');
+                if(isIncoming) acts.innerHTML = `<button class="call-btn btn-reject" onclick="Call.hangup()">拒绝</button><button class="call-btn btn-answer" onclick="Call.answer()">接听</button>`;
+                else acts.innerHTML = `<button class="call-btn btn-reject" onclick="Call.hangup()">挂断</button>`;
+                if(!isIncoming) {
+                    setTimeout(() => {
+                        if(Math.random()*100 < s.answerProb) { document.getElementById('call-status').innerText = '通话中...'; acts.innerHTML = `<button class="call-btn btn-reject" onclick="Call.hangup()">挂断</button>`; }
+                        else { App.toast('对方无应答'); this.hangup(); }
+                    }, 3000);
+                }
+            },
+            answer: function() { document.getElementById('call-status').innerText = '通话中...'; document.getElementById('call-actions').innerHTML = `<button class="call-btn btn-reject" onclick="Call.hangup()">挂断</button>`; },
+            hangup: function() { document.getElementById('call-overlay').classList.remove('show'); }
         };
 
         const Settings = {
             init: function() {
                 const s = App.data.settings, w = App.data.wallet;
-                document.getElementById('set-my-name').value = s.myName || '我';
-                document.getElementById('set-bot-name').value = s.botName || '对方';
-                document.getElementById('set-show-avatar').checked = s.showAvatar;
-                document.getElementById('set-show-read').checked = s.showRead;
-                document.getElementById('set-my-balance').value = w.my;
-                document.getElementById('set-bot-balance').value = w.bot;
-                document.getElementById('set-give-prob').value = s.giveProb;
-                document.getElementById('set-receive-prob').value = s.receiveProb;
-                document.getElementById('set-return-prob').value = s.returnProb;
-                document.getElementById('val-give').innerText = s.giveProb + '%';
-                document.getElementById('val-receive').innerText = s.receiveProb + '%';
-                document.getElementById('val-return').innerText = s.returnProb + '%';
+                const setVal = (id, val) => { const el=document.getElementById(id); if(el) el.value = val; };
+                setVal('set-my-name', s.myName); setVal('set-bot-name', s.botName); setVal('set-my-balance', w.my); setVal('set-bot-balance', w.bot);
+                setVal('set-font-size', s.fontSize); document.getElementById('val-size').innerText = s.fontSize;
+                setVal('set-font-url', s.fontUrl); setVal('set-bubble-css', s.bubbleCss);
+                setVal('set-proactive-min', s.proactiveMin); setVal('set-proactive-max', s.proactiveMax); setVal('set-letter-min', s.letterMin); setVal('set-letter-max', s.letterMax);
+                const setChk = (id, v) => { const el=document.getElementById(id); if(el) el.checked = v; };
+                setChk('set-show-avatar', s.showAvatar); setChk('set-show-read', s.showRead); setChk('set-sound', s.sound); setChk('set-notify', s.desktopNotify); setChk('set-keep-alive', s.keepAlive);
+                const setRng = (id, vId, val) => { document.getElementById(id).value = val; document.getElementById(vId).innerText = val+'%'; };
+                setRng('set-give-prob','val-give',s.giveProb); setRng('set-receive-prob','val-receive',s.receiveProb); setRng('set-return-prob','val-return',s.returnProb);
+                setRng('set-ignore','val-ignore',s.ignoreProb); setRng('set-quote','val-quote',s.quoteProb); setRng('set-pat-prob','val-pat',s.patProb); setRng('set-call-prob','val-call',s.callProb); setRng('set-answer-prob','val-answer',s.answerProb);
+                setRng('set-letter-prob','val-letter',s.letterProb); setRng('set-reply-prob','val-reply',s.replyProb);
             },
             save: function() {
                 const s = App.data.settings, w = App.data.wallet;
-                s.myName = document.getElementById('set-my-name').value || '我';
-                s.botName = document.getElementById('set-bot-name').value || '对方';
-                s.showAvatar = document.getElementById('set-show-avatar').checked;
-                s.showRead = document.getElementById('set-show-read').checked;
-                w.my = parseFloat(document.getElementById('set-my-balance').value || 0).toFixed(2);
-                w.bot = parseFloat(document.getElementById('set-bot-balance').value || 0).toFixed(2);
-                s.giveProb = parseInt(document.getElementById('set-give-prob').value);
-                s.receiveProb = parseInt(document.getElementById('set-receive-prob').value);
-                s.returnProb = parseInt(document.getElementById('set-return-prob').value);
+                const getV = id => { const el=document.getElementById(id); return el?el.value:''; };
+                const getC = id => { const el=document.getElementById(id); return el?el.checked:false; };
+                s.myName = getV('set-my-name')||'我'; s.botName = getV('set-bot-name')||'对方';
+                w.my = parseFloat(getV('set-my-balance')||0).toFixed(2); w.bot = parseFloat(getV('set-bot-balance')||0).toFixed(2);
+                s.showAvatar = getC('set-show-avatar'); s.showRead = getC('set-show-read'); s.sound = getC('set-sound'); s.desktopNotify = getC('set-notify'); s.keepAlive = getC('set-keep-alive');
+                s.fontSize = parseInt(getV('set-font-size')); s.fontUrl = getV('set-font-url'); s.bubbleCss = getV('set-bubble-css');
+                s.proactiveMin = parseInt(getV('set-proactive-min')||0); s.proactiveMax = parseInt(getV('set-proactive-max')||0);
+                s.letterMin = parseInt(getV('set-letter-min')||0); s.letterMax = parseInt(getV('set-letter-max')||0);
+                const getR = id => parseInt(getV(id)||0);
+                s.giveProb=getR('set-give-prob'); s.receiveProb=getR('set-receive-prob'); s.returnProb=getR('set-return-prob');
+                s.ignoreProb=getR('set-ignore'); s.quoteProb=getR('set-quote'); s.patProb=getR('set-pat-prob'); s.callProb=getR('set-call-prob'); s.answerProb=getR('set-answer-prob');
+                s.letterProb=getR('set-letter-prob'); s.replyProb=getR('set-reply-prob');
                 
-                document.getElementById('val-give').innerText = s.giveProb + '%';
-                document.getElementById('val-receive').innerText = s.receiveProb + '%';
-                document.getElementById('val-return').innerText = s.returnProb + '%';
-
-                App.save(); Chat.render();
-                document.getElementById('chat-title').innerText = s.botName;
+                document.getElementById('val-size').innerText = s.fontSize; document.getElementById('chat-title').innerText = s.botName;
+                App.applyStyles(); App.save(); App.setupTimers(); Chat.render();
             }
         };
 
-        const Cards = {
-            render: function() { document.getElementById('cards-list').innerHTML = App.data.cards.map((c,i) => `<div class="card-item"><span>${c}</span><button onclick="App.data.cards.splice(${i},1); Cards.render(); App.save();" style="color:red; border:none; background:none;">删除</button></div>`).join(''); },
-            add: function() { const val = prompt('输入字卡'); if(val) { App.data.cards.push(val); this.render(); App.save(); } }
+        const Cards = { render: function() { document.getElementById('cards-list').innerHTML = App.data.cards.map((c,i) => `<div class="card-item"><span>${c}</span><button onclick="App.data.cards.splice(${i},1); Cards.render(); App.save();" style="color:red;border:none;background:none;">删除</button></div>`).join(''); }, add: function() { const v = prompt('输入字卡'); if(v) { App.data.cards.push(v); this.render(); App.save(); } } };
+        const Pat = { render: function() { document.getElementById('pat-list').innerHTML = App.data.pats.map((p,i) => `<div class="card-item"><span>${p}</span><button onclick="App.data.pats.splice(${i},1); Pat.render(); App.save();" style="color:red;border:none;background:none;">删除</button></div>`).join(''); }, add: function() { const v = prompt('输入拍一拍'); if(v) { App.data.pats.push(v); this.render(); App.save(); } } };
+        const Emoji = { render: function() { document.getElementById('emoji-grid-full').innerHTML = App.data.emojis.map((u,i) => `<div style="position:relative"><img src="${u}" style="width:100%;aspect-ratio:1;border-radius:8px;border:1px solid #ccc;"><button onclick="App.data.emojis.splice(${i},1); Emoji.render(); App.save();" style="position:absolute;top:0;right:0;background:red;color:white;border:none;border-radius:50%;width:20px;height:20px;">×</button></div>`).join(''); }, add: function() { const v = prompt('输入图片URL'); if(v) { App.data.emojis.push(v); this.render(); App.save(); } } };
+        
+        const Letters = {
+            render: function() { document.getElementById('letters-list').innerHTML = App.data.letters.map(l => `<div class="card-item"><div><b>${l.title}</b><br><span style="font-size:12px;color:#888;">${l.content.slice(0,10)}...</span></div></div>`).join('') || '<div style="text-align:center;padding:20px;color:#888;">暂无信件</div>'; },
+            write: function() { const t = prompt('信件标题'); if(!t) return; const c = prompt('信件内容'); if(!c) return; App.data.letters.push({title:t, content:c}); this.render(); App.save(); if(Math.random()*100 < App.data.settings.replyProb) setTimeout(() => this.receive(), 2000); },
+            receive: function() { App.data.letters.push({title:'回信', content: App.data.cards[Math.floor(Math.random()*App.data.cards.length)]||'收到你的信了'}); this.render(); App.save(); App.toast('收到一封信'); }
         };
-        const Pat = {
-            render: function() { document.getElementById('pat-list').innerHTML = App.data.pats.map((p,i) => `<div class="card-item"><span>${p}</span><button onclick="App.data.pats.splice(${i},1); Pat.render(); App.save();" style="color:red; border:none; background:none;">删除</button></div>`).join(''); },
-            add: function() { const val = prompt('输入拍一拍'); if(val) { App.data.pats.push(val); this.render(); App.save(); } }
-        };
-        const Emoji = {
-            render: function() { document.getElementById('emoji-grid-full').innerHTML = App.data.emojis.map((url,i) => `<div style="position:relative"><img src="${url}" style="width:100%; aspect-ratio:1; border-radius:8px; border:1px solid #ccc;"><button onclick="App.data.emojis.splice(${i},1); Emoji.render(); App.save();" style="position:absolute; top:0; right:0; background:red; color:white; border:none; border-radius:50%; width:20px; height:20px;">×</button></div>`).join(''); },
-            add: function() { const url = prompt('输入图片URL'); if(url) { App.data.emojis.push(url); this.render(); App.save(); } }
-        };
+
         const Music = {
             audio: new Audio(),
-            init: function() {
-                this.audio.addEventListener('timeupdate', () => {
-                    if(!this.audio.duration) return;
-                    document.getElementById('music-bar').value = (this.audio.currentTime / this.audio.duration) * 100;
-                    document.getElementById('music-cur-time').innerText = this.format(this.audio.currentTime);
-                    document.getElementById('music-total-time').innerText = this.format(this.audio.duration);
-                });
-                this.audio.addEventListener('ended', () => this.playNext());
-                this.renderList();
-            },
-            format: function(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${Math.floor(s%60).toString().padStart(2,'0')}`; },
-            addSong: function() { const url = document.getElementById('music-url-input').value.trim(); if(!url) return; App.data.music.push({ name: '音乐 ' + (App.data.music.length+1), url }); document.getElementById('music-url-input').value = ''; this.renderList(); App.save(); },
-            renderList: function() { document.getElementById('music-list').innerHTML = App.data.music.map((m, i) => `<div class="card-item"><span>${m.name}</span><button onclick="Music.play(${i})">播放</button></div>`).join(''); },
+            init: function() { this.audio.addEventListener('timeupdate', () => { if(!this.audio.duration) return; document.getElementById('music-bar').value = (this.audio.currentTime / this.audio.duration)*100; document.getElementById('music-cur-time').innerText = this.fmt(this.audio.currentTime); document.getElementById('music-total-time').innerText = this.fmt(this.audio.duration); }); this.audio.addEventListener('ended', () => this.next()); this.render(); },
+            fmt: function(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${Math.floor(s%60).toString().padStart(2,'0')}`; },
+            add: function() { const u = document.getElementById('music-url-input').value.trim(); if(!u) return; App.data.music.push({name: '音乐 ' + (App.data.music.length+1), url: u}); document.getElementById('music-url-input').value=''; this.render(); App.save(); },
+            render: function() { document.getElementById('music-list').innerHTML = App.data.music.map((m,i) => `<div class="card-item"><span>${m.name}</span><button onclick="Music.play(${i})">播放</button></div>`).join(''); },
             play: function(i) { App.data.currentMusicIdx = i; this.audio.src = App.data.music[i].url; this.audio.play(); document.getElementById('music-title').innerText = App.data.music[i].name; document.getElementById('btn-play').innerText = '⏸'; },
             togglePlay: function() { if(!this.audio.src) return; if(this.audio.paused) { this.audio.play(); document.getElementById('btn-play').innerText = '⏸'; } else { this.audio.pause(); document.getElementById('btn-play').innerText = '▶'; } },
-            playNext: function() { if(App.data.music.length === 0) return; let next = App.data.currentMusicIdx + 1; if(next >= App.data.music.length) next = 0; this.play(next); }
+            next: function() { if(App.data.music.length===0) return; let n = App.data.currentMusicIdx+1; if(n>=App.data.music.length) n=0; this.play(n); }
         };
 
-        // 启动入口，全局包裹 try-catch 防白屏
-        window.onload = function() { 
-            try {
-                App.init(); 
-            } catch(e) {
-                console.error(e);
-                alert("初始化出现异常，请尝试刷新或清除缓存：" + e.message);
-            }
-        };
+        window.onload = function() { try { App.init(); } catch(e) { console.error(e); } };
     </script>
 </body>
 </html>
