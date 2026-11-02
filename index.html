@@ -91,6 +91,7 @@
         .msg-row.user .msg-header { justify-content: flex-end; }
         .msg-name { font-size: 12px; color: #888; margin-left: 2px; }
 
+        /* 基础气泡样式（自定义CSS会覆盖这里） */
         .msg {
             padding: 10px 14px; border-radius: 12px;
             line-height: 1.5; word-break: break-all;
@@ -114,6 +115,30 @@
         #quote-preview { display: none; background: var(--header-bg); padding: 8px 15px; font-size: 13px; color: #666; border-top: 1px solid var(--border-color); align-items: center; justify-content: space-between; flex-shrink: 0;}
         #quote-preview span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
         #quote-preview button { background: none; border: none; cursor: pointer; color: var(--text-color); }
+
+        /* --- 问问TA 问卷卡片样式 --- */
+        .survey-card {
+            background: var(--bubble-other); border: 1px solid var(--border-color);
+            border-radius: 16px; padding: 15px; width: 280px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer;
+        }
+        .survey-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .survey-tag { border: 1px solid var(--text-color); border-radius: 12px; padding: 2px 8px; font-size: 12px; font-weight: bold; }
+        .survey-status { font-size: 12px; color: var(--accent); }
+        .survey-question { font-size: 15px; font-weight: bold; margin-bottom: 15px; line-height: 1.4; }
+        .survey-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        .survey-option {
+            display: flex; align-items: center; border: 1px solid var(--border-color);
+            border-radius: 8px; padding: 10px; font-size: 14px; background: var(--bg-color);
+            position: relative; transition: 0.2s;
+        }
+        .survey-option.selected { background: var(--header-bg); border-color: var(--accent); font-weight: bold; }
+        .survey-opt-key { margin-right: 10px; font-weight: bold; width: 15px; text-align: center; }
+        .survey-radio { width: 16px; height: 16px; border: 1.5px solid var(--accent); border-radius: 50%; margin-right: 10px; flex-shrink: 0; display: flex; justify-content: center; align-items: center;}
+        .survey-option.selected .survey-radio { border-color: var(--text-color); }
+        .survey-option.selected .survey-radio::after { content: ''; width: 8px; height: 8px; background: var(--text-color); border-radius: 50%; }
+        .survey-check { margin-left: auto; font-size: 16px; font-weight: bold; }
+        .survey-footer { font-size: 12px; color: var(--accent); }
 
         /* 输入框区域 */
         .input-area {
@@ -210,7 +235,7 @@
 
         .letter-content { white-space: pre-wrap; line-height: 1.6; font-size: 15px; padding: 10px; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); min-height: 200px;}
 
-        /* 问问TA */
+        /* 问问TA 弹窗 */
         .ask-tabs { display: flex; background: var(--bg-color); border-radius: 8px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border-color);}
         .ask-tab { flex: 1; text-align: center; padding: 8px 0; font-size: 14px; cursor: pointer; border-radius: 6px; color: var(--accent); transition: 0.2s; font-weight: bold;}
         .ask-tab.active { background: var(--header-bg); color: var(--text-color); box-shadow: 0 1px 3px rgba(0,0,0,0.1);}
@@ -538,6 +563,10 @@
         </div>
     </div>
 
+    <!-- 动态样式注入区 -->
+    <style id="dynamic-font-style"></style>
+    <style id="dynamic-bubble-style"></style>
+
 <script>
 // ===================== 核心应用数据 =====================
 const App = {
@@ -565,12 +594,12 @@ const App = {
     saveData: function() {
         clearTimeout(this.saveTimeout);
         this.saveTimeout = setTimeout(() => {
-            try { localStorage.setItem('appData_v9', JSON.stringify(this.data)); } catch(e) {}
+            try { localStorage.setItem('appData_v10', JSON.stringify(this.data)); } catch(e) {}
         }, 300);
     },
     loadData: function() {
         try {
-            const stored = localStorage.getItem('appData_v9') || localStorage.getItem('appData_v8');
+            const stored = localStorage.getItem('appData_v10') || localStorage.getItem('appData_v9');
             if (stored) {
                 const parsed = JSON.parse(stored);
                 this.data = { ...this.data, ...parsed, settings: { ...this.data.settings, ...(parsed.settings || {}) } };
@@ -725,7 +754,6 @@ const Chat = {
             const row = document.createElement('div');
             row.className = `msg-row ${msg.role}`;
             const isMe = msg.role === 'user';
-            // 实时读取
             const avatarUrl = isMe ? s.myAvatar : (msg.senderAvatar || s.botAvatar);
             const name = isMe ? s.myName : (msg.senderName || s.botName);
             
@@ -739,8 +767,6 @@ const Chat = {
             }
             
             let nameHtml = s.showName ? `<div class="msg-name">${name}</div>` : '';
-            let quoteHtml = msg.quote ? `<div class="msg quote">${msg.quote.content}</div>` : '';
-            let contentHtml = msg.isImg ? `<img src="${msg.content}">` : msg.content;
             let readHtml = (isMe && s.showRead) ? `<div class="read-status show">已读</div>` : '';
             
             let timeHtml = '';
@@ -749,25 +775,57 @@ const Chat = {
             } else if (timeDisplay === 'click') {
                 timeHtml = `<div class="msg-time-bottom">${timeStr}</div>`;
             }
-            
+
+            // --- 核心：判断是否为问卷卡片 ---
+            let contentHtml = '';
+            if (msg.type === 'survey') {
+                let optsHtml = msg.options.map((opt, i) => {
+                    const isSelected = opt.selected;
+                    return `<div class="survey-option ${isSelected ? 'selected' : ''}">
+                        <div class="survey-opt-key">${String.fromCharCode(65 + i)}</div>
+                        <div class="survey-radio"></div>
+                        <div>${opt.text}</div>
+                        ${isSelected ? '<div class="survey-check">✓</div>' : ''}
+                    </div>`;
+                }).join('');
+                
+                contentHtml = `<div class="survey-card" data-id="${msg.id}">
+                    <div class="survey-header">
+                        <div class="survey-tag">问问TA</div>
+                        <div class="survey-status">已回答</div>
+                    </div>
+                    <div class="survey-question">${msg.question}</div>
+                    <div class="survey-options">${optsHtml}</div>
+                    <div class="survey-footer">${App.data.settings.botName} 选了「${msg.selectedText}」</div>
+                </div>`;
+            } else {
+                let quoteHtml = msg.quote ? `<div class="msg quote">${msg.quote.content}</div>` : '';
+                let body = msg.isImg ? `<img src="${msg.content}">` : msg.content;
+                contentHtml = `<div class="msg ${msg.role}" data-id="${msg.id}">${quoteHtml}${body}</div>`;
+            }
+
             row.innerHTML = `
                 ${!isMe ? avatarHtml : ''}
                 <div class="msg-content-wrapper">
                     <div class="msg-header">${nameHtml}</div>
-                    <div class="msg ${msg.role}" data-id="${msg.id}">${quoteHtml}${contentHtml}</div>
+                    ${contentHtml}
                     ${timeHtml}${readHtml}
                 </div>
                 ${isMe ? avatarHtml : ''}
             `;
             
-            const bubble = row.querySelector('.msg');
-            bubble.onclick = () => {
-                if (s.timeDisplay === 'click') {
-                    const t = bubble.nextElementSibling;
-                    if(t && t.classList.contains('msg-time-bottom')) t.classList.toggle('show');
-                }
-                this.showMsgActions(msg, bubble);
-            };
+            // 事件绑定：普通消息和卡片的消息点击行为
+            const targetEl = row.querySelector('.msg') || row.querySelector('.survey-card');
+            if(targetEl) {
+                targetEl.onclick = () => {
+                    if (s.timeDisplay === 'click' && targetEl.classList.contains('msg')) {
+                        const t = targetEl.nextElementSibling;
+                        if(t && t.classList.contains('msg-time-bottom')) t.classList.toggle('show');
+                    }
+                    this.showMsgActions(msg, targetEl);
+                };
+            }
+
             fragment.appendChild(row);
         });
         
@@ -803,15 +861,17 @@ const Chat = {
             content.appendChild(btnCard);
         }
         
-        const btnQuote = document.createElement('div');
-        btnQuote.className = 'action-btn'; btnQuote.innerText = '引用';
-        btnQuote.onclick = () => {
-            this.quoteMsg = msg;
-            document.getElementById('quote-preview').style.display = 'flex';
-            document.getElementById('quote-text').innerText = msg.isImg ? '[图片]' : msg.content;
-            sheet.classList.remove('show');
-        };
-        content.appendChild(btnQuote);
+        if (msg.type !== 'survey') {
+            const btnQuote = document.createElement('div');
+            btnQuote.className = 'action-btn'; btnQuote.innerText = '引用';
+            btnQuote.onclick = () => {
+                this.quoteMsg = msg;
+                document.getElementById('quote-preview').style.display = 'flex';
+                document.getElementById('quote-text').innerText = msg.isImg ? '[图片]' : msg.content;
+                sheet.classList.remove('show');
+            };
+            content.appendChild(btnQuote);
+        }
         
         const btnDel = document.createElement('div');
         btnDel.className = 'action-btn danger'; btnDel.innerText = '删除';
@@ -880,7 +940,7 @@ const Chat = {
             let replyMsg = { id: Date.now(), role: 'other', content: replyText, time: Date.now() };
             
             if (!isProactive && userText && Math.random() * 100 < s.quoteProb) {
-                const recentUserMsgs = App.data.messages.filter(m => m.role === 'user').slice(-10);
+                const recentUserMsgs = App.data.messages.filter(m => m.role === 'user' && m.type !== 'survey').slice(-10);
                 if (recentUserMsgs.length > 0) {
                     const q = recentUserMsgs[Math.floor(Math.random() * recentUserMsgs.length)];
                     replyMsg.quote = { id: q.id, content: q.isImg ? '[图片]' : q.content };
@@ -1354,12 +1414,8 @@ const Settings = {
         const s = App.data.settings;
         document.documentElement.style.setProperty('--font-size-base', s.fontSize + 'px');
         
-        let fontStyle = document.getElementById('custom-font-style');
-        if (!fontStyle) {
-            fontStyle = document.createElement('style');
-            fontStyle.id = 'custom-font-style';
-            document.head.appendChild(fontStyle);
-        }
+        // 1. 字体注入
+        const fontStyle = document.getElementById('dynamic-font-style');
         if (s.fontUrl) {
             if (s.fontUrl.startsWith('http')) {
                 fontStyle.innerHTML = `@import url('${s.fontUrl}'); * { font-family: 'CustomFont', sans-serif !important; }`;
@@ -1370,20 +1426,22 @@ const Settings = {
             fontStyle.innerHTML = '';
         }
 
-        let bubbleStyle = document.getElementById('custom-bubble-style');
-        if (!bubbleStyle) {
-            bubbleStyle = document.createElement('style');
-            bubbleStyle.id = 'custom-bubble-style';
-            document.head.appendChild(bubbleStyle);
+        // 2. 气泡CSS注入
+        const bubbleStyle = document.getElementById('dynamic-bubble-style');
+        if (s.bubbleCss) {
+            bubbleStyle.innerHTML = `.msg { ${s.bubbleCss} !important; }`;
+        } else {
+            bubbleStyle.innerHTML = '';
         }
-        bubbleStyle.innerHTML = `.msg { ${s.bubbleCss} }`;
         
+        // 3. 背景
         if (s.bgImage) {
             document.getElementById('chat-area').style.backgroundImage = `url(${s.bgImage})`;
         } else {
             document.getElementById('chat-area').style.backgroundImage = 'none';
         }
         
+        // 4. 主题
         if (s.theme === 'dark' || (s.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.setAttribute('data-theme', 'dark');
         } else {
@@ -1419,7 +1477,7 @@ const Settings = {
                     App.saveData();
                     if (document.getElementById('chat-app').style.display === 'flex') Chat.render();
                 }
-                this.setupTimers(); // 循环
+                this.setupTimers(); 
             }, delay);
         }
 
@@ -1430,11 +1488,11 @@ const Settings = {
                 if (Math.random() < (s.letterProb / 100)) {
                     Letters.receiveLetter(false);
                 }
-                this.setupTimers(); // 循环
+                this.setupTimers(); 
             }, delay);
         }
 
-        // 主动来电 (随机，每分钟判定一次)
+        // 主动来电
         if (s.callProb > 0) {
             if (Math.random() < (s.callProb / 100)) {
                 if (!document.getElementById('call-overlay').classList.contains('show')) {
@@ -1539,7 +1597,7 @@ const Settings = {
                 };
             }
         };
-        bindSlider('slider-font-size', 'val-font-size', 'fontSize'); // 字体特殊，但逻辑通用
+        bindSlider('slider-font-size', 'val-font-size', 'fontSize'); 
         document.getElementById('val-font-size').innerText = App.data.settings.fontSize; 
         document.getElementById('slider-font-size').oninput = (e) => {
             const v = parseInt(e.target.value);
@@ -1564,7 +1622,7 @@ const Settings = {
             try { App.data.settings.groupMembers = JSON.parse(e.target.value || '[]'); this.saveAndApply(); } catch(err) { App.toast('JSON格式错误'); }
         };
 
-        // 保存按钮 (全部走实时保存，此按钮作为兜底及提示)
+        // 保存按钮
         document.getElementById('btn-save-settings').onclick = () => {
             this.saveAndApply();
             App.toast('所有设置已保存并实时生效');
@@ -1589,3 +1647,93 @@ const Settings = {
                 } catch(err) { App.toast('数据格式错误'); }
             };
             r.readAsText(f); e.target.value = '';
+        };
+        document.getElementById('btn-reset-all').onclick = () => {
+            if(confirm('确定重置所有数据？该操作不可逆！')) { localStorage.removeItem('appData_v10'); location.reload(); }
+        };
+
+        // 问问TA 逻辑
+        document.querySelectorAll('.ask-tab').forEach(tab => {
+            tab.onclick = () => {
+                document.querySelectorAll('.ask-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.ask-section').forEach(s => s.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(`ask-section-${tab.dataset.askTab}`).classList.add('active');
+            };
+        });
+        
+        document.getElementById('btn-submit-ask').onclick = () => {
+            const q = document.getElementById('ask-question-input').value.trim();
+            if(!q) { App.toast('输入问题'); return; }
+            const activeTab = document.querySelector('.ask-tab.active').dataset.askTab;
+            
+            let selectedTexts = [];
+            let optionTexts = [];
+            
+            if(activeTab === 'text') {
+                const allCards = App.data.cards.flatMap(c => c.items);
+                selectedTexts = [allCards.length > 0 ? allCards[Math.floor(Math.random()*allCards.length)] : "无话可说。"];
+                optionTexts = [...selectedTexts]; 
+            } else {
+                optionTexts = document.getElementById(`ask-options-${activeTab}`).value.split('\n').filter(i=>i.trim());
+                if(optionTexts.length === 0) { App.toast('请输入选项'); return; }
+                
+                if(activeTab === 'single') {
+                    selectedTexts = [optionTexts[Math.floor(Math.random()*optionTexts.length)]];
+                } else {
+                    const max = parseInt(document.getElementById('ask-max-select').value) || 2;
+                    const count = Math.floor(Math.random() * max) + 1;
+                    const shuffled = [...optionTexts].sort(() => 0.5 - Math.random());
+                    selectedTexts = shuffled.slice(0, count);
+                }
+            }
+            
+            // 组装选项对象
+            const options = optionTexts.map(opt => ({
+                text: opt,
+                selected: selectedTexts.includes(opt)
+            }));
+            
+            const surveyMsg = {
+                id: Date.now(),
+                role: 'other', 
+                type: 'survey',
+                question: q,
+                options: options,
+                selectedText: selectedTexts.join('、'),
+                time: Date.now()
+            };
+            
+            document.getElementById('ask-modal').classList.remove('show');
+            document.getElementById('ask-question-input').value = ''; // 清空问题
+            
+            App.data.messages.push(surveyMsg);
+            Chat.currentLimit = 50;
+            Chat.render(); App.saveData();
+            setTimeout(() => Chat.scrollToBottom(true), 100);
+        };
+    }
+};
+
+// ===================== 启动入口 =====================
+window.onload = function() {
+    App.loadData();
+    Settings.applyStyles();
+    
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (App.data.settings.theme === 'system') Settings.applyStyles();
+    });
+    
+    Chat.init(); 
+    Pat.init(); 
+    Cards.init();
+    Emoji.init();
+    Letters.init();
+    Settings.init();
+    
+    document.getElementById('chat-title').innerText = App.data.settings.botName;
+    Settings.setupTimers();
+};
+</script>
+</body>
+</html>
