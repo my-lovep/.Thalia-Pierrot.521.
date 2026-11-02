@@ -413,7 +413,6 @@ img { object-fit: cover; }
 <script>
 const DB_KEY = 'appData_v25_camera';
 
-// 图片压缩工具
 const compressImage = (file, callback) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -423,14 +422,14 @@ const compressImage = (file, callback) => {
         img.onload = () => {
             let width = img.width;
             let height = img.height;
-            const max = 300; // 限制最大宽高为300px
+            const max = 300;
             if (width > max) { height = Math.round((height * max) / width); width = max; }
             if (height > max) { width = Math.round((width * max) / height); height = max; }
             const canvas = document.createElement('canvas');
             canvas.width = width; canvas.height = height;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
-            callback(canvas.toDataURL('image/jpeg', 0.6)); // 压缩质量0.6
+            callback(canvas.toDataURL('image/jpeg', 0.6));
         };
     };
 };
@@ -471,7 +470,7 @@ const App = {
             }
         } catch(e) { 
             console.error('数据加载失败，已重置', e);
-            localStorage.removeItem(DB_KEY); // 防止崩溃死循环
+            localStorage.removeItem(DB_KEY);
             setTimeout(() => App.toast('数据结构修复，已重置'), 1000);
         }
     },
@@ -1029,7 +1028,7 @@ const Emoji = {
             });
         });
         e.target.value = '';
-        App.closeAllOverlays(); // 确保选择后弹窗关闭
+        App.closeAllOverlays();
     },
     addNet: function() { const url = prompt('输入图片URL地址：'); if(url) { App.data.emojis.pic.push(url); App.saveData(); this.renderManager(); } },
     addSingleEmoji: function() { const val = document.getElementById('new-emoji-input').value.trim(); if(!val) return; App.data.emojis.emoji.push(val); document.getElementById('new-emoji-input').value = ''; App.saveData(); this.renderManager(); },
@@ -1213,4 +1212,159 @@ const Call = {
 };
 
 const Settings = {
-    init:
+    init: function() {
+        document.getElementById('btn-save-settings').onclick = () => this.save();
+        document.getElementById('set-my-avatar-file').onchange = (e) => this.handleAvatar(e, 'my');
+        document.getElementById('set-bot-avatar-file').onchange = (e) => this.handleAvatar(e, 'bot');
+        document.getElementById('set-bg').onchange = (e) => this.handleBg(e);
+        document.getElementById('btn-export-all').onclick = () => App.downloadFile(JSON.stringify(App.data, null, 2), 'love_backup.json');
+        document.getElementById('btn-import-all').onclick = () => document.getElementById('import-all-file').click();
+        document.getElementById('import-all-file').onchange = (e) => this.handleImport(e);
+        document.getElementById('btn-reset-all').onclick = () => { if(confirm('确定重置所有数据？不可恢复！')) { localStorage.removeItem(DB_KEY); location.reload(); } };
+    },
+    handleAvatar: function(e, type) {
+        const file = e.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            if(type === 'my') { App.data.settings.myAvatar = ev.target.result; document.getElementById('my-avatar-preview').src = ev.target.result; }
+            else { App.data.settings.botAvatar = ev.target.result; document.getElementById('bot-avatar-preview').src = ev.target.result; }
+            App.saveData();
+        };
+        reader.readAsDataURL(file); e.target.value = '';
+    },
+    handleBg: function(e) {
+        const file = e.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => { App.data.settings.bgImage = ev.target.result; this.applyStyles(); App.saveData(); };
+        reader.readAsDataURL(file); e.target.value = '';
+    },
+    handleImport: function(e) {
+        const file = e.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            try { App.data = JSON.parse(ev.target.result); App.saveData(); this.render(); this.applyStyles(); App.toast('导入成功'); } catch(err) { App.toast('数据格式错误'); }
+        };
+        reader.readAsText(file); e.target.value = '';
+    },
+    render: function() {
+        const s = App.data.settings, w = App.data.wallet;
+        document.getElementById('set-my-balance').value = w.my;
+        document.getElementById('set-bot-balance').value = w.bot;
+        document.getElementById('set-my-name').value = s.myName;
+        document.getElementById('my-avatar-preview').src = s.myAvatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+        document.getElementById('set-bot-name').value = s.botName;
+        document.getElementById('bot-avatar-preview').src = s.botAvatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+        document.getElementById('set-desktop-notify').checked = s.desktopNotify;
+        document.getElementById('set-keep-alive').checked = s.keepAlive;
+        document.getElementById('set-time-display').value = s.timeDisplay;
+        document.getElementById('set-show-avatar').checked = s.showAvatar;
+        document.getElementById('set-show-name').checked = s.showName;
+        document.getElementById('set-show-read').checked = s.showRead;
+        document.getElementById('set-sound-enabled').checked = s.soundEnabled;
+        document.getElementById('set-theme').value = s.theme;
+        document.getElementById('slider-font-size').value = s.fontSize;
+        document.getElementById('val-font-size').innerText = s.fontSize;
+        document.getElementById('set-font-url').value = s.fontUrl;
+        document.getElementById('set-bubble-css').value = s.bubbleCss;
+        document.getElementById('set-delay-min').value = s.delayMin;
+        document.getElementById('set-delay-max').value = s.delayMax;
+        document.getElementById('set-proactive-min').value = s.proactiveMin;
+        document.getElementById('set-proactive-max').value = s.proactiveMax;
+        document.getElementById('set-letter-min').value = s.letterMin;
+        document.getElementById('set-letter-max').value = s.letterMax;
+        
+        const sliders = [
+            { id: 'give', key: 'giveProb' }, { id: 'receive', key: 'receiveProb' }, { id: 'return', key: 'returnProb' },
+            { id: 'ignore', key: 'ignoreProb' }, { id: 'quote', key: 'quoteProb' }, { id: 'pat-prob', key: 'patProb' },
+            { id: 'call-prob', key: 'callProb' }, { id: 'answer-prob', key: 'answerProb' }, { id: 'hangup-prob', key: 'hangupProb' },
+            { id: 'letter-prob', key: 'letterProb' }, { id: 'reply-prob', key: 'replyProb' }
+        ];
+        sliders.forEach(item => {
+            const el = document.getElementById('slider-' + item.id);
+            const valEl = document.getElementById('val-' + item.id);
+            if(el && valEl) { el.value = s[item.key] !== undefined ? s[item.key] : 10; valEl.innerText = el.value + '%'; }
+        });
+    },
+    sliderChange: function(id) {
+        const el = document.getElementById('slider-' + id);
+        const valEl = document.getElementById('val-' + id);
+        if (el && valEl) valEl.innerText = el.value + (id === 'font' ? 'px' : '%');
+        if (id === 'font') { App.data.settings.fontSize = parseInt(el.value); this.applyStyles(); }
+    },
+    save: function() {
+        const s = App.data.settings, w = App.data.wallet;
+        w.my = parseFloat(document.getElementById('set-my-balance').value || 0).toFixed(2);
+        w.bot = parseFloat(document.getElementById('set-bot-balance').value || 0).toFixed(2);
+        s.myName = document.getElementById('set-my-name').value;
+        s.botName = document.getElementById('set-bot-name').value;
+        s.desktopNotify = document.getElementById('set-desktop-notify').checked;
+        s.keepAlive = document.getElementById('set-keep-alive').checked;
+        s.timeDisplay = document.getElementById('set-time-display').value;
+        s.showAvatar = document.getElementById('set-show-avatar').checked;
+        s.showName = document.getElementById('set-show-name').checked;
+        s.showRead = document.getElementById('set-show-read').checked;
+        s.soundEnabled = document.getElementById('set-sound-enabled').checked;
+        s.theme = document.getElementById('set-theme').value;
+        s.fontSize = parseInt(document.getElementById('slider-font-size').value);
+        s.fontUrl = document.getElementById('set-font-url').value;
+        s.bubbleCss = document.getElementById('set-bubble-css').value;
+        s.delayMin = parseInt(document.getElementById('set-delay-min').value) || 1;
+        s.delayMax = parseInt(document.getElementById('set-delay-max').value) || 5;
+        s.proactiveMin = parseInt(document.getElementById('set-proactive-min').value) || 0;
+        s.proactiveMax = parseInt(document.getElementById('set-proactive-max').value) || 0;
+        s.letterMin = parseInt(document.getElementById('set-letter-min').value) || 0;
+        s.letterMax = parseInt(document.getElementById('set-letter-max').value) || 0;
+        
+        const sliders = [
+            { id: 'give', key: 'giveProb' }, { id: 'receive', key: 'receiveProb' }, { id: 'return', key: 'returnProb' },
+            { id: 'ignore', key: 'ignoreProb' }, { id: 'quote', key: 'quoteProb' }, { id: 'pat-prob', key: 'patProb' },
+            { id: 'call-prob', key: 'callProb' }, { id: 'answer-prob', key: 'answerProb' }, { id: 'hangup-prob', key: 'hangupProb' },
+            { id: 'letter-prob', key: 'letterProb' }, { id: 'reply-prob', key: 'replyProb' }
+        ];
+        sliders.forEach(item => {
+            const el = document.getElementById('slider-' + item.id);
+            if(el) s[item.key] = parseInt(el.value);
+        });
+
+        App.saveData();
+        this.applyStyles();
+        App.toast('设置已保存');
+    },
+    applyStyles: function() {
+        const s = App.data.settings;
+        document.documentElement.style.setProperty('--font-size-base', s.fontSize + 'px');
+        if (s.theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        else if (s.theme === 'light') document.documentElement.removeAttribute('data-theme');
+        else {
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.setAttribute('data-theme', 'dark');
+            else document.documentElement.removeAttribute('data-theme');
+        }
+        const fontStyle = document.getElementById('dynamic-font-style');
+        if (s.fontUrl) {
+            if (s.fontUrl.startsWith('http') || s.fontUrl.startsWith('@import')) fontStyle.innerHTML = s.fontUrl.startsWith('@') ? s.fontUrl : `@import url('${s.fontUrl}');`;
+            else document.documentElement.style.setProperty('--custom-font', s.fontUrl);
+        } else {
+            fontStyle.innerHTML = '';
+            document.documentElement.style.setProperty('--custom-font', '"SimSun", "Songti SC", serif');
+        }
+        const bubbleStyle = document.getElementById('dynamic-bubble-style');
+        bubbleStyle.innerHTML = s.bubbleCss ? `.msg.user { ${s.bubbleCss} }` : '';
+        const chatArea = document.getElementById('chat-area');
+        if (s.bgImage) chatArea.style.backgroundImage = `url(${s.bgImage})`;
+        else chatArea.style.backgroundImage = 'none';
+    }
+};
+
+App.loadData();
+Chat.init();
+Cards.init();
+Pat.init();
+Emoji.init();
+Letters.init();
+Music.init();
+Call.init();
+Settings.init();
+Settings.applyStyles();
+</script>
+</body>
+</html>
