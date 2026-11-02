@@ -4,18 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>爱恋</title>
-    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/my-lovep/Thalia_p/main/IMG_6507.jpeg">
-    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/my-lovep/Thalia_p/main/IMG_6507.jpeg">
     <style>
-        /* 使用 CSS 变量，实现修改设置无需重绘DOM */
         :root {
             --bg-color: #f5f5f5; --chat-bg: #ededed; --text-color: #111;
             --bubble-user: #333; --bubble-user-text: #fff;
             --bubble-other: #fff; --bubble-other-text: #111;
             --header-bg: #f5f5f5; --border-color: #dcdcdc; --font-size-base: 16px;
             --accent: #888;
+            /* 动态样式变量 */
             --custom-font: "SimSun", "Songti SC", serif;
-            --custom-bubble-css: none;
         }
         [data-theme="dark"] {
             --bg-color: #000; --chat-bg: #111; --text-color: #eee;
@@ -83,7 +80,6 @@
         
         .avatar-container { display: flex; flex-direction: column; align-items: center; gap:4px; flex-shrink:0; width: 38px;}
         .avatar { width: 38px; height: 38px; border-radius: 6px; object-fit: cover; background: #ddd; cursor: pointer; user-select: none;}
-        
         .msg-time-avatar { font-size: 10px; color: #999; text-align: center; line-height: 1; margin-top: 2px; word-break: keep-all;}
 
         .msg-content-wrapper { display: flex; flex-direction: column; max-width: 75%; position: relative; }
@@ -93,12 +89,11 @@
         .msg-row.user .msg-header { justify-content: flex-end; }
         .msg-name { font-size: 12px; color: #888; margin-left: 2px; }
 
-        /* 应用自定义 CSS */
+        /* 基础气泡 */
         .msg {
             padding: 10px 14px; border-radius: 12px;
             line-height: 1.5; word-break: break-all;
             position: relative; cursor: pointer; border: 1px solid transparent;
-            var(--custom-bubble-css);
         }
         .msg.user { background: var(--bubble-user); color: var(--bubble-user-text); border-top-right-radius: 2px; }
         .msg.other { background: var(--bubble-other); color: var(--bubble-other-text); border-top-left-radius: 2px; border-color: var(--border-color); }
@@ -118,34 +113,6 @@
         #quote-preview { display: none; background: var(--header-bg); padding: 8px 15px; font-size: 13px; color: #666; border-top: 1px solid var(--border-color); align-items: center; justify-content: space-between; flex-shrink: 0;}
         #quote-preview span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
         #quote-preview button { background: none; border: none; cursor: pointer; color: var(--text-color); }
-
-        /* --- 问问TA 问卷卡片样式 --- */
-        .survey-card {
-            background: var(--bubble-other); border: 1px solid var(--border-color);
-            border-radius: 16px; padding: 15px; width: 280px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer;
-            color: var(--text-color); font-family: var(--custom-font); /* 强制继承 */
-        }
-        .msg-row.user .survey-card { background: var(--bubble-user); color: var(--bubble-user-text); border-color: var(--bubble-user); }
-        .msg-row.user .survey-card .survey-option { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
-        
-        .survey-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .survey-tag { border: 1px solid currentColor; border-radius: 12px; padding: 2px 8px; font-size: 12px; font-weight: bold; }
-        .survey-status { font-size: 12px; opacity: 0.7; }
-        .survey-question { font-size: 15px; font-weight: bold; margin-bottom: 15px; line-height: 1.4; }
-        .survey-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
-        .survey-option {
-            display: flex; align-items: center; border: 1px solid var(--border-color);
-            border-radius: 8px; padding: 10px; font-size: 14px; background: var(--bg-color);
-            position: relative; transition: 0.2s;
-        }
-        .survey-option.selected { background: var(--header-bg); border-color: var(--accent); font-weight: bold; }
-        .survey-opt-key { margin-right: 10px; font-weight: bold; width: 15px; text-align: center; }
-        .survey-radio { width: 16px; height: 16px; border: 1.5px solid var(--accent); border-radius: 50%; margin-right: 10px; flex-shrink: 0; display: flex; justify-content: center; align-items: center;}
-        .survey-option.selected .survey-radio { border-color: var(--text-color); }
-        .survey-option.selected .survey-radio::after { content: ''; width: 8px; height: 8px; background: var(--text-color); border-radius: 50%; }
-        .survey-check { margin-left: auto; font-size: 16px; font-weight: bold; }
-        .survey-footer { font-size: 12px; opacity: 0.7; }
 
         /* 输入框区域 */
         .input-area {
@@ -169,16 +136,11 @@
         .emoji-tab-btn { padding: 6px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; color: var(--accent); border: 1px solid transparent;}
         .emoji-tab-btn.active { background: var(--bg-color); color: var(--text-color); border-color: var(--border-color);}
         .emoji-sub-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; font-size: 12px; color: #888;}
-        .emoji-sub-tabs { display: flex; gap: 10px;}
-        .emoji-sub-tab { cursor: pointer; padding: 2px 8px; border-radius: 4px;}
-        .emoji-sub-tab.active { background: var(--border-color); color: var(--text-color); font-weight: bold;}
-        .emoji-content-area { flex: 1; overflow-y: auto; padding: 10px 15px; display: none;}
-        .emoji-content-area.active { display: block; }
-
+        .emoji-content-area { flex: 1; overflow-y: auto; padding: 10px 15px; }
         .emoji-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-        .emoji-grid img { width: 100%; aspect-ratio: 1; object-fit: contain; cursor: pointer; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); padding: 5px; loading: lazy; }
+        .emoji-grid img { width: 100%; aspect-ratio: 1; object-fit: contain; cursor: pointer; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); padding: 5px; }
         
-        /* 列表与字卡 */
+        /* 列表 */
         .list-container { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; -webkit-overflow-scrolling: touch;}
         .list-item { background: var(--header-bg); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
         .list-item-info { flex: 1; }
@@ -216,7 +178,7 @@
         .music-add-bar { padding: 10px; display: flex; gap: 5px; border-bottom: 1px solid var(--border-color); background: var(--header-bg);}
         .music-add-bar input { flex: 1; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-color); color: var(--text-color); font-size: 13px; }
         .music-add-bar button { padding: 8px 12px; background: var(--bubble-user); color: var(--bubble-user-text); border: none; border-radius: 5px; cursor: pointer; font-size: 13px; white-space: nowrap;}
-        
+
         /* 设置面板 */
         .settings-content { padding: 20px; overflow-y: auto; flex: 1; padding-bottom: 100px; -webkit-overflow-scrolling: touch;}
         .setting-item { margin-bottom: 20px; background: var(--header-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);}
@@ -296,181 +258,84 @@
     </style>
 </head>
 <body>
-    <!-- 隐藏的后台保活音频 (静音) -->
+    <!-- 隐藏的后台保活音频 -->
     <audio id="keep-alive-audio" loop src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA"></audio>
 
     <!-- 首页 -->
     <div id="home-screen">
-        <div class="app-icon" data-app="chat-app">
-            <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg>
-            <span>聊天</span>
-        </div>
-        <div class="app-icon" data-app="cards-app">
-            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" /></svg>
-            <span>字卡库</span>
-        </div>
-        <div class="app-icon" data-app="pat-app">
-            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M8 12l2 2 4-4"/></svg>
-            <span>拍一拍</span>
-        </div>
-        <div class="app-icon" data-app="emoji-app">
-            <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" /></svg>
-            <span>表情包</span>
-        </div>
-        <div class="app-icon" data-app="letter-app">
-            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" /></svg>
-            <span>信箱</span>
-        </div>
-        <div class="app-icon" data-app="music-app">
-            <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" /></svg>
-            <span>音乐</span>
-        </div>
-        <div class="app-icon" data-app="settings-app">
-            <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" /></svg>
-            <span>设置</span>
-        </div>
+        <div class="app-icon" data-app="chat-app"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg><span>聊天</span></div>
+        <div class="app-icon" data-app="cards-app"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" /></svg><span>字卡库</span></div>
+        <div class="app-icon" data-app="pat-app"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M8 12l2 2 4-4"/></svg><span>拍一拍</span></div>
+        <div class="app-icon" data-app="emoji-app"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" /></svg><span>表情包</span></div>
+        <div class="app-icon" data-app="letter-app"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" /></svg><span>信箱</span></div>
+        <div class="app-icon" data-app="music-app"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" /></svg><span>音乐</span></div>
+        <div class="app-icon" data-app="settings-app"><svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" /></svg><span>设置</span></div>
     </div>
 
     <!-- 聊天页面 -->
     <div id="chat-app" class="page">
         <div class="header">
-            <div class="back-btn" data-close="chat-app">
-                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
-            </div>
+            <div class="back-btn" data-close="chat-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div>
             <div style="flex:1;" id="chat-title">对方</div>
             <div class="header-right">
-                <div class="header-btn" id="btn-call-voice" title="语音通话">
-                    <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-                </div>
-                <div class="header-btn" id="btn-call-video" title="视频通话">
-                    <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
-                </div>
-                <div class="header-btn" id="btn-clear-chat" title="清空记录">
-                    <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" /></svg>
-                </div>
+                <div class="header-btn" id="btn-call-voice"><svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></div>
+                <div class="header-btn" id="btn-call-video"><svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg></div>
+                <div class="header-btn" id="btn-clear-chat"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" /></svg></div>
             </div>
         </div>
-        
         <div class="chat-area" id="chat-area"></div>
         <div class="typing-status" id="typing-status">对方正在输入...</div>
-
+        
         <div id="emoji-panel">
-            <div class="emoji-tabs-header">
-                <div class="emoji-tab-btn active" data-emoji-tab="all">表情</div>
-                <div style="flex:1;"></div>
-                <div style="cursor:pointer; font-weight:bold; color:#888;" id="close-emoji">✕</div>
-            </div>
-            <div class="emoji-sub-header">
-                <div class="emoji-sub-tabs">
-                    <div class="emoji-sub-tab active" data-emoji-subtab="pic">表情包</div>
-                </div>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-tool" style="padding:4px 8px; font-size:12px;" id="btn-add-emoji-url">加图片</button>
-                </div>
-            </div>
-            <div class="emoji-content-area active" id="emoji-content-pic">
-                <div class="emoji-grid" id="emoji-grid-pic"></div>
-            </div>
+            <div class="emoji-tabs-header"><div class="emoji-tab-btn active">表情</div><div style="flex:1;"></div><div style="cursor:pointer; font-weight:bold; color:#888;" id="close-emoji">✕</div></div>
+            <div class="emoji-sub-header"><div class="emoji-sub-tabs"><div class="emoji-sub-tab active">表情包</div></div><div style="display:flex; gap:10px;"><button class="btn-tool" style="padding:4px 8px; font-size:12px;" id="btn-add-emoji-url">加图片</button></div></div>
+            <div class="emoji-content-area"><div class="emoji-grid" id="emoji-grid-pic"></div></div>
         </div>
 
         <div id="extra-panel">
-            <div class="panel-action" id="btn-upload-img">
-                <div class="icon-box">
-                    <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" /></svg>
-                </div>
-                <span>相册</span>
-            </div>
-            <div class="panel-action" id="btn-open-ask">
-                <div class="icon-box">
-                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" /></svg>
-                </div>
-                <span>问问TA</span>
-            </div>
+            <div class="panel-action" id="btn-upload-img"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" /></svg></div><span>相册</span></div>
+            <div class="panel-action" id="btn-open-ask"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" /></svg></div><span>问问TA</span></div>
         </div>
         <input type="file" id="img-upload-input" accept="image/*" style="display:none">
         
-        <div id="quote-preview">
-            <span id="quote-text"></span>
-            <button id="btn-cancel-quote">✕</button>
-        </div>
+        <div id="quote-preview"><span id="quote-text"></span><button id="btn-cancel-quote">✕</button></div>
         
         <div class="input-area">
-            <button class="btn-icon" id="btn-toggle-emoji">
-                <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" /></svg>
-            </button>
+            <button class="btn-icon" id="btn-toggle-emoji"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" /></svg></button>
             <input type="text" id="msg-input" placeholder="">
-            <button class="btn-icon" id="btn-toggle-extra">
-                <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" /></svg>
-            </button>
-            <button class="btn-icon" id="btn-continue" title="让对方继续说">
-                <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" /></svg>
-            </button>
+            <button class="btn-icon" id="btn-toggle-extra"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" /></svg></button>
+            <button class="btn-icon" id="btn-continue"><svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" /></svg></button>
             <button class="btn-send" id="btn-send-msg">发送</button>
         </div>
     </div>
 
     <!-- 音乐页面 -->
     <div id="music-app" class="page">
-        <div class="header">
-            <div class="back-btn" data-close="music-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div>
-            <div style="flex:1;">音乐播放器</div>
-        </div>
+        <div class="header"><div class="back-btn" data-close="music-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">音乐播放器</div></div>
         <div class="music-player">
             <div class="music-title" id="music-title">未在播放</div>
-            <div class="music-progress">
-                <span id="music-cur-time">00:00</span>
-                <input type="range" id="music-progress-bar" value="0" min="0" max="100" step="0.1">
-                <span id="music-total-time">00:00</span>
-            </div>
-            <div class="music-controls">
-                <button id="btn-mode" class="music-btn" title="播放模式">🔁</button>
-                <button id="btn-prev" class="music-btn">⏮</button>
-                <button id="btn-play" class="music-btn">▶</button>
-                <button id="btn-next" class="music-btn">⏭</button>
-            </div>
+            <div class="music-progress"><span id="music-cur-time">00:00</span><input type="range" id="music-progress-bar" value="0" min="0" max="100" step="0.1"><span id="music-total-time">00:00</span></div>
+            <div class="music-controls"><button id="btn-mode" class="music-btn">🔁</button><button id="btn-prev" class="music-btn">⏮</button><button id="btn-play" class="music-btn">▶</button><button id="btn-next" class="music-btn">⏭</button></div>
         </div>
         <div class="music-list-container">
-            <div class="music-add-bar">
-                <input type="text" id="music-url-input" placeholder="输入音乐直链URL...">
-                <button id="btn-add-music-url">添加</button>
-                <button id="btn-add-music-file">本地上传</button>
-                <input type="file" id="music-file-input" accept="audio/*" style="display:none">
-            </div>
+            <div class="music-add-bar"><input type="text" id="music-url-input" placeholder="输入音乐直链URL..."><button id="btn-add-music-url">添加</button><button id="btn-add-music-file">本地上传</button><input type="file" id="music-file-input" accept="audio/*" style="display:none"></div>
             <div id="music-list" class="list-container" style="padding-bottom:0;"></div>
         </div>
     </div>
 
     <!-- 拍一拍管理页面 -->
     <div id="pat-app" class="page">
-        <div class="header">
-            <div class="back-btn" data-close="pat-app">
-                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
-            </div>
-            <div style="flex:1;">拍一拍词库</div>
-        </div>
-        <div class="cards-toolbar">
-            <button class="btn-tool" id="btn-pat-batch">批量添加</button>
-            <button class="btn-tool" id="btn-pat-export">导出TXT</button>
-            <button class="btn-tool" id="btn-pat-import">导入TXT</button>
-            <input type="file" id="pat-file-input" accept=".txt" style="display:none">
-        </div>
+        <div class="header"><div class="back-btn" data-close="pat-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">拍一拍词库</div></div>
+        <div class="cards-toolbar"><button class="btn-tool" id="btn-pat-batch">批量添加</button><button class="btn-tool" id="btn-pat-export">导出TXT</button><button class="btn-tool" id="btn-pat-import">导入TXT</button><input type="file" id="pat-file-input" accept=".txt" style="display:none"></div>
         <div class="list-container" id="pat-list"></div>
-        <div class="add-card-bar">
-            <input type="text" id="new-pat-input" placeholder="单条添加词条...">
-            <button id="btn-pat-single">添加</button>
-        </div>
+        <div class="add-card-bar"><input type="text" id="new-pat-input" placeholder="单条添加词条..."><button id="btn-pat-single">添加</button></div>
     </div>
 
     <!-- 字卡库 -->
     <div id="cards-app" class="page">
         <div class="header"><div class="back-btn" data-close="cards-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">字卡库</div></div>
         <div class="search-bar"><input type="text" id="search-input" placeholder="搜索字卡内容..."></div>
-        <div class="cards-toolbar">
-            <button class="btn-tool" id="btn-batch-add">批量添加</button>
-            <button class="btn-tool" id="btn-export-cards">导出TXT</button>
-            <button class="btn-tool" id="btn-import-cards">导入TXT</button>
-            <input type="file" id="file-input" style="display:none" accept=".txt">
-        </div>
+        <div class="cards-toolbar"><button class="btn-tool" id="btn-batch-add">批量添加</button><button class="btn-tool" id="btn-export-cards">导出TXT</button><button class="btn-tool" id="btn-import-cards">导入TXT</button><input type="file" id="file-input" style="display:none" accept=".txt"></div>
         <div class="list-container" id="cards-list"></div>
         <div class="add-card-bar"><input type="text" id="new-card-input" placeholder="单条添加..."><button id="btn-add-single">添加</button></div>
     </div>
@@ -478,24 +343,13 @@
     <!-- 表情包库 -->
     <div id="emoji-app" class="page">
         <div class="header"><div class="back-btn" data-close="emoji-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">表情包库</div></div>
-        <div class="cards-toolbar">
-            <button class="btn-tool" id="btn-add-emoji-net">加网络图</button>
-            <button class="btn-tool" id="btn-add-emoji-local">加本地图</button>
-            <input type="file" id="batch-emoji-input" multiple accept="image/*" style="display:none">
-            <button class="btn-tool" id="btn-clear-emoji" style="color: #666;">清空全部</button>
-        </div>
+        <div class="cards-toolbar"><button class="btn-tool" id="btn-add-emoji-net">加网络图</button><button class="btn-tool" id="btn-add-emoji-local">加本地图</button><input type="file" id="batch-emoji-input" multiple accept="image/*" style="display:none"><button class="btn-tool" id="btn-clear-emoji" style="color: #666;">清空全部</button></div>
         <div class="list-container"><div class="emoji-grid" id="emoji-grid-full" style="grid-template-columns: repeat(4, 1fr);"></div></div>
     </div>
 
     <!-- 信箱 -->
     <div id="letter-app" class="page">
-        <div class="header">
-            <div class="back-btn" data-close="letter-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div>
-            <div style="flex:1;">信箱</div>
-            <div class="header-right">
-                <div class="header-btn" id="btn-write-letter">写</div>
-            </div>
-        </div>
+        <div class="header"><div class="back-btn" data-close="letter-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">信箱</div><div class="header-right"><div class="header-btn" id="btn-write-letter">写</div></div></div>
         <div class="list-container" id="letters-list"></div>
     </div>
 
@@ -513,62 +367,42 @@
             <div class="setting-item">
                 <label>我的名字</label><input type="text" id="set-my-name">
                 <label style="margin-top:10px;">我的头像</label>
-                <div class="profile-edit">
-                    <img id="my-avatar-preview" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>">
-                    <input type="file" id="set-my-avatar-file" accept="image/*">
-                </div>
+                <div class="profile-edit"><img id="my-avatar-preview" src=""><input type="file" id="set-my-avatar-file" accept="image/*"></div>
             </div>
             <div class="setting-item">
                 <div class="switch-row"><label>群聊模式</label><input type="checkbox" class="toggle" id="set-is-group"></div>
                 <div id="single-bot-settings">
                     <label>对方的名字</label><input type="text" id="set-bot-name">
                     <label style="margin-top:10px;">对方头像</label>
-                    <div class="profile-edit">
-                        <img id="bot-avatar-preview" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>">
-                        <input type="file" id="set-bot-avatar-file" accept="image/*">
-                    </div>
+                    <div class="profile-edit"><img id="bot-avatar-preview" src=""><input type="file" id="set-bot-avatar-file" accept="image/*"></div>
                 </div>
-                <div id="group-settings" style="display:none; margin-top:10px;">
-                    <label>群成员列表 (JSON格式)</label><textarea id="set-group-members" style="height:80px;" placeholder='[{"name":"成员1","avatar":"url"}]'></textarea>
-                </div>
+                <div id="group-settings" style="display:none; margin-top:10px;"><label>群成员列表 (JSON格式)</label><textarea id="set-group-members" style="height:80px;"></textarea></div>
             </div>
             <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">外观与交互</h3>
             <div class="setting-item">
-                <label>时间显示位置</label>
-                <select id="set-time-display">
-                    <option value="bottom">气泡下方</option>
-                    <option value="avatar-bottom">头像下方</option>
-                    <option value="click">点击显示</option>
-                    <option value="hidden">不显示</option>
-                </select>
+                <label>时间显示位置</label><select id="set-time-display"><option value="bottom">气泡下方</option><option value="avatar-bottom">头像下方</option><option value="click">点击显示</option><option value="hidden">不显示</option></select>
             </div>
             <div class="setting-item">
                 <div class="switch-row"><label>显示头像</label><input type="checkbox" class="toggle" id="set-show-avatar"></div>
                 <div class="switch-row"><label>显示名字</label><input type="checkbox" class="toggle" id="set-show-name"></div>
                 <div class="switch-row"><label>显示已读状态</label><input type="checkbox" class="toggle" id="set-show-read"></div>
-                <div class="switch-row"><label>连句功能(多条合一)</label><input type="checkbox" class="toggle" id="set-send-multi"></div>
+                <div class="switch-row"><label>连句功能</label><input type="checkbox" class="toggle" id="set-send-multi"></div>
                 <div class="switch-row"><label>音效开关</label><input type="checkbox" class="toggle" id="set-sound-enabled"></div>
             </div>
-            <div class="setting-item">
-                <label>日夜模式</label>
-                <select id="set-theme"><option value="system">跟随系统</option><option value="light">浅色模式</option><option value="dark">深色模式</option></select>
-            </div>
-            <div class="setting-item">
-                <label>系统字体大小 (<span id="val-font-size">16</span>px)</label>
-                <input type="range" id="slider-font-size" min="12" max="24" step="1" value="16">
-            </div>
+            <div class="setting-item"><label>日夜模式</label><select id="set-theme"><option value="system">跟随系统</option><option value="light">浅色模式</option><option value="dark">深色模式</option></select></div>
+            <div class="setting-item"><label>系统字体大小 (<span id="val-font-size">16</span>px)</label><input type="range" id="slider-font-size" min="12" max="24" step="1" value="16"></div>
             <div class="setting-item">
                 <label>自定义字体链接/名称</label><input type="text" id="set-font-url" placeholder="例如: https://.../font.css 或 '楷体'">
-                <label style="margin-top:10px;">自定义气泡 CSS</label><input type="text" id="set-bubble-css" placeholder="例如: border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                <label style="margin-top:10px;">自定义气泡 CSS</label><input type="text" id="set-bubble-css" placeholder="例如: border-radius: 20px;">
                 <label style="margin-top:10px;">聊天背景图</label><input type="file" id="set-bg" accept="image/*" style="border:none; padding:5px 0;">
             </div>
             <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">聊天逻辑</h3>
             <div class="setting-item">
-                <label>正在输入文案</label><input type="text" id="set-typing-text" placeholder="对方正在输入...">
+                <label>正在输入文案</label><input type="text" id="set-typing-text">
                 <label style="margin-top:10px;">模拟真人延迟 (秒)</label>
-                <div style="display:flex; gap:10px;"><input type="number" id="set-delay-min" min="1" placeholder="最小"><input type="number" id="set-delay-max" min="1" placeholder="最大"></div>
+                <div style="display:flex; gap:10px;"><input type="number" id="set-delay-min" min="1"><input type="number" id="set-delay-max" min="1"></div>
                 <label style="margin-top:10px;">主动发消息 (分钟，0关)</label>
-                <div style="display:flex; gap:10px;"><input type="number" id="set-proactive-min" min="0" placeholder="最小"><input type="number" id="set-proactive-max" min="0" placeholder="最大"></div>
+                <div style="display:flex; gap:10px;"><input type="number" id="set-proactive-min" min="0"><input type="number" id="set-proactive-max" min="0"></div>
                 <label style="margin-top:10px;">发消息带表情包概率 (%) <span id="val-emoji-prob">10%</span></label><input type="range" id="slider-emoji-prob" min="0" max="100" value="10">
             </div>
             <div class="setting-item">
@@ -585,7 +419,7 @@
             <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">写信逻辑</h3>
             <div class="setting-item">
                 <label>对方主动写信间隔 (分钟，0关)</label>
-                <div style="display:flex; gap:10px;"><input type="number" id="set-letter-min" min="0" placeholder="最小"><input type="number" id="set-letter-max" min="0" placeholder="最大"></div>
+                <div style="display:flex; gap:10px;"><input type="number" id="set-letter-min" min="0"><input type="number" id="set-letter-max" min="0"></div>
                 <label style="margin-top:10px;">对方主动写信概率 (%) <span id="val-letter-prob">10%</span></label><input type="range" id="slider-letter-prob" min="0" max="100" value="10">
                 <label style="margin-top:10px;">对方收到我的信后回信概率 (%) <span id="val-reply-prob">80%</span></label><input type="range" id="slider-reply-prob" min="0" max="100" value="80">
             </div>
@@ -602,12 +436,11 @@
 
     <!-- 弹窗 -->
     <div id="batch-modal" class="modal"><div class="modal-content"><h3 style="text-align:center;">批量添加字卡</h3><textarea id="batch-text" placeholder="【日常】&#10;早安&#10;晚安"></textarea><div class="modal-btns"><button class="btn-cancel" data-close-modal="batch-modal">取消</button><button class="btn-confirm" id="btn-batch-confirm">确认</button></div></div></div>
-    <div id="pat-batch-modal" class="modal"><div class="modal-content"><h3 style="text-align:center;">批量添加拍一拍</h3><textarea id="pat-text" placeholder="抱了抱你&#10;说:睡觉了"></textarea><div class="modal-btns"><button class="btn-cancel" data-close-modal="pat-batch-modal">取消</button><button class="btn-confirm" id="btn-pat-batch-confirm">保存</button></div></div></div>
-    <div id="edit-pat-modal" class="modal"><div class="modal-content"><h3 style="text-align:center;">修改拍一拍</h3><input type="text" id="edit-pat-text" placeholder="输入词条..."><div class="modal-btns"><button class="btn-cancel" data-close-modal="edit-pat-modal">取消</button><button class="btn-confirm" id="btn-edit-pat-confirm">保存</button></div></div></div>
+    <div id="pat-batch-modal" class="modal"><div class="modal-content"><h3 style="text-align:center;">批量添加拍一拍</h3><textarea id="pat-text" placeholder="抱了抱你"></textarea><div class="modal-btns"><button class="btn-cancel" data-close-modal="pat-batch-modal">取消</button><button class="btn-confirm" id="btn-pat-batch-confirm">保存</button></div></div></div>
+    <div id="edit-pat-modal" class="modal"><div class="modal-content"><h3 style="text-align:center;">修改拍一拍</h3><input type="text" id="edit-pat-text"><div class="modal-btns"><button class="btn-cancel" data-close-modal="edit-pat-modal">取消</button><button class="btn-confirm" id="btn-edit-pat-confirm">保存</button></div></div></div>
     <div id="write-letter-modal" class="modal"><div class="modal-content"><h3 style="text-align:center;">写信</h3><input type="text" id="write-letter-title" placeholder="信件标题"><textarea id="write-letter-content" placeholder="在这里写下你的信..."></textarea><div class="modal-btns"><button class="btn-cancel" data-close-modal="write-letter-modal">取消</button><button class="btn-confirm" id="btn-send-letter">寄出</button></div></div></div>
     <div id="read-letter-modal" class="modal"><div class="modal-content"><h3 style="text-align:center;" id="read-letter-title"></h3><div style="font-size:12px; color:#888; text-align:center; margin-bottom:10px;" id="read-letter-meta"></div><div class="letter-content" id="read-letter-content"></div><div class="modal-btns"><button class="btn-cancel" data-close-modal="read-letter-modal">关闭</button></div></div></div>
     
-    <!-- 问问TA弹窗 -->
     <div id="ask-modal" class="modal"><div class="modal-content" style="max-height: 85vh; overflow-y: auto;"><div style="display:flex; justify-content:space-between; align-items:center;"><h3>问问TA</h3><button data-close-modal="ask-modal" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-color);">✕</button></div><div class="ask-tabs"><div class="ask-tab active" data-ask-tab="single">单选题</div><div class="ask-tab" data-ask-tab="multi">多选题</div><div class="ask-tab" data-ask-tab="text">文字题</div></div><div class="ask-form-group"><label>你想问什么</label><input type="text" id="ask-question-input" placeholder="输入你的问题..."></div><div class="ask-section active" id="ask-section-single"><div class="ask-form-group"><label>答案 (一行一个)</label><textarea id="ask-options-single"></textarea></div></div><div class="ask-section" id="ask-section-multi"><div class="ask-form-group"><label>答案 (一行一个)</label><textarea id="ask-options-multi"></textarea></div><div class="ask-form-group"><label>最多选几个</label><input type="number" id="ask-max-select" value="3" min="2" style="width: 80px; text-align: center;"></div></div><div class="ask-section" id="ask-section-text"><div class="ask-form-group" style="color: #666; font-size: 13px;">TA 会从字卡库随机抽取文字回答你。</div></div><div class="modal-btns" style="margin-top: 10px;"><button class="btn-cancel" data-close-modal="ask-modal">取消</button><button class="btn-confirm" id="btn-submit-ask">发送提问</button></div></div></div>
     
     <div id="action-sheet"><div id="action-content"></div></div>
@@ -615,41 +448,30 @@
     <!-- 通话全屏界面 -->
     <div id="call-overlay">
         <video id="local-video-preview" autoplay playsinline muted></video>
-        <div class="call-info-area">
-            <img id="call-avatar-img" class="call-avatar" src="">
-            <div id="call-name-text" class="call-name">对方</div>
-            <div id="call-status-text" class="call-status">正在呼叫...</div>
-        </div>
-        <div class="call-actions" id="call-actions-incoming" style="display:none;">
-            <button class="call-btn btn-reject" onclick="Call.hangup()">挂断</button>
-            <button class="call-btn btn-answer" onclick="Call.answer()">接听</button>
-        </div>
-        <div class="call-actions" id="call-actions-ongoing" style="display:flex;">
-            <button class="call-btn btn-hangup" onclick="Call.hangup()">挂断</button>
-        </div>
+        <div class="call-info-area"><img id="call-avatar-img" class="call-avatar" src=""><div id="call-name-text" class="call-name">对方</div><div id="call-status-text" class="call-status">正在呼叫...</div></div>
+        <div class="call-actions" id="call-actions-incoming" style="display:none;"><button class="call-btn btn-reject" onclick="Call.hangup()">挂断</button><button class="call-btn btn-answer" onclick="Call.answer()">接听</button></div>
+        <div class="call-actions" id="call-actions-ongoing" style="display:flex;"><button class="call-btn btn-hangup" onclick="Call.hangup()">挂断</button></div>
     </div>
 
 <script>
-// ===================== 核心应用数据 =====================
+// ===================== 核心数据与存储 =====================
 const App = {
     data: {
         messages: [],
-        cards: [{ group: '默认', items: ['你好', '晚安', '今天过得怎么样？'] }],
-        pats: ['拍了拍', '抱了抱你', '摸了摸你的头'],
+        cards: [{ group: '默认', items: ['你好', '晚安'] }],
+        pats: ['拍了拍', '抱了抱你'],
         emojis: [],
         letters: [],
         music: { list: [], mode: 'order', currentIndex: -1 },
         settings: {
-            myName: '我', myAvatar: '',
-            botName: '对方', botAvatar: '',
+            myName: '我', myAvatar: '', botName: '对方', botAvatar: '',
             isGroup: false, groupMembers: [],
             showAvatar: true, showName: true, showRead: true, sendMulti: false, soundEnabled: true,
             theme: 'system', fontSize: 16, bubbleCss: '', bgImage: '', timeDisplay: 'bottom',
             fontUrl: '', typingText: '对方正在输入...',
             delayMin: 2, delayMax: 5, proactiveMin: 0, proactiveMax: 0,
             ignoreProb: 20, quoteProb: 30, emojiProb: 10, recallProb: 10,
-            patProb: 10, 
-            callProb: 5, answerProb: 80, 
+            patProb: 10, callProb: 5, answerProb: 80, 
             letterMin: 0, letterMax: 0, letterProb: 10, replyProb: 80,
             desktopNotify: false, keepAlive: false
         }
@@ -659,16 +481,13 @@ const App = {
     saveData: function() {
         clearTimeout(this.saveTimeout);
         this.saveTimeout = setTimeout(() => {
-            try { 
-                localStorage.setItem('appData_v13', JSON.stringify(this.data)); 
-            } catch(e) {
-                if(e.name === 'QuotaExceededError') App.toast('存储空间已满，本地文件过大，建议使用URL');
-            }
+            try { localStorage.setItem('appData_v14', JSON.stringify(this.data)); } 
+            catch(e) { App.toast('存储空间已满，建议用URL代替本地大文件'); }
         }, 500);
     },
     loadData: function() {
         try {
-            const stored = localStorage.getItem('appData_v13') || localStorage.getItem('appData_v12');
+            const stored = localStorage.getItem('appData_v14') || localStorage.getItem('appData_v13');
             if (stored) {
                 const parsed = JSON.parse(stored);
                 this.data = { ...this.data, ...parsed, settings: { ...this.data.settings, ...(parsed.settings || {}) } };
@@ -721,12 +540,11 @@ document.body.addEventListener('touchstart', function unlockAudio() {
     document.body.removeEventListener('touchstart', unlockAudio);
 }, { once: true });
 
-// ===================== 聊天与拍一拍 =====================
+// ===================== 聊天 =====================
 const Chat = {
     currentLimit: 50,
     isFetchingHistory: false,
     quoteMsg: null,
-    patTimer: null, 
     
     init: function() {
         const area = document.getElementById('chat-area');
@@ -780,25 +598,13 @@ const Chat = {
     },
     
     triggerPat: function(isMe) {
-        if (this.patTimer) return; 
-        this.patTimer = setTimeout(() => this.patTimer = null, 500);
-
         const s = App.data.settings;
         const patCard = App.data.pats.length > 0 ? App.data.pats[Math.floor(Math.random() * App.data.pats.length)] : '拍了拍';
         let target = isMe ? s.botName : s.myName;
         let subject = isMe ? s.myName : s.botName;
         
-        let finalMsg = "";
-        if (patCard.includes(':') || patCard.includes('：')) {
-            finalMsg = `${subject}${patCard.startsWith('我')? patCard.slice(1):patCard}`.replace(/我/g, subject).replace(/你/g, target);
-        } else {
-            if (patCard.startsWith('拍了拍')) {
-                finalMsg = `${subject}${patCard.replace(/你/g, target)}${patCard==='拍了拍'?target:''}`;
-            } else {
-                finalMsg = `${subject}${patCard.replace(/你/g, target)}`;
-                if (patCard === '抱了抱你') finalMsg = `${subject}抱了抱${target}`; 
-            }
-        }
+        let finalMsg = `${subject} ${patCard} ${target}`;
+        if (patCard.includes('你')) finalMsg = `${subject} ${patCard.replace(/你/g, target)}`;
 
         App.data.messages.push({ id: Date.now(), role: 'system', content: finalMsg, time: Date.now() });
         this.currentLimit = 50; this.render(); this.scrollToBottom(true); App.saveData(); this.playSound();
@@ -812,6 +618,8 @@ const Chat = {
         const area = document.getElementById('chat-area');
         const total = App.data.messages.length;
         if (total === 0) { area.innerHTML = ''; return; }
+        
+        // 性能防卡死保护：只取最近的记录渲染
         const start = Math.max(0, total - this.currentLimit);
         const slice = App.data.messages.slice(start);
         const fragment = document.createDocumentFragment();
@@ -829,65 +637,26 @@ const Chat = {
             const isMe = msg.role === 'user';
             const avatarUrl = isMe ? s.myAvatar : (msg.senderAvatar || s.botAvatar);
             const name = isMe ? s.myName : (msg.senderName || s.botName);
-            
             let timeStr = new Date(msg.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            let timeDisplay = s.timeDisplay;
             
-            let avatarHtml = '';
-            if (s.showAvatar) {
-                let timeInAvatar = timeDisplay === 'avatar-bottom' ? `<div class="msg-time-avatar">${timeStr}</div>` : '';
-                avatarHtml = `<div class="avatar-container"><img class="avatar" src="${avatarUrl || 'data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23ccc\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'}" ondblclick="Chat.triggerPat(${isMe})">${timeInAvatar}</div>`;
-            }
-            
+            let avatarHtml = s.showAvatar ? `<div class="avatar-container"><img class="avatar" src="${avatarUrl || ''}" ondblclick="Chat.triggerPat(${isMe})">${s.timeDisplay === 'avatar-bottom' ? `<div class="msg-time-avatar">${timeStr}</div>` : ''}</div>` : '';
             let nameHtml = s.showName ? `<div class="msg-name">${name}</div>` : '';
             let readHtml = (isMe && s.showRead) ? `<div class="read-status show">已读</div>` : '';
-            
-            let timeHtml = '';
-            if (timeDisplay === 'bottom') {
-                timeHtml = `<div class="msg-time-bottom show">${timeStr}</div>`;
-            } else if (timeDisplay === 'click') {
-                timeHtml = `<div class="msg-time-bottom">${timeStr}</div>`;
-            }
+            let timeHtml = s.timeDisplay === 'bottom' ? `<div class="msg-time-bottom show">${timeStr}</div>` : `<div class="msg-time-bottom">${timeStr}</div>`;
 
             let contentHtml = '';
             if (msg.type === 'survey') {
-                let optsHtml = msg.options.map((opt, i) => {
-                    const isSelected = opt.selected;
-                    return `<div class="survey-option ${isSelected ? 'selected' : ''}">
-                        <div class="survey-opt-key">${String.fromCharCode(65 + i)}</div>
-                        <div class="survey-radio"></div>
-                        <div>${opt.text}</div>
-                        ${isSelected ? '<div class="survey-check">✓</div>' : ''}
-                    </div>`;
-                }).join('');
-                
-                let statusText = msg.status === 'answered' ? '已回答' : '待回答';
-                let footerText = msg.status === 'answered' ? `${App.data.settings.botName} 选了「${msg.selectedText}」` : '等待对方作答...';
-                
+                let optsHtml = msg.options.map((opt, i) => `<div class="survey-option ${opt.selected ? 'selected' : ''}"><div class="survey-opt-key">${String.fromCharCode(65 + i)}</div><div class="survey-radio"></div><div>${opt.text}</div>${opt.selected ? '<div class="survey-check">✓</div>' : ''}</div>`).join('');
                 contentHtml = `<div class="survey-card" data-id="${msg.id}">
-                    <div class="survey-header">
-                        <div class="survey-tag">问问TA</div>
-                        <div class="survey-status">${statusText}</div>
-                    </div>
-                    <div class="survey-question">${msg.question}</div>
-                    <div class="survey-options">${optsHtml}</div>
-                    <div class="survey-footer">${footerText}</div>
-                </div>`;
+                    <div class="survey-header"><div class="survey-tag">问问TA</div><div class="survey-status">${msg.status === 'answered' ? '已回答' : '待回答'}</div></div>
+                    <div class="survey-question">${msg.question}</div><div class="survey-options">${optsHtml}</div>
+                    <div class="survey-footer">${msg.status === 'answered' ? `${App.data.settings.botName} 选了「${msg.selectedText}」` : '等待对方作答...'}</div></div>`;
             } else {
                 let quoteHtml = msg.quote ? `<div class="msg quote">${msg.quote.content}</div>` : '';
-                let body = msg.isImg ? `<img src="${msg.content}">` : msg.content;
-                contentHtml = `<div class="msg ${msg.role}" data-id="${msg.id}">${quoteHtml}${body}</div>`;
+                contentHtml = `<div class="msg ${msg.role}" data-id="${msg.id}">${quoteHtml}${msg.isImg ? `<img src="${msg.content}">` : msg.content}</div>`;
             }
 
-            row.innerHTML = `
-                ${!isMe ? avatarHtml : ''}
-                <div class="msg-content-wrapper">
-                    <div class="msg-header">${nameHtml}</div>
-                    ${contentHtml}
-                    ${timeHtml}${readHtml}
-                </div>
-                ${isMe ? avatarHtml : ''}
-            `;
+            row.innerHTML = `${!isMe ? avatarHtml : ''}<div class="msg-content-wrapper"><div class="msg-header">${nameHtml}</div>${contentHtml}${timeHtml}${readHtml}</div>${isMe ? avatarHtml : ''}`;
             
             const targetEl = row.querySelector('.msg') || row.querySelector('.survey-card');
             if(targetEl) {
@@ -899,7 +668,6 @@ const Chat = {
                     this.showMsgActions(msg, targetEl);
                 };
             }
-
             fragment.appendChild(row);
         });
         
@@ -1042,26 +810,19 @@ const Chat = {
     }
 };
 
-// ===================== 音乐播放器 =====================
+// ===================== 音乐 =====================
 const Music = {
     audio: new Audio(),
-    
     init: function() {
         this.audio.addEventListener('timeupdate', () => this.updateProgress());
         this.audio.addEventListener('ended', () => this.playNext());
         this.audio.addEventListener('loadedmetadata', () => this.updateProgress());
-        this.audio.addEventListener('error', () => App.toast('音频加载失败，可能是格式不支持或URL失效'));
         
         document.getElementById('btn-play').onclick = () => this.togglePlay();
         document.getElementById('btn-prev').onclick = () => this.playPrev();
         document.getElementById('btn-next').onclick = () => this.playNext();
         document.getElementById('btn-mode').onclick = () => this.toggleMode();
-        
-        document.getElementById('music-progress-bar').onchange = (e) => {
-            if (this.audio.duration) {
-                this.audio.currentTime = (e.target.value / 100) * this.audio.duration;
-            }
-        };
+        document.getElementById('music-progress-bar').onchange = (e) => { if (this.audio.duration) this.audio.currentTime = (e.target.value / 100) * this.audio.duration; };
 
         document.getElementById('btn-add-music-url').onclick = () => {
             const url = document.getElementById('music-url-input').value.trim();
@@ -1074,7 +835,7 @@ const Music = {
         document.getElementById('btn-add-music-file').onclick = () => document.getElementById('music-file-input').click();
         document.getElementById('music-file-input').onchange = (e) => {
             const file = e.target.files[0]; if(!file) return;
-            if (file.size > 2 * 1024 * 1024) { App.toast('本地音频不能超过2MB，防卡顿。建议用URL'); return; }
+            if (file.size > 2 * 1024 * 1024) { App.toast('本地音频过大(超2MB)，建议用URL'); return; }
             const reader = new FileReader();
             reader.onload = (ev) => { 
                 App.data.music.list.push({ id: Date.now(), name: file.name, src: ev.target.result }); 
@@ -1082,143 +843,76 @@ const Music = {
             };
             reader.readAsDataURL(file); e.target.value = '';
         };
-
         this.updateModeUI();
-        if (App.data.music.currentIndex >= 0 && App.data.music.list[App.data.music.currentIndex]) {
-            this.loadSong(App.data.music.currentIndex, false);
-        }
     },
-
     togglePlay: function() {
-        if (App.data.music.currentIndex === -1 && App.data.music.list.length > 0) {
-            this.loadSong(0, true);
-            return;
-        }
-        if (this.audio.paused) {
-            this.audio.play().catch(() => App.toast('播放被浏览器拦截，请再点一次'));
-            document.getElementById('btn-play').innerText = '⏸';
-        } else {
-            this.audio.pause();
-            document.getElementById('btn-play').innerText = '▶';
-        }
+        if (App.data.music.currentIndex === -1 && App.data.music.list.length > 0) { this.loadSong(0, true); return; }
+        if (this.audio.paused) { this.audio.play().catch(()=>App.toast('播放被拦截')); document.getElementById('btn-play').innerText = '⏸'; }
+        else { this.audio.pause(); document.getElementById('btn-play').innerText = '▶'; }
     },
-
     loadSong: function(index, autoplay = true) {
         if (index < 0 || index >= App.data.music.list.length) return;
         App.data.music.currentIndex = index;
-        const song = App.data.music.list[index];
-        
-        this.audio.src = song.src;
-        document.getElementById('music-title').innerText = song.name;
-        if (autoplay) {
-            this.audio.play().catch(() => App.toast('播放失败'));
-            document.getElementById('btn-play').innerText = '⏸';
-        }
+        this.audio.src = App.data.music.list[index].src;
+        document.getElementById('music-title').innerText = App.data.music.list[index].name;
+        if (autoplay) { this.audio.play().catch(()=>App.toast('播放失败')); document.getElementById('btn-play').innerText = '⏸'; }
         this.renderList();
     },
-
     playNext: function() {
         if (App.data.music.list.length === 0) return;
         let idx = App.data.music.currentIndex;
-        const mode = App.data.music.mode;
-        if (mode === 'shuffle') idx = Math.floor(Math.random() * App.data.music.list.length);
+        if (App.data.music.mode === 'shuffle') idx = Math.floor(Math.random() * App.data.music.list.length);
         else idx = (idx + 1) % App.data.music.list.length;
         this.loadSong(idx, true);
     },
-
     playPrev: function() {
         if (App.data.music.list.length === 0) return;
         let idx = App.data.music.currentIndex;
-        const mode = App.data.music.mode;
-        if (mode === 'shuffle') idx = Math.floor(Math.random() * App.data.music.list.length);
+        if (App.data.music.mode === 'shuffle') idx = Math.floor(Math.random() * App.data.music.list.length);
         else idx = (idx - 1 + App.data.music.list.length) % App.data.music.list.length;
         this.loadSong(idx, true);
     },
-
     toggleMode: function() {
         const modes = ['order', 'single', 'shuffle'];
-        let idx = modes.indexOf(App.data.music.mode);
-        App.data.music.mode = modes[(idx + 1) % modes.length];
-        this.updateModeUI();
-        App.saveData();
+        App.data.music.mode = modes[(modes.indexOf(App.data.music.mode) + 1) % modes.length];
+        this.updateModeUI(); App.saveData();
     },
-
     updateModeUI: function() {
         const btn = document.getElementById('btn-mode');
-        const mode = App.data.music.mode;
-        if (mode === 'order') { btn.innerText = '🔁'; btn.title = '列表循环'; }
-        else if (mode === 'single') { btn.innerText = '🔂'; btn.title = '单曲循环'; }
-        else { btn.innerText = '🔀'; btn.title = '随机播放'; }
+        if (App.data.music.mode === 'order') btn.innerText = '🔁';
+        else if (App.data.music.mode === 'single') btn.innerText = '🔂';
+        else btn.innerText = '🔀';
     },
-
     updateProgress: function() {
         if (isNaN(this.audio.duration)) return;
-        const cur = this.audio.currentTime;
-        const total = this.audio.duration;
-        
+        const cur = this.audio.currentTime, total = this.audio.duration;
         document.getElementById('music-cur-time').innerText = this.formatTime(cur);
         document.getElementById('music-total-time').innerText = this.formatTime(total);
-        
-        if (!document.getElementById('music-progress-bar').matches(':active')) {
-            document.getElementById('music-progress-bar').value = (cur / total) * 100;
-        }
+        if (!document.getElementById('music-progress-bar').matches(':active')) document.getElementById('music-progress-bar').value = (cur / total) * 100;
     },
-
     formatTime: function(sec) {
-        const m = Math.floor(sec / 60);
-        const s = Math.floor(sec % 60);
-        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        return `${Math.floor(sec / 60).toString().padStart(2, '0')}:${Math.floor(sec % 60).toString().padStart(2, '0')}`;
     },
-
     renderList: function() {
         const list = document.getElementById('music-list');
         const fragment = document.createDocumentFragment();
-        
         App.data.music.list.forEach((song, i) => {
             const div = document.createElement('div');
             div.className = 'card-item';
             const isPlaying = App.data.music.currentIndex === i;
-            
             div.innerHTML = `<span style="color:${isPlaying ? 'var(--bubble-user)' : 'inherit'}; font-weight:${isPlaying ? 'bold' : 'normal'}">${isPlaying ? '▶ ' : ''}${song.name}</span>
-            <div class="card-actions">
-                <span class="btn-up" style="cursor:pointer; color:var(--accent); margin-right:5px;">上移</span>
-                <span class="btn-down" style="cursor:pointer; color:var(--accent); margin-right:5px;">下移</span>
-                <span class="btn-rename" style="cursor:pointer; color:var(--accent); margin-right:5px;">改名</span>
-                <span class="btn-del" style="cursor:pointer; color:#d00; margin-left:5px;">删除</span>
-            </div>`;
-            
+            <div class="card-actions"><span class="btn-up">上移</span><span class="btn-down">下移</span><span class="btn-rename">改名</span><span class="btn-del" style="color:#d00;">删除</span></div>`;
             div.onclick = (e) => {
                 if (e.target.classList.contains('btn-up')) {
-                    if (i > 0) {
-                        [App.data.music.list[i], App.data.music.list[i-1]] = [App.data.music.list[i-1], App.data.music.list[i]];
-                        if (App.data.music.currentIndex === i) App.data.music.currentIndex--;
-                        else if (App.data.music.currentIndex === i-1) App.data.music.currentIndex++;
-                        App.saveData(); this.renderList();
-                    }
+                    if (i > 0) { [App.data.music.list[i], App.data.music.list[i-1]] = [App.data.music.list[i-1], App.data.music.list[i]]; if (App.data.music.currentIndex === i) App.data.music.currentIndex--; else if (App.data.music.currentIndex === i-1) App.data.music.currentIndex++; App.saveData(); this.renderList(); }
                 } else if (e.target.classList.contains('btn-down')) {
-                    if (i < App.data.music.list.length - 1) {
-                        [App.data.music.list[i], App.data.music.list[i+1]] = [App.data.music.list[i+1], App.data.music.list[i]];
-                        if (App.data.music.currentIndex === i) App.data.music.currentIndex++;
-                        else if (App.data.music.currentIndex === i+1) App.data.music.currentIndex--;
-                        App.saveData(); this.renderList();
-                    }
+                    if (i < App.data.music.list.length - 1) { [App.data.music.list[i], App.data.music.list[i+1]] = [App.data.music.list[i+1], App.data.music.list[i]]; if (App.data.music.currentIndex === i) App.data.music.currentIndex++; else if (App.data.music.currentIndex === i+1) App.data.music.currentIndex--; App.saveData(); this.renderList(); }
                 } else if (e.target.classList.contains('btn-rename')) {
                     const newName = prompt('修改名称', song.name);
-                    if (newName && newName.trim()) {
-                        song.name = newName.trim();
-                        App.saveData(); this.renderList();
-                        if (isPlaying) document.getElementById('music-title').innerText = song.name;
-                    }
+                    if (newName && newName.trim()) { song.name = newName.trim(); App.saveData(); this.renderList(); if (isPlaying) document.getElementById('music-title').innerText = song.name; }
                 } else if (e.target.classList.contains('btn-del')) {
-                    if (confirm('删除这首歌？')) {
-                        App.data.music.list.splice(i, 1);
-                        if (App.data.music.currentIndex === i) { this.audio.pause(); App.data.music.currentIndex = -1; document.getElementById('music-title').innerText = '未在播放'; }
-                        else if (App.data.music.currentIndex > i) App.data.music.currentIndex--;
-                        App.saveData(); this.renderList();
-                    }
-                } else {
-                    this.loadSong(i, true);
-                }
+                    if (confirm('删除这首歌？')) { App.data.music.list.splice(i, 1); if (App.data.music.currentIndex === i) { this.audio.pause(); App.data.music.currentIndex = -1; document.getElementById('music-title').innerText = '未在播放'; } else if (App.data.music.currentIndex > i) App.data.music.currentIndex--; App.saveData(); this.renderList(); }
+                } else { this.loadSong(i, true); }
             };
             fragment.appendChild(div);
         });
@@ -1226,28 +920,25 @@ const Music = {
     }
 };
 
-// ===================== 通话功能 =====================
+// ===================== 通话 =====================
 const Call = {
-    isVideo: false,
-    isIncoming: false,
-    localStream: null,
-
+    isVideo: false, isIncoming: false, localStream: null,
     start: function(isVideo, isIncoming) {
-        this.isVideo = isVideo;
-        this.isIncoming = isIncoming;
-        
+        this.isVideo = isVideo; this.isIncoming = isIncoming;
         const overlay = document.getElementById('call-overlay');
         const s = App.data.settings;
         document.getElementById('call-name-text').innerText = s.botName;
         if(s.botAvatar) document.getElementById('call-avatar-img').src = s.botAvatar;
-        
         const status = document.getElementById('call-status-text');
         status.innerText = isVideo ? '视频通话邀请...' : '语音通话邀请...';
-        
         overlay.style.background = isVideo ? '#000' : '#222';
         overlay.classList.add('show');
         
-        if (isVideo) this.startCamera();
+        if (isVideo) {
+            const videoEl = document.getElementById('local-video-preview');
+            videoEl.style.display = 'block';
+            navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(stream => { this.localStream = stream; videoEl.srcObject = stream; }).catch(err => { App.toast('无法访问摄像头'); });
+        }
         
         if (isIncoming) {
             document.getElementById('call-actions-incoming').style.display = 'flex';
@@ -1256,28 +947,17 @@ const Call = {
             document.getElementById('call-actions-incoming').style.display = 'none';
             document.getElementById('call-actions-ongoing').style.display = 'flex';
             status.innerText = '正在等待对方接听...';
-            
             setTimeout(() => {
                 if (Math.random() * 100 < s.answerProb) status.innerText = '通话中...';
                 else { status.innerText = '对方无应答'; setTimeout(() => this.hangup(), 1500); }
             }, 3000);
         }
     },
-
-    startCamera: function() {
-        const videoEl = document.getElementById('local-video-preview');
-        videoEl.style.display = 'block';
-        navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-            .then(stream => { this.localStream = stream; videoEl.srcObject = stream; })
-            .catch(err => { App.toast('无法访问摄像头'); });
-    },
-
     answer: function() {
         document.getElementById('call-actions-incoming').style.display = 'none';
         document.getElementById('call-actions-ongoing').style.display = 'flex';
         document.getElementById('call-status-text').innerText = '通话中...';
     },
-
     hangup: function() {
         document.getElementById('call-overlay').classList.remove('show');
         document.getElementById('local-video-preview').style.display = 'none';
@@ -1285,397 +965,184 @@ const Call = {
     }
 };
 
-// ===================== 拍一拍管理 =====================
+// ===================== 拍一拍 =====================
 const Pat = {
     render: function() {
         const list = document.getElementById('pat-list');
         const fragment = document.createDocumentFragment();
         App.data.pats.forEach((p, i) => {
-            const div = document.createElement('div');
-            div.className = 'card-item';
-            div.innerHTML = `<span>${p}</span><div class="card-actions">
-                <span class="edit-pat">编辑</span>
-                <span class="del-pat">删除</span>
-            </div>`;
+            const div = document.createElement('div'); div.className = 'card-item';
+            div.innerHTML = `<span>${p}</span><div class="card-actions"><span class="edit-pat">编辑</span><span class="del-pat">删除</span></div>`;
             div.querySelector('.del-pat').onclick = () => { App.data.pats.splice(i,1); this.render(); App.saveData(); };
             div.querySelector('.edit-pat').onclick = () => {
                 document.getElementById('edit-pat-text').value = p;
                 document.getElementById('edit-pat-modal').classList.add('show');
-                document.getElementById('btn-edit-pat-confirm').onclick = () => {
-                    App.data.pats[i] = document.getElementById('edit-pat-text').value.trim();
-                    this.render(); App.saveData();
-                    document.getElementById('edit-pat-modal').classList.remove('show');
-                };
+                document.getElementById('btn-edit-pat-confirm').onclick = () => { App.data.pats[i] = document.getElementById('edit-pat-text').value.trim(); this.render(); App.saveData(); document.getElementById('edit-pat-modal').classList.remove('show'); };
             };
             fragment.appendChild(div);
         });
         list.replaceChildren(fragment);
     },
     init: function() {
-        document.getElementById('btn-pat-single').onclick = () => {
-            const input = document.getElementById('new-pat-input');
-            if(!input.value.trim()) return;
-            App.data.pats.push(input.value.trim()); input.value = ''; this.render(); App.saveData();
-        };
+        document.getElementById('btn-pat-single').onclick = () => { const input = document.getElementById('new-pat-input'); if(!input.value.trim()) return; App.data.pats.push(input.value.trim()); input.value = ''; this.render(); App.saveData(); };
         document.getElementById('btn-pat-batch').onclick = () => document.getElementById('pat-batch-modal').classList.add('show');
-        document.getElementById('btn-pat-batch-confirm').onclick = () => {
-            const lines = document.getElementById('pat-text').value.split('\n');
-            lines.forEach(line => { if(line.trim() && !App.data.pats.includes(line.trim())) App.data.pats.push(line.trim()); });
-            document.getElementById('pat-batch-modal').classList.remove('show');
-            document.getElementById('pat-text').value = '';
-            this.render(); App.saveData();
-        };
-        document.getElementById('btn-pat-export').onclick = () => {
-            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([App.data.pats.join('\n')], {type:'text/plain'})); a.download = 'pats.txt'; a.click();
-        };
+        document.getElementById('btn-pat-batch-confirm').onclick = () => { document.getElementById('pat-text').value.split('\n').forEach(line => { if(line.trim() && !App.data.pats.includes(line.trim())) App.data.pats.push(line.trim()); }); document.getElementById('pat-batch-modal').classList.remove('show'); document.getElementById('pat-text').value = ''; this.render(); App.saveData(); };
+        document.getElementById('btn-pat-export').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([App.data.pats.join('\n')], {type:'text/plain'})); a.download = 'pats.txt'; a.click(); };
         document.getElementById('btn-pat-import').onclick = () => document.getElementById('pat-file-input').click();
-        document.getElementById('pat-file-input').onchange = (e) => {
-            const file = e.target.files[0]; if(!file) return;
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                ev.target.result.split('\n').forEach(l => { if(l.trim() && !App.data.pats.includes(l.trim())) App.data.pats.push(l.trim()); });
-                this.render(); App.saveData(); App.toast('导入成功');
-            };
-            reader.readAsText(file); e.target.value = '';
-        };
+        document.getElementById('pat-file-input').onchange = (e) => { const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = (ev) => { ev.target.result.split('\n').forEach(l => { if(l.trim() && !App.data.pats.includes(l.trim())) App.data.pats.push(l.trim()); }); this.render(); App.saveData(); App.toast('导入成功'); }; reader.readAsText(file); e.target.value = ''; };
     }
 };
 
-// ===================== 字卡库模块 =====================
+// ===================== 字卡库 =====================
 const Cards = {
     render: function() {
         const list = document.getElementById('cards-list');
         const search = document.getElementById('search-input').value.trim();
         const fragment = document.createDocumentFragment();
-        
-        App.data.cards.forEach((group, gi) => {
+        App.data.cards.forEach((group) => {
             const items = group.items.filter(i => i.includes(search));
             if (search && items.length === 0) return;
-
-            const gTitle = document.createElement('div');
-            gTitle.className = 'group-title';
+            const gTitle = document.createElement('div'); gTitle.className = 'group-title';
             gTitle.innerHTML = `<div class="group-title-left"><span class="arrow">▼</span> ${group.group} (${items.length})</div>`;
             fragment.appendChild(gTitle);
-
-            const gContainer = document.createElement('div');
-            gContainer.className = 'group-container';
-            
-            items.forEach((item, ii) => {
+            const gContainer = document.createElement('div'); gContainer.className = 'group-container';
+            items.forEach((item) => {
                 const iIndex = group.items.indexOf(item);
-                const div = document.createElement('div');
-                div.className = 'card-item';
-                div.innerHTML = `<span>${item}</span><div class="card-actions">
-                    <span class="edit-card">编辑</span>
-                    <span class="del-card">删除</span>
-                </div>`;
+                const div = document.createElement('div'); div.className = 'card-item';
+                div.innerHTML = `<span>${item}</span><div class="card-actions"><span class="edit-card">编辑</span><span class="del-card">删除</span></div>`;
                 div.querySelector('.del-card').onclick = () => { group.items.splice(iIndex, 1); this.render(); App.saveData(); };
-                div.querySelector('.edit-card').onclick = () => {
-                    const newText = prompt('修改字卡', item);
-                    if (newText !== null && newText.trim()) { group.items[iIndex] = newText.trim(); this.render(); App.saveData(); }
-                };
+                div.querySelector('.edit-card').onclick = () => { const newText = prompt('修改字卡', item); if (newText !== null && newText.trim()) { group.items[iIndex] = newText.trim(); this.render(); App.saveData(); } };
                 gContainer.appendChild(div);
             });
-            
-            gTitle.onclick = () => {
-                gTitle.classList.toggle('collapsed');
-                gContainer.style.display = gTitle.classList.contains('collapsed') ? 'none' : 'block';
-            };
+            gTitle.onclick = () => { gTitle.classList.toggle('collapsed'); gContainer.style.display = gTitle.classList.contains('collapsed') ? 'none' : 'block'; };
             fragment.appendChild(gContainer);
         });
         list.replaceChildren(fragment);
     },
     init: function() {
         document.getElementById('search-input').oninput = () => this.render();
-        document.getElementById('btn-add-single').onclick = () => {
-            const input = document.getElementById('new-card-input');
-            if(!input.value.trim()) return;
-            let g = App.data.cards.find(c => c.group === '默认');
-            if(!g) { g = { group: '默认', items: [] }; App.data.cards.push(g); }
-            g.items.push(input.value.trim()); 
-            input.value = ''; this.render(); App.saveData();
-        };
+        document.getElementById('btn-add-single').onclick = () => { const input = document.getElementById('new-card-input'); if(!input.value.trim()) return; let g = App.data.cards.find(c => c.group === '默认'); if(!g) { g = { group: '默认', items: [] }; App.data.cards.push(g); } g.items.push(input.value.trim()); input.value = ''; this.render(); App.saveData(); };
         document.getElementById('btn-batch-add').onclick = () => document.getElementById('batch-modal').classList.add('show');
         document.getElementById('btn-batch-confirm').onclick = () => {
-            const text = document.getElementById('batch-text').value;
-            let currentGroup = '默认';
+            const text = document.getElementById('batch-text').value; let currentGroup = '默认';
             if (!App.data.cards.find(c => c.group === currentGroup)) App.data.cards.push({ group: currentGroup, items: [] });
-            
-            text.split('\n').forEach(line => {
-                line = line.trim();
-                if (!line) return;
-                const match = line.match(/^【(.*?)】$/);
-                if (match) {
-                    currentGroup = match[1];
-                    if (!App.data.cards.find(c => c.group === currentGroup)) App.data.cards.push({ group: currentGroup, items: [] });
-                } else {
-                    let g = App.data.cards.find(c => c.group === currentGroup);
-                    if (g && !g.items.includes(line)) g.items.push(line);
-                }
-            });
-            document.getElementById('batch-modal').classList.remove('show');
-            document.getElementById('batch-text').value = '';
-            this.render(); App.saveData(); App.toast('批量添加成功');
+            text.split('\n').forEach(line => { line = line.trim(); if (!line) return; const match = line.match(/^【(.*?)】$/); if (match) { currentGroup = match[1]; if (!App.data.cards.find(c => c.group === currentGroup)) App.data.cards.push({ group: currentGroup, items: [] }); } else { let g = App.data.cards.find(c => c.group === currentGroup); if (g && !g.items.includes(line)) g.items.push(line); } });
+            document.getElementById('batch-modal').classList.remove('show'); document.getElementById('batch-text').value = ''; this.render(); App.saveData(); App.toast('批量添加成功');
         };
-        document.getElementById('btn-export-cards').onclick = () => {
-            let out = '';
-            App.data.cards.forEach(c => { out += `【${c.group}】\n${c.items.join('\n')}\n`; });
-            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([out], {type:'text/plain'})); a.download = 'cards.txt'; a.click();
-        };
+        document.getElementById('btn-export-cards').onclick = () => { let out = ''; App.data.cards.forEach(c => { out += `【${c.group}】\n${c.items.join('\n')}\n`; }); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([out], {type:'text/plain'})); a.download = 'cards.txt'; a.click(); };
         document.getElementById('btn-import-cards').onclick = () => document.getElementById('file-input').click();
         document.getElementById('file-input').onchange = (e) => {
-            const file = e.target.files[0]; if(!file) return;
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                const text = ev.target.result;
-                let currentGroup = '默认';
-                text.split('\n').forEach(line => {
-                    line = line.trim();
-                    if (!line) return;
-                    const match = line.match(/^【(.*?)】$/);
-                    if (match) {
-                        currentGroup = match[1];
-                        if (!App.data.cards.find(c => c.group === currentGroup)) App.data.cards.push({ group: currentGroup, items: [] });
-                    } else {
-                        let g = App.data.cards.find(c => c.group === currentGroup);
-                        if (g && !g.items.includes(line)) g.items.push(line);
-                    }
-                });
-                this.render(); App.saveData(); App.toast('导入成功');
-            };
+            const file = e.target.files[0]; if(!file) return; const reader = new FileReader();
+            reader.onload = (ev) => { const text = ev.target.result; let currentGroup = '默认'; text.split('\n').forEach(line => { line = line.trim(); if (!line) return; const match = line.match(/^【(.*?)】$/); if (match) { currentGroup = match[1]; if (!App.data.cards.find(c => c.group === currentGroup)) App.data.cards.push({ group: currentGroup, items: [] }); } else { let g = App.data.cards.find(c => c.group === currentGroup); if (g && !g.items.includes(line)) g.items.push(line); } }); this.render(); App.saveData(); App.toast('导入成功'); };
             reader.readAsText(file); e.target.value = '';
         };
     }
 };
 
-// ===================== 表情包模块 =====================
+// ===================== 表情包 =====================
 const Emoji = {
     renderPanel: function() {
-        const grid = document.getElementById('emoji-grid-pic');
-        const fragment = document.createDocumentFragment();
-        App.data.emojis.forEach(url => {
-            const img = document.createElement('img');
-            img.src = url;
-            img.onclick = () => {
-                App.data.messages.push({id: Date.now(), role: 'user', content: url, isImg: true, time: Date.now()});
-                Chat.currentLimit = 50; Chat.render(); App.saveData(); Chat.playSound();
-                App.hidePanels();
-                Chat.triggerReply("");
-            };
-            fragment.appendChild(img);
-        });
+        const grid = document.getElementById('emoji-grid-pic'); const fragment = document.createDocumentFragment();
+        App.data.emojis.forEach(url => { const img = document.createElement('img'); img.src = url; img.onclick = () => { App.data.messages.push({id: Date.now(), role: 'user', content: url, isImg: true, time: Date.now()}); Chat.currentLimit = 50; Chat.render(); App.saveData(); Chat.playSound(); App.hidePanels(); Chat.triggerReply(""); }; fragment.appendChild(img); });
         grid.replaceChildren(fragment);
     },
     renderFull: function() {
-        const grid = document.getElementById('emoji-grid-full');
-        const fragment = document.createDocumentFragment();
-        App.data.emojis.forEach((url, i) => {
-            const wrapper = document.createElement('div');
-            wrapper.style.position = 'relative';
-            wrapper.innerHTML = `<img src="${url}"><div style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.5);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;justify-content:center;align-items:center;font-size:12px;cursor:pointer;">✕</div>`;
-            wrapper.querySelector('div').onclick = () => { App.data.emojis.splice(i, 1); this.renderFull(); App.saveData(); };
-            fragment.appendChild(wrapper);
-        });
+        const grid = document.getElementById('emoji-grid-full'); const fragment = document.createDocumentFragment();
+        App.data.emojis.forEach((url, i) => { const wrapper = document.createElement('div'); wrapper.style.position = 'relative'; wrapper.innerHTML = `<img src="${url}"><div style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.5);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;justify-content:center;align-items:center;font-size:12px;cursor:pointer;">✕</div>`; wrapper.querySelector('div').onclick = () => { App.data.emojis.splice(i, 1); this.renderFull(); App.saveData(); }; fragment.appendChild(wrapper); });
         grid.replaceChildren(fragment);
     },
     init: function() {
-        document.getElementById('btn-add-emoji-url').onclick = () => {
-            const url = prompt('输入图片URL:');
-            if (url) { App.data.emojis.push(url); App.saveData(); this.renderPanel(); }
-        };
-        document.getElementById('btn-add-emoji-net').onclick = () => {
-            const url = prompt('输入图片URL:');
-            if (url) { App.data.emojis.push(url); App.saveData(); this.renderFull(); }
-        };
+        document.getElementById('btn-add-emoji-url').onclick = () => { const url = prompt('输入图片URL:'); if (url) { App.data.emojis.push(url); App.saveData(); this.renderPanel(); } };
+        document.getElementById('btn-add-emoji-net').onclick = () => { const url = prompt('输入图片URL:'); if (url) { App.data.emojis.push(url); App.saveData(); this.renderFull(); } };
         document.getElementById('btn-add-emoji-local').onclick = () => document.getElementById('batch-emoji-input').click();
-        document.getElementById('batch-emoji-input').onchange = (e) => {
-            const files = Array.from(e.target.files);
-            files.forEach(file => {
-                const reader = new FileReader();
-                reader.onload = (ev) => { App.data.emojis.push(ev.target.result); App.saveData(); this.renderFull(); };
-                reader.readAsDataURL(file);
-            });
-            e.target.value = '';
-        };
-        document.getElementById('btn-clear-emoji').onclick = () => {
-            if(confirm('确定清空所有表情包？')) { App.data.emojis = []; App.saveData(); this.renderFull(); }
-        };
+        document.getElementById('batch-emoji-input').onchange = (e) => { Array.from(e.target.files).forEach(file => { const reader = new FileReader(); reader.onload = (ev) => { App.data.emojis.push(ev.target.result); App.saveData(); this.renderFull(); }; reader.readAsDataURL(file); }); e.target.value = ''; };
+        document.getElementById('btn-clear-emoji').onclick = () => { if(confirm('确定清空所有表情包？')) { App.data.emojis = []; App.saveData(); this.renderFull(); } };
     }
 };
 
-// ===================== 信箱模块 =====================
+// ===================== 信箱 =====================
 const Letters = {
     render: function() {
-        const list = document.getElementById('letters-list');
-        const fragment = document.createDocumentFragment();
-        const letters = App.data.letters || [];
-        if(letters.length === 0) {
-            list.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">暂无信件</div>';
-            return;
-        }
+        const list = document.getElementById('letters-list'); const fragment = document.createDocumentFragment(); const letters = App.data.letters || [];
+        if(letters.length === 0) { list.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">暂无信件</div>'; return; }
         letters.slice().reverse().forEach(l => {
-            const div = document.createElement('div');
-            div.className = 'list-item';
+            const div = document.createElement('div'); div.className = 'list-item';
             div.innerHTML = `<div class="list-item-info"><div class="list-item-title">${l.title}</div><div class="list-item-desc">${l.sender === 'me' ? '我: ' : '对方: '}${l.content}</div><div style="font-size:11px; color:#999; margin-top:5px;">${new Date(l.time).toLocaleString()}</div></div>`;
-            div.onclick = () => {
-                document.getElementById('read-letter-title').innerText = l.title;
-                document.getElementById('read-letter-meta').innerText = `From: ${l.sender === 'me' ? App.data.settings.myName : App.data.settings.botName} | ${new Date(l.time).toLocaleString()}`;
-                document.getElementById('read-letter-content').innerText = l.content;
-                document.getElementById('read-letter-modal').classList.add('show');
-                l.read = true;
-                App.saveData();
-            };
+            div.onclick = () => { document.getElementById('read-letter-title').innerText = l.title; document.getElementById('read-letter-meta').innerText = `From: ${l.sender === 'me' ? App.data.settings.myName : App.data.settings.botName} | ${new Date(l.time).toLocaleString()}`; document.getElementById('read-letter-content').innerText = l.content; document.getElementById('read-letter-modal').classList.add('show'); l.read = true; App.saveData(); };
             fragment.appendChild(div);
         });
         list.replaceChildren(fragment);
     },
     init: function() {
-        document.getElementById('btn-write-letter').onclick = () => {
-            document.getElementById('write-letter-title').value = '';
-            document.getElementById('write-letter-content').value = '';
-            document.getElementById('write-letter-modal').classList.add('show');
-        };
+        document.getElementById('btn-write-letter').onclick = () => { document.getElementById('write-letter-title').value = ''; document.getElementById('write-letter-content').value = ''; document.getElementById('write-letter-modal').classList.add('show'); };
         document.getElementById('btn-send-letter').onclick = () => {
-            const title = document.getElementById('write-letter-title').value.trim() || '无题';
-            const content = document.getElementById('write-letter-content').value.trim();
+            const title = document.getElementById('write-letter-title').value.trim() || '无题'; const content = document.getElementById('write-letter-content').value.trim();
             if(!content) { App.toast('内容不能为空'); return; }
-            
             if(!App.data.letters) App.data.letters = [];
             App.data.letters.push({ id: Date.now(), title, content, sender: 'me', time: Date.now(), read: true });
-            App.saveData();
-            document.getElementById('write-letter-modal').classList.remove('show');
-            this.render();
-            App.toast('信件已寄出');
-            
-            const s = App.data.settings;
-            if (Math.random() * 100 < s.replyProb) {
-                setTimeout(() => { this.receiveLetter(true); }, (Math.random() * 10 + 5) * 1000);
-            }
+            App.saveData(); document.getElementById('write-letter-modal').classList.remove('show'); this.render(); App.toast('信件已寄出');
+            if (Math.random() * 100 < App.data.settings.replyProb) setTimeout(() => { this.receiveLetter(true); }, (Math.random() * 10 + 5) * 1000);
         };
     },
     receiveLetter: function(isReply = false) {
-        const s = App.data.settings;
-        const allCards = App.data.cards.flatMap(c => c.items).filter(i => !i.startsWith('!'));
+        const s = App.data.settings; const allCards = App.data.cards.flatMap(c => c.items).filter(i => !i.startsWith('!'));
         let content = allCards.length > 0 ? allCards[Math.floor(Math.random() * allCards.length)] : '收到你的信了，见字如面。';
         let title = isReply ? '回复: ' + (App.data.letters[App.data.letters.length-1]?.title || '你的来信') : '来自' + s.botName + '的信';
-        
         if(!App.data.letters) App.data.letters = [];
         App.data.letters.push({ id: Date.now(), title, content, sender: 'other', time: Date.now(), read: false });
         App.saveData();
-        
-        if (document.getElementById('letter-app').style.display === 'flex') {
-            this.render();
-        } else {
-            if (document.hidden && s.desktopNotify && Notification.permission === 'granted') {
-                new Notification(s.botName, { body: '给你写了一封信', icon: s.botAvatar || '' });
-            }
-        }
+        if (document.getElementById('letter-app').style.display === 'flex') this.render();
+        else if (document.hidden && s.desktopNotify && Notification.permission === 'granted') new Notification(s.botName, { body: '给你写了一封信', icon: s.botAvatar || '' });
     }
 };
 
-// ===================== 设置模块 =====================
+// ===================== 设置 =====================
 const Settings = {
-    timerMsg: null,
-    timerLetter: null,
-    timerCall: null,
+    timerMsg: null, timerLetter: null, timerCall: null,
 
     render: function() {
         const s = App.data.settings;
-        document.getElementById('set-my-name').value = s.myName;
-        document.getElementById('my-avatar-preview').src = s.myAvatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-        document.getElementById('set-bot-name').value = s.botName;
-        document.getElementById('bot-avatar-preview').src = s.botAvatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-        
-        document.getElementById('set-is-group').checked = s.isGroup;
-        document.getElementById('single-bot-settings').style.display = s.isGroup ? 'none' : 'block';
-        document.getElementById('group-settings').style.display = s.isGroup ? 'block' : 'none';
-        document.getElementById('set-group-members').value = JSON.stringify(s.groupMembers);
-        
-        document.getElementById('set-desktop-notify').checked = s.desktopNotify;
-        document.getElementById('set-keep-alive').checked = s.keepAlive;
-        
-        document.getElementById('set-time-display').value = s.timeDisplay;
-        document.getElementById('set-show-avatar').checked = s.showAvatar;
-        document.getElementById('set-show-name').checked = s.showName;
-        document.getElementById('set-show-read').checked = s.showRead;
-        document.getElementById('set-send-multi').checked = s.sendMulti;
-        document.getElementById('set-sound-enabled').checked = s.soundEnabled;
-        
-        document.getElementById('set-theme').value = s.theme;
-        document.getElementById('slider-font-size').value = s.fontSize;
-        document.getElementById('val-font-size').innerText = s.fontSize;
-        document.getElementById('set-font-url').value = s.fontUrl;
-        document.getElementById('set-bubble-css').value = s.bubbleCss;
-        
-        document.getElementById('set-typing-text').value = s.typingText;
-        document.getElementById('set-delay-min').value = s.delayMin;
-        document.getElementById('set-delay-max').value = s.delayMax;
-        document.getElementById('set-proactive-min').value = s.proactiveMin;
-        document.getElementById('set-proactive-max').value = s.proactiveMax;
-        
-        document.getElementById('slider-emoji-prob').value = s.emojiProb;
-        document.getElementById('val-emoji-prob').innerText = s.emojiProb + '%';
-        document.getElementById('slider-ignore').value = s.ignoreProb;
-        document.getElementById('val-ignore').innerText = s.ignoreProb + '%';
-        document.getElementById('slider-quote').value = s.quoteProb;
-        document.getElementById('val-quote').innerText = s.quoteProb + '%';
-        document.getElementById('slider-recall').value = s.recallProb;
-        document.getElementById('val-recall').innerText = s.recallProb + '%';
-        document.getElementById('slider-pat-prob').value = s.patProb;
-        document.getElementById('val-pat-prob').innerText = s.patProb + '%';
-        
-        document.getElementById('slider-call-prob').value = s.callProb;
-        document.getElementById('val-call-prob').innerText = s.callProb + '%';
-        document.getElementById('slider-answer-prob').value = s.answerProb;
-        document.getElementById('val-answer-prob').innerText = s.answerProb + '%';
-        
-        document.getElementById('set-letter-min').value = s.letterMin;
-        document.getElementById('set-letter-max').value = s.letterMax;
-        document.getElementById('slider-letter-prob').value = s.letterProb;
-        document.getElementById('val-letter-prob').innerText = s.letterProb + '%';
-        document.getElementById('slider-reply-prob').value = s.replyProb;
-        document.getElementById('val-reply-prob').innerText = s.replyProb + '%';
+        document.getElementById('set-my-name').value = s.myName; document.getElementById('my-avatar-preview').src = s.myAvatar || '';
+        document.getElementById('set-bot-name').value = s.botName; document.getElementById('bot-avatar-preview').src = s.botAvatar || '';
+        document.getElementById('set-is-group').checked = s.isGroup; document.getElementById('single-bot-settings').style.display = s.isGroup ? 'none' : 'block'; document.getElementById('group-settings').style.display = s.isGroup ? 'block' : 'none'; document.getElementById('set-group-members').value = JSON.stringify(s.groupMembers);
+        document.getElementById('set-desktop-notify').checked = s.desktopNotify; document.getElementById('set-keep-alive').checked = s.keepAlive;
+        document.getElementById('set-time-display').value = s.timeDisplay; document.getElementById('set-show-avatar').checked = s.showAvatar; document.getElementById('set-show-name').checked = s.showName; document.getElementById('set-show-read').checked = s.showRead; document.getElementById('set-send-multi').checked = s.sendMulti; document.getElementById('set-sound-enabled').checked = s.soundEnabled;
+        document.getElementById('set-theme').value = s.theme; document.getElementById('slider-font-size').value = s.fontSize; document.getElementById('val-font-size').innerText = s.fontSize; document.getElementById('set-font-url').value = s.fontUrl; document.getElementById('set-bubble-css').value = s.bubbleCss;
+        document.getElementById('set-typing-text').value = s.typingText; document.getElementById('set-delay-min').value = s.delayMin; document.getElementById('set-delay-max').value = s.delayMax; document.getElementById('set-proactive-min').value = s.proactiveMin; document.getElementById('set-proactive-max').value = s.proactiveMax;
+        document.getElementById('slider-emoji-prob').value = s.emojiProb; document.getElementById('val-emoji-prob').innerText = s.emojiProb + '%'; document.getElementById('slider-ignore').value = s.ignoreProb; document.getElementById('val-ignore').innerText = s.ignoreProb + '%'; document.getElementById('slider-quote').value = s.quoteProb; document.getElementById('val-quote').innerText = s.quoteProb + '%'; document.getElementById('slider-recall').value = s.recallProb; document.getElementById('val-recall').innerText = s.recallProb + '%'; document.getElementById('slider-pat-prob').value = s.patProb; document.getElementById('val-pat-prob').innerText = s.patProb + '%';
+        document.getElementById('slider-call-prob').value = s.callProb; document.getElementById('val-call-prob').innerText = s.callProb + '%'; document.getElementById('slider-answer-prob').value = s.answerProb; document.getElementById('val-answer-prob').innerText = s.answerProb + '%';
+        document.getElementById('set-letter-min').value = s.letterMin; document.getElementById('set-letter-max').value = s.letterMax; document.getElementById('slider-letter-prob').value = s.letterProb; document.getElementById('val-letter-prob').innerText = s.letterProb + '%'; document.getElementById('slider-reply-prob').value = s.replyProb; document.getElementById('val-reply-prob').innerText = s.replyProb + '%';
     },
     applyStyles: function() {
         const s = App.data.settings;
         document.documentElement.style.setProperty('--font-size-base', s.fontSize + 'px');
         
-        // 使用 CSS 变量注入字体，无惧卡顿
+        // 彻底修复字体注入方式，绝不卡死渲染
+        let fontStyle = document.getElementById('dynamic-font-style');
+        if (!fontStyle) { fontStyle = document.createElement('style'); fontStyle.id = 'dynamic-font-style'; document.head.appendChild(fontStyle); }
         if (s.fontUrl) {
-            if (s.fontUrl.startsWith('http')) {
-                const style = document.getElementById('dynamic-font-style');
-                if(!style) { const st = document.createElement('style'); st.id = 'dynamic-font-style'; document.head.appendChild(st); }
-                document.getElementById('dynamic-font-style').innerHTML = `@import url('${s.fontUrl}'); :root { --custom-font: 'CustomFont', sans-serif; }`;
-            } else {
-                document.documentElement.style.setProperty('--custom-font', s.fontUrl);
-            }
-        } else {
-            document.documentElement.style.setProperty('--custom-font', '"SimSun", "Songti SC", serif');
-        }
+            if (s.fontUrl.startsWith('http')) fontStyle.innerHTML = `@import url('${s.fontUrl}'); :root { --custom-font: 'CustomFont', sans-serif; }`;
+            else document.documentElement.style.setProperty('--custom-font', s.fontUrl);
+        } else document.documentElement.style.setProperty('--custom-font', '"SimSun", "Songti SC", serif');
 
-        // 气泡 CSS 注入
-        document.documentElement.style.setProperty('--custom-bubble-css', s.bubbleCss ? s.bubbleCss : 'none');
+        // 彻底修复 CSS 错误，使用动态 style 标签
+        let bubbleStyle = document.getElementById('dynamic-bubble-style');
+        if (!bubbleStyle) { bubbleStyle = document.createElement('style'); bubbleStyle.id = 'dynamic-bubble-style'; document.head.appendChild(bubbleStyle); }
+        bubbleStyle.innerHTML = s.bubbleCss ? `.msg { ${s.bubbleCss} !important; }` : '';
         
         if (s.bgImage) document.getElementById('chat-area').style.backgroundImage = `url(${s.bgImage})`;
         else document.getElementById('chat-area').style.backgroundImage = 'none';
         
-        if (s.theme === 'dark' || (s.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-        } else {
-            document.documentElement.removeAttribute('data-theme');
-        }
+        if (s.theme === 'dark' || (s.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.setAttribute('data-theme', 'dark');
+        else document.documentElement.removeAttribute('data-theme');
     },
     saveAndApply: function() {
-        App.saveData();
-        this.applyStyles();
+        App.saveData(); this.applyStyles();
         document.getElementById('chat-title').innerText = App.data.settings.botName;
     },
     setupTimers: function() {
-        clearTimeout(this.timerMsg);
-        clearTimeout(this.timerLetter);
-        clearTimeout(this.timerCall);
-        this.scheduleNextMsg();
-        this.scheduleNextLetter();
-        this.scheduleNextCall();
+        clearTimeout(this.timerMsg); clearTimeout(this.timerLetter); clearTimeout(this.timerCall);
+        this.scheduleNextMsg(); this.scheduleNextLetter(); this.scheduleNextCall();
     },
     scheduleNextMsg: function() {
         const s = App.data.settings;
@@ -1686,15 +1153,10 @@ const Settings = {
                 if(allCards.length > 0) {
                     const text = allCards[Math.floor(Math.random() * allCards.length)];
                     let msg = {id: Date.now(), role: 'other', content: text, time: Date.now()};
-                    if (s.isGroup && s.groupMembers.length > 0) {
-                        const m = s.groupMembers[Math.floor(Math.random()*s.groupMembers.length)];
-                        msg.senderName = m.name; msg.senderAvatar = m.avatar;
-                    }
+                    if (s.isGroup && s.groupMembers.length > 0) { const m = s.groupMembers[Math.floor(Math.random()*s.groupMembers.length)]; msg.senderName = m.name; msg.senderAvatar = m.avatar; }
                     App.data.messages.push(msg); App.saveData();
                     if (document.getElementById('chat-app').style.display === 'flex') Chat.render();
-                    if (document.hidden && s.desktopNotify && Notification.permission === 'granted') {
-                        new Notification(s.botName, { body: text, icon: s.botAvatar || '' });
-                    }
+                    if (document.hidden && s.desktopNotify && Notification.permission === 'granted') new Notification(s.botName, { body: text, icon: s.botAvatar || '' });
                 }
                 this.scheduleNextMsg(); 
             }, delay);
@@ -1704,48 +1166,22 @@ const Settings = {
         const s = App.data.settings;
         if (s.letterMin > 0) {
             const delay = (Math.random() * (s.letterMax - s.letterMin) + s.letterMin) * 60000;
-            this.timerLetter = setTimeout(() => {
-                if (Math.random() < (s.letterProb / 100)) Letters.receiveLetter(false);
-                this.scheduleNextLetter();
-            }, delay);
+            this.timerLetter = setTimeout(() => { if (Math.random() < (s.letterProb / 100)) Letters.receiveLetter(false); this.scheduleNextLetter(); }, delay);
         }
     },
     scheduleNextCall: function() {
         const s = App.data.settings;
         if (s.callProb > 0) {
-            this.timerCall = setTimeout(() => {
-                if (Math.random() < (s.callProb / 100)) {
-                    if (!document.getElementById('call-overlay').classList.contains('show')) Call.start(Math.random() < 0.5, true); 
-                }
-                this.scheduleNextCall();
-            }, 60000); 
+            this.timerCall = setTimeout(() => { if (Math.random() < (s.callProb / 100)) { if (!document.getElementById('call-overlay').classList.contains('show')) Call.start(Math.random() < 0.5, true); } this.scheduleNextCall(); }, 60000); 
         }
     },
     init: function() {
-        // 防抖，不实时重绘
         document.getElementById('set-my-name').onchange = (e) => { App.data.settings.myName = e.target.value || '我'; this.saveAndApply(); Chat.render(); };
         document.getElementById('set-bot-name').onchange = (e) => { App.data.settings.botName = e.target.value || '对方'; this.saveAndApply(); Chat.render(); };
 
-        document.getElementById('set-my-avatar-file').onchange = (e) => {
-            const f = e.target.files[0]; if(!f) return;
-            const r = new FileReader(); r.onload = (ev) => { 
-                document.getElementById('my-avatar-preview').src = ev.target.result;
-                App.data.settings.myAvatar = ev.target.result;
-                this.saveAndApply(); Chat.render(); App.toast('头像已更新');
-            }; r.readAsDataURL(f);
-        };
-        document.getElementById('set-bot-avatar-file').onchange = (e) => {
-            const f = e.target.files[0]; if(!f) return;
-            const r = new FileReader(); r.onload = (ev) => { 
-                document.getElementById('bot-avatar-preview').src = ev.target.result;
-                App.data.settings.botAvatar = ev.target.result;
-                this.saveAndApply(); Chat.render(); App.toast('头像已更新');
-            }; r.readAsDataURL(f);
-        };
-        document.getElementById('set-bg').onchange = (e) => {
-            const f = e.target.files[0]; if(!f) return;
-            const r = new FileReader(); r.onload = (ev) => { App.data.settings.bgImage = ev.target.result; this.saveAndApply(); }; r.readAsDataURL(f);
-        };
+        document.getElementById('set-my-avatar-file').onchange = (e) => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = (ev) => { document.getElementById('my-avatar-preview').src = ev.target.result; App.data.settings.myAvatar = ev.target.result; this.saveAndApply(); Chat.render(); App.toast('头像已更新'); }; r.readAsDataURL(f); };
+        document.getElementById('set-bot-avatar-file').onchange = (e) => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = (ev) => { document.getElementById('bot-avatar-preview').src = ev.target.result; App.data.settings.botAvatar = ev.target.result; this.saveAndApply(); Chat.render(); App.toast('头像已更新'); }; r.readAsDataURL(f); };
+        document.getElementById('set-bg').onchange = (e) => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = (ev) => { App.data.settings.bgImage = ev.target.result; this.saveAndApply(); }; r.readAsDataURL(f); };
 
         document.getElementById('set-font-url').onchange = (e) => { App.data.settings.fontUrl = e.target.value.trim(); this.saveAndApply(); };
         document.getElementById('set-bubble-css').onchange = (e) => { App.data.settings.bubbleCss = e.target.value.trim(); this.saveAndApply(); };
@@ -1753,38 +1189,19 @@ const Settings = {
         const bindChange = (id, key, isNum = false, isBool = false) => {
             const el = document.getElementById(id); if(!el) return;
             el.onchange = (e) => {
-                let val = e.target.value;
-                if(isBool) val = e.target.checked; else if(isNum) val = parseInt(val) || 0;
+                let val = e.target.value; if(isBool) val = e.target.checked; else if(isNum) val = parseInt(val) || 0;
                 App.data.settings[key] = val; this.saveAndApply();
-                
-                if (key === 'desktopNotify' && val) {
-                    if (Notification.permission !== 'granted') Notification.requestPermission();
-                }
+                if (key === 'desktopNotify' && val) { if (Notification.permission !== 'granted') Notification.requestPermission(); }
                 if (key === 'keepAlive') {
                     const audio = document.getElementById('keep-alive-audio');
-                    if (val) { audio.play().catch(() => App.toast('保活失败，请点击屏幕重试')); }
-                    else { audio.pause(); }
+                    if (val) audio.play().catch(() => App.toast('保活失败，请点击屏幕重试'));
+                    else audio.pause();
                 }
             };
         };
-        
-        bindChange('set-is-group', 'isGroup', false, true);
-        bindChange('set-time-display', 'timeDisplay');
-        bindChange('set-show-avatar', 'showAvatar', false, true);
-        bindChange('set-show-name', 'showName', false, true);
-        bindChange('set-show-read', 'showRead', false, true);
-        bindChange('set-send-multi', 'sendMulti', false, true);
-        bindChange('set-sound-enabled', 'soundEnabled', false, true);
-        bindChange('set-theme', 'theme');
-        bindChange('set-typing-text', 'typingText');
-        bindChange('set-delay-min', 'delayMin', true);
-        bindChange('set-delay-max', 'delayMax', true);
-        bindChange('set-proactive-min', 'proactiveMin', true);
-        bindChange('set-proactive-max', 'proactiveMax', true);
-        bindChange('set-letter-min', 'letterMin', true);
-        bindChange('set-letter-max', 'letterMax', true);
-        bindChange('set-desktop-notify', 'desktopNotify', false, true);
-        bindChange('set-keep-alive', 'keepAlive', false, true);
+        bindChange('set-is-group', 'isGroup', false, true); bindChange('set-time-display', 'timeDisplay'); bindChange('set-show-avatar', 'showAvatar', false, true); bindChange('set-show-name', 'showName', false, true); bindChange('set-show-read', 'showRead', false, true); bindChange('set-send-multi', 'sendMulti', false, true); bindChange('set-sound-enabled', 'soundEnabled', false, true);
+        bindChange('set-theme', 'theme'); bindChange('set-typing-text', 'typingText'); bindChange('set-delay-min', 'delayMin', true); bindChange('set-delay-max', 'delayMax', true); bindChange('set-proactive-min', 'proactiveMin', true); bindChange('set-proactive-max', 'proactiveMax', true); bindChange('set-letter-min', 'letterMin', true); bindChange('set-letter-max', 'letterMax', true);
+        bindChange('set-desktop-notify', 'desktopNotify', false, true); bindChange('set-keep-alive', 'keepAlive', false, true);
 
         const bindSlider = (id, valId, key) => {
             const el = document.getElementById(id); const val = document.getElementById(valId);
@@ -1793,73 +1210,48 @@ const Settings = {
                 el.onchange = (e) => { const v = parseInt(e.target.value); App.data.settings[key] = v; this.saveAndApply(); };
             }
         };
-        bindSlider('slider-font-size', 'val-font-size', 'fontSize'); 
-        document.getElementById('val-font-size').innerText = App.data.settings.fontSize; 
-        document.getElementById('slider-font-size').oninput = (e) => {
-            const v = parseInt(e.target.value); document.getElementById('val-font-size').innerText = v;
-            App.data.settings.fontSize = v; document.documentElement.style.setProperty('--font-size-base', v + 'px');
-        };
-        document.getElementById('slider-font-size').onchange = () => this.saveAndApply();
+        bindSlider('slider-font-size', 'val-font-size', 'fontSize'); document.getElementById('val-font-size').innerText = App.data.settings.fontSize; document.getElementById('slider-font-size').oninput = (e) => { const v = parseInt(e.target.value); document.getElementById('val-font-size').innerText = v; App.data.settings.fontSize = v; document.documentElement.style.setProperty('--font-size-base', v + 'px'); }; document.getElementById('slider-font-size').onchange = () => this.saveAndApply();
+        bindSlider('slider-emoji-prob', 'val-emoji-prob', 'emojiProb'); bindSlider('slider-ignore', 'val-ignore', 'ignoreProb'); bindSlider('slider-quote', 'val-quote', 'quoteProb'); bindSlider('slider-recall', 'val-recall', 'recallProb'); bindSlider('slider-pat-prob', 'val-pat-prob', 'patProb'); bindSlider('slider-call-prob', 'val-call-prob', 'callProb'); bindSlider('slider-answer-prob', 'val-answer-prob', 'answerProb'); bindSlider('slider-letter-prob', 'val-letter-prob', 'letterProb'); bindSlider('slider-reply-prob', 'val-reply-prob', 'replyProb');
 
-        bindSlider('slider-emoji-prob', 'val-emoji-prob', 'emojiProb');
-        bindSlider('slider-ignore', 'val-ignore', 'ignoreProb');
-        bindSlider('slider-quote', 'val-quote', 'quoteProb');
-        bindSlider('slider-recall', 'val-recall', 'recallProb');
-        bindSlider('slider-pat-prob', 'val-pat-prob', 'patProb');
-        bindSlider('slider-call-prob', 'val-call-prob', 'callProb');
-        bindSlider('slider-answer-prob', 'val-answer-prob', 'answerProb');
-        bindSlider('slider-letter-prob', 'val-letter-prob', 'letterProb');
-        bindSlider('slider-reply-prob', 'val-reply-prob', 'replyProb');
+        document.getElementById('set-group-members').onchange = (e) => { try { App.data.settings.groupMembers = JSON.parse(e.target.value || '[]'); this.saveAndApply(); } catch(err) { App.toast('JSON格式错误'); } };
+        document.getElementById('btn-save-settings').onclick = () => { this.saveAndApply(); Chat.render(); App.toast('所有设置已保存并实时生效'); };
 
-        document.getElementById('set-group-members').onchange = (e) => {
-            try { App.data.settings.groupMembers = JSON.parse(e.target.value || '[]'); this.saveAndApply(); } catch(err) { App.toast('JSON格式错误'); }
-        };
-
-        document.getElementById('btn-save-settings').onclick = () => {
-            this.saveAndApply(); Chat.render();
-            App.toast('所有设置已保存并实时生效');
-        };
-
-        document.getElementById('btn-export-all').onclick = () => {
-            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(App.data, null, 2)], {type:'application/json'})); a.download = 'Backup.json'; a.click();
-        };
+        document.getElementById('btn-export-all').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(App.data, null, 2)], {type:'application/json'})); a.download = 'Backup.json'; a.click(); };
         document.getElementById('btn-import-all').onclick = () => document.getElementById('import-all-file').click();
-        document.getElementById('import-all-file').onchange = (e) => {
-            const f = e.target.files[0]; if(!f) return;
-            const r = new FileReader();
-            r.onload = (ev) => {
-                try {
-                    const parsed = JSON.parse(ev.target.result);
-                    App.data = { ...App.data, ...parsed, settings: { ...App.data.settings, ...(parsed.settings || {}) } };
-                    App.saveData(); this.render(); this.saveAndApply(); Chat.render();
-                    App.toast('导入成功');
-                } catch(err) { App.toast('数据格式错误'); }
-            };
-            r.readAsText(f); e.target.value = '';
-        };
-        document.getElementById('btn-reset-all').onclick = () => {
-            if(confirm('确定重置所有数据？该操作不可逆！')) { localStorage.removeItem('appData_v13'); location.reload(); }
-        };
+        document.getElementById('import-all-file').onchange = (e) => { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = (ev) => { try { const parsed = JSON.parse(ev.target.result); App.data = { ...App.data, ...parsed, settings: { ...App.data.settings, ...(parsed.settings || {}) } }; App.saveData(); this.render(); this.saveAndApply(); Chat.render(); App.toast('导入成功'); } catch(err) { App.toast('数据格式错误'); } }; r.readAsText(f); e.target.value = ''; };
+        document.getElementById('btn-reset-all').onclick = () => { if(confirm('确定重置所有数据？该操作不可逆！')) { localStorage.removeItem('appData_v14'); location.reload(); } };
 
-        // 问问TA 逻辑 (修复发送者为我的问题)
+        // 问问TA 逻辑
         document.querySelectorAll('.ask-tab').forEach(tab => {
-            tab.onclick = () => {
-                document.querySelectorAll('.ask-tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.ask-section').forEach(s => s.classList.remove('active'));
-                tab.classList.add('active');
-                document.getElementById(`ask-section-${tab.dataset.askTab}`).classList.add('active');
-            };
+            tab.onclick = () => { document.querySelectorAll('.ask-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.ask-section').forEach(s => s.classList.remove('active')); tab.classList.add('active'); document.getElementById(`ask-section-${tab.dataset.askTab}`).classList.add('active'); };
         });
-        
         document.getElementById('btn-submit-ask').onclick = () => {
-            const q = document.getElementById('ask-question-input').value.trim();
-            if(!q) { App.toast('输入问题'); return; }
+            const q = document.getElementById('ask-question-input').value.trim(); if(!q) { App.toast('输入问题'); return; }
             const activeTab = document.querySelector('.ask-tab.active').dataset.askTab;
-            
-            let selectedTexts = [];
-            let optionTexts = [];
-            
-            if(activeTab === 'text') {
-                const allCards = App.data.cards.flatMap(c => c.items);
-                selectedTexts = [allCards.length > 0 ? allCards[Math.floor(Math.random()*allCards.length)] : "无话可说。"];
-                optionTexts = [...selectedTexts];
+            let selectedTexts = [], optionTexts = [];
+            if(activeTab === 'text') { const allCards = App.data.cards.flatMap(c => c.items); selectedTexts = [allCards.length > 0 ? allCards[Math.floor(Math.random()*allCards.length)] : "无话可说。"]; optionTexts = [...selectedTexts]; }
+            else {
+                optionTexts = document.getElementById(`ask-options-${activeTab}`).value.split('\n').filter(i=>i.trim());
+                if(optionTexts.length === 0) { App.toast('请输入选项'); return; }
+                if(activeTab === 'single') selectedTexts = [optionTexts[Math.floor(Math.random()*optionTexts.length)]];
+                else { const max = parseInt(document.getElementById('ask-max-select').value) || 2; const count = Math.floor(Math.random() * max) + 1; const shuffled = [...optionTexts].sort(() => 0.5 - Math.random()); selectedTexts = shuffled.slice(0, count); }
+            }
+            const options = optionTexts.map(opt => ({ text: opt, selected: selectedTexts.includes(opt) }));
+            const surveyMsg = { id: Date.now(), role: 'user', type: 'survey', question: q, options: options, selectedText: selectedTexts.join('、'), status: 'answered', time: Date.now() };
+            document.getElementById('ask-modal').classList.remove('show'); document.getElementById('ask-question-input').value = '';
+            App.data.messages.push(surveyMsg); Chat.currentLimit = 50; Chat.render(); App.saveData(); setTimeout(() => Chat.scrollToBottom(true), 100);
+        };
+    }
+};
+
+// ===================== 启动入口 =====================
+window.onload = function() {
+    App.loadData(); Settings.applyStyles();
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (App.data.settings.theme === 'system') Settings.applyStyles(); });
+    Chat.init(); Pat.init(); Cards.init(); Emoji.init(); Letters.init(); Settings.init(); Music.init();
+    document.getElementById('chat-title').innerText = App.data.settings.botName;
+    Settings.setupTimers();
+};
+</script>
+</body>
+</html>
