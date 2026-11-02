@@ -340,12 +340,8 @@
             </div>
             <div class="emoji-sub-header"><div class="emoji-sub-tabs"><div class="emoji-sub-tab active">全部</div></div><div><button class="btn-tool" style="padding:4px 8px; font-size:12px;" id="btn-add-emoji-url">加图片</button></div></div>
             <div class="emoji-content-area active" id="emoji-content-pic"><div class="emoji-grid" id="emoji-grid-pic"></div></div>
-            <div class="emoji-content-area" id="emoji-content-emoji" style="display:none; flex-wrap:wrap; gap:10px; font-size:24px; align-content:flex-start;">
-                <!-- emoji 会动态填充 -->
-            </div>
-            <div class="emoji-content-area" id="emoji-content-text" style="display:none; flex-wrap:wrap; gap:10px; font-size:14px; align-content:flex-start;">
-                <!-- 颜文字会动态填充 -->
-            </div>
+            <div class="emoji-content-area" id="emoji-content-emoji" style="display:none; flex-wrap:wrap; gap:10px; font-size:24px; align-content:flex-start;"></div>
+            <div class="emoji-content-area" id="emoji-content-text" style="display:none; flex-wrap:wrap; gap:10px; font-size:14px; align-content:flex-start;"></div>
         </div>
 
         <div id="extra-panel">
@@ -401,15 +397,15 @@
                 <div style="margin-top:10px; font-size:12px; color:#888;">注：对方偶尔会向网站申请增加余额。</div>
             </div>
             <div class="setting-item">
-                <label>发红包/转账概率 (%) <span id="val-give">10%</span></label><input type="range" id="slider-give" min="0" max="100" value="10" oninput="Settings.save()">
-                <label style="margin-top:10px;">收下红包概率 (%) <span id="val-receive">80%</span></label><input type="range" id="slider-receive" min="0" max="100" value="80" oninput="Settings.save()">
-                <label style="margin-top:10px;">退回红包概率 (%) <span id="val-return">20%</span></label><input type="range" id="slider-return" min="0" max="100" value="20" oninput="Settings.save()">
+                <label>发红包/转账概率 (%) <span id="val-give">10%</span></label><input type="range" id="slider-give" min="0" max="100" value="10">
+                <label style="margin-top:10px;">收下红包概率 (%) <span id="val-receive">80%</span></label><input type="range" id="slider-receive" min="0" max="100" value="80">
+                <label style="margin-top:10px;">退回红包概率 (%) <span id="val-return">20%</span></label><input type="range" id="slider-return" min="0" max="100" value="20">
             </div>
             
             <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">系统与通知</h3>
             <div class="setting-item">
-                <div class="switch-row"><label>桌面消息通知</label><input type="checkbox" class="toggle" id="set-desktop-notify"></div>
-                <div class="switch-row"><label>后台保活 (静音播放防休眠)</label><input type="checkbox" class="toggle" id="set-keep-alive"></div>
+                <div class="switch-row"><label>桌面消息通知</label><input type="checkbox" class="toggle" id="set-desktop-notify" onchange="Settings.save()"></div>
+                <div class="switch-row"><label>后台保活 (静音播放防休眠)</label><input type="checkbox" class="toggle" id="set-keep-alive" onchange="Settings.save()"></div>
             </div>
             
             <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">角色资料</h3>
@@ -419,7 +415,7 @@
                 <div class="profile-edit"><img id="my-avatar-preview" src=""><input type="file" id="set-my-avatar-file" accept="image/*"></div>
             </div>
             <div class="setting-item">
-                <div class="switch-row"><label>群聊模式</label><input type="checkbox" class="toggle" id="set-is-group"></div>
+                <div class="switch-row"><label>群聊模式</label><input type="checkbox" class="toggle" id="set-is-group" onchange="Settings.save()"></div>
                 <div id="single-bot-settings">
                     <label>对方的名字</label><input type="text" id="set-bot-name">
                     <label style="margin-top:10px;">对方头像</label>
@@ -429,7 +425,7 @@
             <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">外观与交互</h3>
             <div class="setting-item">
                 <label>时间显示位置</label>
-                <select id="set-time-display">
+                <select id="set-time-display" onchange="Settings.save()">
                     <option value="bottom">气泡下方</option>
                     <option value="avatar-bottom">头像下方</option>
                     <option value="click">点击显示</option>
@@ -437,13 +433,13 @@
                 </select>
             </div>
             <div class="setting-item">
-                <div class="switch-row"><label>显示头像</label><input type="checkbox" class="toggle" id="set-show-avatar"></div>
-                <div class="switch-row"><label>显示名字</label><input type="checkbox" class="toggle" id="set-show-name"></div>
-                <div class="switch-row"><label>显示已读状态</label><input type="checkbox" class="toggle" id="set-show-read"></div>
-                <div class="switch-row"><label>音效开关</label><input type="checkbox" class="toggle" id="set-sound-enabled"></div>
+                <div class="switch-row"><label>显示头像</label><input type="checkbox" class="toggle" id="set-show-avatar" onchange="Settings.save()"></div>
+                <div class="switch-row"><label>显示名字</label><input type="checkbox" class="toggle" id="set-show-name" onchange="Settings.save()"></div>
+                <div class="switch-row"><label>显示已读状态</label><input type="checkbox" class="toggle" id="set-show-read" onchange="Settings.save()"></div>
+                <div class="switch-row"><label>音效开关</label><input type="checkbox" class="toggle" id="set-sound-enabled" onchange="Settings.save()"></div>
             </div>
             <div class="setting-item">
-                <label>日夜模式</label><select id="set-theme"><option value="system">跟随系统</option><option value="light">浅色模式</option><option value="dark">深色模式</option></select>
+                <label>日夜模式</label><select id="set-theme" onchange="Settings.save()"><option value="system">跟随系统</option><option value="light">浅色模式</option><option value="dark">深色模式</option></select>
             </div>
             <div class="setting-item">
                 <label>系统字体大小 (<span id="val-font-size">16</span>px)</label><input type="range" id="slider-font-size" min="12" max="24" step="1" value="16">
@@ -456,8 +452,8 @@
             
             <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">聊天与通话概率</h3>
             <div class="setting-item">
-                <label>模拟真人延迟 (秒)</label><div style="display:flex; gap:10px;"><input type="number" id="set-delay-min" min="1" placeholder="最小"><input type="number" id="set-delay-max" min="1" placeholder="最大"></div>
-                <label style="margin-top:10px;">主动发消息 (分钟，0关)</label><div style="display:flex; gap:10px;"><input type="number" id="set-proactive-min" min="0" placeholder="最小"><input type="number" id="set-proactive-max" min="0" placeholder="最大"></div>
+                <label>模拟真人延迟 (秒)</label><div style="display:flex; gap:10px;"><input type="number" id="set-delay-min" min="1" placeholder="最小" onchange="Settings.save()"><input type="number" id="set-delay-max" min="1" placeholder="最大" onchange="Settings.save()"></div>
+                <label style="margin-top:10px;">主动发消息 (分钟，0关)</label><div style="display:flex; gap:10px;"><input type="number" id="set-proactive-min" min="0" placeholder="最小" onchange="Settings.save()"><input type="number" id="set-proactive-max" min="0" placeholder="最大" onchange="Settings.save()"></div>
                 <label style="margin-top:10px;">已读不回概率 (%) <span id="val-ignore">20%</span></label><input type="range" id="slider-ignore" min="0" max="100" value="20">
                 <label style="margin-top:10px;">引用回复概率 (%) <span id="val-quote">30%</span></label><input type="range" id="slider-quote" min="0" max="100" value="30">
                 <label style="margin-top:10px;">对方主动拍一拍概率 (%) <span id="val-pat-prob">10%</span></label><input type="range" id="slider-pat-prob" min="0" max="100" value="10">
@@ -467,7 +463,7 @@
             </div>
             <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">写信逻辑</h3>
             <div class="setting-item">
-                <label>对方主动写信间隔 (分钟，0关)</label><div style="display:flex; gap:10px;"><input type="number" id="set-letter-min" min="0" placeholder="最小"><input type="number" id="set-letter-max" min="0" placeholder="最大"></div>
+                <label>对方主动写信间隔 (分钟，0关)</label><div style="display:flex; gap:10px;"><input type="number" id="set-letter-min" min="0" placeholder="最小" onchange="Settings.save()"><input type="number" id="set-letter-max" min="0" placeholder="最大" onchange="Settings.save()"></div>
                 <label style="margin-top:10px;">对方主动写信概率 (%) <span id="val-letter-prob">10%</span></label><input type="range" id="slider-letter-prob" min="0" max="100" value="10">
                 <label style="margin-top:10px;">对方收到我的信后回信概率 (%) <span id="val-reply-prob">80%</span></label><input type="range" id="slider-reply-prob" min="0" max="100" value="80">
             </div>
@@ -794,7 +790,6 @@ const Chat = {
         App.closeModal('ask-modal');
         this.render(); App.saveData();
         
-        // 模拟对方作答
         setTimeout(() => {
             const msg = App.data.messages.find(m => m.id === msgId);
             if(!msg) return;
@@ -1025,122 +1020,208 @@ document.querySelectorAll('.ask-tab').forEach(tab => {
     }
 });
 
-// 音乐播放器
-const Music = {
-    audio: document.getElementById('global-audio'),
-    init: function() {
-        this.audio.addEventListener('timeupdate', () => this.updateProgress());
-        this.audio.addEventListener('ended', () => this.next());
-        document.getElementById('btn-play').onclick = () => this.togglePlay();
-        document.getElementById('btn-next').onclick = () => this.next();
-        document.getElementById('btn-prev').onclick = () => this.prev();
-        document.getElementById('btn-mode').onclick = () => this.toggleMode();
-        document.getElementById('btn-add-music-url').onclick = () => this.addUrl();
-        document.getElementById('btn-add-music-file').onclick = () => document.getElementById('music-file-input').click();
+// 设置模块
+const Settings = {
+    render: function() {
+        const s = App.data.settings, w = App.data.wallet;
+        document.getElementById('set-my-balance').value = w.my;
+        document.getElementById('set-bot-balance').value = w.bot;
         
-        document.getElementById('music-file-input').onchange = (e) => {
+        const sliders = ['give','receive','return','ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob'];
+        sliders.forEach(id => {
+            const el = document.getElementById('slider-' + id);
+            const valEl = document.getElementById('val-' + id);
+            if(el && valEl) { el.value = s[id.replace('-','')] || s[id.replace('-prob','Prob')]; valEl.innerText = el.value + '%'; }
+        });
+        
+        document.getElementById('set-my-name').value = s.myName;
+        document.getElementById('my-avatar-preview').src = s.myAvatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+        document.getElementById('set-bot-name').value = s.botName;
+        document.getElementById('bot-avatar-preview').src = s.botAvatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+        document.getElementById('set-desktop-notify').checked = s.desktopNotify;
+        document.getElementById('set-keep-alive').checked = s.keepAlive;
+        document.getElementById('set-time-display').value = s.timeDisplay;
+        document.getElementById('set-show-avatar').checked = s.showAvatar;
+        document.getElementById('set-show-name').checked = s.showName;
+        document.getElementById('set-show-read').checked = s.showRead;
+        document.getElementById('set-sound-enabled').checked = s.soundEnabled;
+        document.getElementById('set-theme').value = s.theme;
+        document.getElementById('slider-font-size').value = s.fontSize;
+        document.getElementById('val-font-size').innerText = s.fontSize;
+        document.getElementById('set-font-url').value = s.fontUrl;
+        document.getElementById('set-bubble-css').value = s.bubbleCss;
+        document.getElementById('set-delay-min').value = s.delayMin;
+        document.getElementById('set-delay-max').value = s.delayMax;
+        document.getElementById('set-proactive-min').value = s.proactiveMin;
+        document.getElementById('set-proactive-max').value = s.proactiveMax;
+        document.getElementById('set-letter-min').value = s.letterMin;
+        document.getElementById('set-letter-max').value = s.letterMax;
+    },
+    save: function() {
+        const s = App.data.settings, w = App.data.wallet;
+        w.my = parseFloat(document.getElementById('set-my-balance').value || 0).toFixed(2);
+        w.bot = parseFloat(document.getElementById('set-bot-balance').value || 0).toFixed(2);
+        
+        const sliders = ['give','receive','return','ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob'];
+        sliders.forEach(id => {
+            const el = document.getElementById('slider-' + id);
+            if(el) s[id.replace('-','')] = parseInt(el.value);
+        });
+        
+        s.myName = document.getElementById('set-my-name').value;
+        s.botName = document.getElementById('set-bot-name').value;
+        s.desktopNotify = document.getElementById('set-desktop-notify').checked;
+        s.keepAlive = document.getElementById('set-keep-alive').checked;
+        s.timeDisplay = document.getElementById('set-time-display').value;
+        s.showAvatar = document.getElementById('set-show-avatar').checked;
+        s.showName = document.getElementById('set-show-name').checked;
+        s.showRead = document.getElementById('set-show-read').checked;
+        s.soundEnabled = document.getElementById('set-sound-enabled').checked;
+        s.theme = document.getElementById('set-theme').value;
+        s.fontSize = parseInt(document.getElementById('slider-font-size').value);
+        s.fontUrl = document.getElementById('set-font-url').value;
+        s.bubbleCss = document.getElementById('set-bubble-css').value;
+        s.delayMin = parseInt(document.getElementById('set-delay-min').value) || 1;
+        s.delayMax = parseInt(document.getElementById('set-delay-max').value) || 5;
+        s.proactiveMin = parseInt(document.getElementById('set-proactive-min').value) || 0;
+        s.proactiveMax = parseInt(document.getElementById('set-proactive-max').value) || 0;
+        s.letterMin = parseInt(document.getElementById('set-letter-min').value) || 0;
+        s.letterMax = parseInt(document.getElementById('set-letter-max').value) || 0;
+
+        App.saveData();
+        this.applyStyles();
+        document.getElementById('chat-title').innerText = s.botName;
+        Chat.render();
+    },
+    applyStyles: function() {
+        const s = App.data.settings;
+        document.documentElement.style.setProperty('--font-size-base', s.fontSize + 'px');
+        
+        let fontStyle = document.getElementById('dynamic-font-style');
+        if (!fontStyle) { fontStyle = document.createElement('style'); fontStyle.id = 'dynamic-font-style'; document.head.appendChild(fontStyle); }
+        if (s.fontUrl) {
+            if (s.fontUrl.startsWith('http')) {
+                fontStyle.innerHTML = `@import url('${s.fontUrl}'); * { font-family: inherit !important; }`;
+            } else {
+                fontStyle.innerHTML = `* { font-family: '${s.fontUrl}', sans-serif !important; }`;
+            }
+        } else fontStyle.innerHTML = '';
+
+        let bubbleStyle = document.getElementById('dynamic-bubble-style');
+        if (!bubbleStyle) { bubbleStyle = document.createElement('style'); bubbleStyle.id = 'dynamic-bubble-style'; document.head.appendChild(bubbleStyle); }
+        
+        if (s.bubbleCss) {
+            if (s.bubbleCss.includes('{')) {
+                bubbleStyle.innerHTML = s.bubbleCss;
+            } else {
+                bubbleStyle.innerHTML = `.msg { ${s.bubbleCss} !important; }`;
+            }
+        } else {
+            bubbleStyle.innerHTML = '';
+        }
+        
+        if (s.bgImage) document.getElementById('chat-area').style.backgroundImage = `url(${s.bgImage})`;
+        else document.getElementById('chat-area').style.backgroundImage = 'none';
+        
+        if (s.theme === 'dark' || (s.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.setAttribute('data-theme', 'dark');
+        else document.documentElement.removeAttribute('data-theme');
+    },
+    init: function() {
+        document.getElementById('btn-save-settings').onclick = () => this.save();
+        
+        // 名字修改实时生效
+        document.getElementById('set-my-name').oninput = (e) => { App.data.settings.myName = e.target.value; Chat.render(); App.saveData(); };
+        document.getElementById('set-bot-name').oninput = (e) => { App.data.settings.botName = e.target.value; document.getElementById('chat-title').innerText = e.target.value; Chat.render(); App.saveData(); };
+        
+        // 头像上传
+        document.getElementById('set-my-avatar-file').onchange = (e) => {
             const file = e.target.files[0]; if(!file) return;
             const reader = new FileReader();
             reader.onload = (ev) => {
-                App.data.music.list.push({ name: file.name, url: ev.target.result });
-                App.saveData(); this.renderList();
+                App.data.settings.myAvatar = ev.target.result;
+                document.getElementById('my-avatar-preview').src = ev.target.result;
+                App.saveData(); Chat.render();
             };
-            reader.readAsDataURL(file); e.target.value = '';
+            reader.readAsDataURL(file);
+        };
+        document.getElementById('set-bot-avatar-file').onchange = (e) => {
+            const file = e.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                App.data.settings.botAvatar = ev.target.result;
+                document.getElementById('bot-avatar-preview').src = ev.target.result;
+                App.saveData(); Chat.render();
+            };
+            reader.readAsDataURL(file);
         };
         
-        document.getElementById('music-progress-bar').oninput = function() {
-            if(Music.audio.duration) Music.audio.currentTime = (this.value / 100) * Music.audio.duration;
+        // 背景图上传
+        document.getElementById('set-bg').onchange = (e) => {
+            const file = e.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                App.data.settings.bgImage = ev.target.result;
+                App.saveData(); this.applyStyles();
+            };
+            reader.readAsDataURL(file);
         };
-    },
-    renderList: function() {
-        const list = document.getElementById('music-list');
-        list.innerHTML = '';
-        if(App.data.music.list.length === 0) {
-            list.innerHTML = '<div style="text-align:center; padding:20px; color:#999; font-size:14px;">暂无音乐，请添加</div>';
-            return;
-        }
-        App.data.music.list.forEach((item, idx) => {
-            const div = document.createElement('div');
-            div.className = 'list-item';
-            div.innerHTML = `<div class="list-item-info">
-                <div class="list-item-title" style="color:${idx===App.data.music.currentIndex?'var(--accent)':'var(--text-color)'}">${item.name}</div>
-            </div>
-            <div class="card-actions">
-                <span onclick="Music.play(${idx})">播放</span>
-                <span onclick="Music.rename(${idx})">改名</span>
-                <span onclick="Music.remove(${idx})">删除</span>
-            </div>`;
-            list.appendChild(div);
+        
+        // 滑块实时显示与保存
+        const sliders = ['give','receive','return','ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob'];
+        sliders.forEach(id => {
+            const el = document.getElementById('slider-' + id);
+            if(el) {
+                el.oninput = (e) => {
+                    const val = e.target.value;
+                    document.getElementById('val-' + id).innerText = val + '%';
+                };
+                el.onchange = () => this.save();
+            }
         });
-    },
-    addUrl: function() {
-        const url = document.getElementById('music-url-input').value.trim();
-        if(!url) return;
-        App.data.music.list.push({ name: '网络音乐', url: url });
-        App.saveData(); this.renderList();
-        document.getElementById('music-url-input').value = '';
-    },
-    rename: function(idx) {
-        const name = prompt('输入新名称', App.data.music.list[idx].name);
-        if(name) {
-            App.data.music.list[idx].name = name;
-            App.saveData(); this.renderList();
-            if(App.data.music.currentIndex === idx) document.getElementById('music-title').innerText = name;
-        }
-    },
-    remove: function(idx) {
-        if(App.data.music.currentIndex === idx) { this.audio.pause(); App.data.music.currentIndex = -1; }
-        App.data.music.list.splice(idx, 1);
-        App.saveData(); this.renderList();
-    },
-    play: function(idx) {
-        if(idx < 0 || idx >= App.data.music.list.length) return;
-        App.data.music.currentIndex = idx;
-        this.audio.src = App.data.music.list[idx].url;
-        this.audio.play().catch(e=>App.toast('播放失败'));
-        document.getElementById('music-title').innerText = App.data.music.list[idx].name;
-        document.getElementById('btn-play').innerText = '⏸';
-        this.renderList();
-    },
-    togglePlay: function() {
-        if(App.data.music.currentIndex === -1 && App.data.music.list.length > 0) return this.play(0);
-        if(this.audio.paused) {
-            this.audio.play().catch(e=>App.toast('播放失败'));
-            document.getElementById('btn-play').innerText = '⏸';
+        
+        document.getElementById('slider-font-size').oninput = (e) => {
+            document.getElementById('val-font-size').innerText = e.target.value;
+            App.data.settings.fontSize = parseInt(e.target.value);
+            this.applyStyles();
+        };
+        document.getElementById('slider-font-size').onchange = () => this.save();
+        
+        // 主题和字体实时保存
+        document.getElementById('set-theme').onchange = () => this.save();
+        document.getElementById('set-font-url').onchange = () => this.save();
+        document.getElementById('set-bubble-css').onchange = () => this.save();
+    }
+};
+
+window.onload = function() {
+    App.loadData(); Settings.applyStyles();
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (App.data.settings.theme === 'system') Settings.applyStyles(); });
+    
+    Chat.init(); Settings.init(); 
+    // 其他模块如果存在可以保留，这里只调用了修复的部分
+    document.getElementById('chat-title').innerText = App.data.settings.botName;
+    
+    // 保活和通知权限申请
+    document.getElementById('set-keep-alive').onchange = function() {
+        if(this.checked) {
+            document.getElementById('keep-alive-audio').play().catch(()=>{});
         } else {
-            this.audio.pause();
-            document.getElementById('btn-play').innerText = '▶';
+            document.getElementById('keep-alive-audio').pause();
         }
-    },
-    next: function() {
-        if(App.data.music.list.length === 0) return;
-        let idx = App.data.music.currentIndex;
-        if(App.data.music.mode === 'random') {
-            idx = Math.floor(Math.random() * App.data.music.list.length);
-        } else {
-            idx = (idx + 1) % App.data.music.list.length;
+        Settings.save();
+    };
+    if (App.data.settings.keepAlive) {
+        document.getElementById('set-keep-alive').checked = true;
+        document.getElementById('keep-alive-audio').play().catch(()=>{});
+    }
+    
+    document.getElementById('set-desktop-notify').onchange = function() {
+        if(this.checked && Notification.permission !== 'granted') {
+            Notification.requestPermission();
         }
-        this.play(idx);
-    },
-    prev: function() {
-        if(App.data.music.list.length === 0) return;
-        let idx = App.data.music.currentIndex;
-        if(App.data.music.mode === 'random') {
-            idx = Math.floor(Math.random() * App.data.music.list.length);
-        } else {
-            idx = (idx - 1 + App.data.music.list.length) % App.data.music.list.length;
-        }
-        this.play(idx);
-    },
-    toggleMode: function() {
-        const modes = ['order', 'random'];
-        let m = App.data.music.mode === 'order' ? 'random' : 'order';
-        App.data.music.mode = m;
-        document.getElementById('btn-mode').innerText = m === 'order' ? '🔁' : '🔀';
-        App.toast(m === 'order' ? '顺序播放' : '随机播放');
-        App.saveData();
-    },
-    updateProgress: function() {
-        if(!this.audio.duration) return;
-        const p = (this.audio.currentTime / this.audio.duration) * 100;
-        document.getElementById('music-progress-bar
+        Settings.save();
+    };
+};
+</script>
+</body>
+</html>
