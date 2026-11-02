@@ -97,8 +97,8 @@
 
         /* 微信风格：加号面板与表情面板 */
         #extra-panel, #emoji-panel { display: none; background: var(--header-bg); border-top: 1px solid var(--border-color); padding: 20px; }
-        #extra-panel { height: 120px; display: flex; gap: 30px; }
-        .panel-action { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color); }
+        #extra-panel { height: 130px; display: flex; gap: 25px; overflow-x: auto;}
+        .panel-action { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color); flex-shrink: 0; }
         .panel-action .icon-box { width: 60px; height: 60px; background: var(--bg-color); border-radius: 12px; border: 1px solid var(--border-color); display: flex; justify-content: center; align-items: center; }
         .panel-action span { font-size: 12px; color: #666; }
 
@@ -171,6 +171,30 @@
 
         /* 信箱 */
         .letter-content { white-space: pre-wrap; line-height: 1.6; font-size: 15px; padding: 10px; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); min-height: 200px;}
+
+        /* 问问TA 专属样式 */
+        .ask-tabs { display: flex; background: var(--bg-color); border-radius: 8px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border-color);}
+        .ask-tab { flex: 1; text-align: center; padding: 8px 0; font-size: 14px; cursor: pointer; border-radius: 6px; color: var(--accent); transition: 0.2s; font-weight: bold;}
+        .ask-tab.active { background: var(--header-bg); color: var(--text-color); box-shadow: 0 1px 3px rgba(0,0,0,0.1);}
+        .ask-section { display: none; flex-direction: column; gap: 15px; }
+        .ask-section.active { display: flex; }
+        .ask-form-group { display: flex; flex-direction: column; gap: 5px;}
+        .ask-form-group label { font-size: 13px; font-weight: bold; color: var(--accent);}
+        .ask-form-group input, .ask-form-group textarea { padding: 12px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; outline: none; color: var(--text-color);}
+        .ask-form-group textarea { height: 80px; resize: none;}
+        .ask-delay-box { display: flex; gap: 10px; margin-top: 5px;}
+        .ask-delay-box input { flex: 1; text-align: center;}
+        .ask-delay-box select { width: 80px; text-align: center; padding: 0;}
+        .ask-delay-toggle { display: flex; background: var(--bg-color); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color);}
+        .ask-delay-toggle div { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-size: 14px;}
+        .ask-delay-toggle div.active { background: var(--border-color); font-weight: bold; color: var(--text-color);}
+        .history-list { max-height: 150px; overflow-y: auto; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); padding: 10px; font-size: 12px; color: #666;}
+        .history-item { padding: 8px 0; border-bottom: 1px dashed var(--border-color);}
+        .history-item:last-child { border-bottom: none;}
+        
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
     </style>
 </head>
 <body>
@@ -237,6 +261,12 @@
                 </div>
                 <span>相册</span>
             </div>
+            <div class="panel-action" onclick="openAskModal()">
+                <div class="icon-box">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+                </div>
+                <span>问问TA</span>
+            </div>
         </div>
         <input type="file" id="img-upload-input" accept="image/*" style="display:none" onchange="sendImage(event)">
 
@@ -257,7 +287,6 @@
                 <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
             </button>
             
-            <!-- 三个点触发回复 -->
             <button class="btn-icon" onclick="triggerBotReplyOnly()" title="让对方继续说">
                 <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
             </button>
@@ -450,7 +479,7 @@
         </div>
     </div>
 
-    <!-- 弹窗 -->
+    <!-- 常规弹窗 -->
     <div id="batch-modal" class="modal">
         <div class="modal-content">
             <h3 style="text-align:center;">批量添加字卡</h3>
@@ -462,7 +491,6 @@
         </div>
     </div>
 
-    <!-- 拍一拍词条管理弹窗 -->
     <div id="pat-modal" class="modal">
         <div class="modal-content">
             <h3 style="text-align:center;">批量添加拍一拍词条 (一行一个)</h3>
@@ -521,6 +549,90 @@
         </div>
     </div>
 
+    <!-- 问问TA 弹窗 (重点) -->
+    <div id="ask-modal" class="modal">
+        <div class="modal-content" style="max-height: 85vh; overflow-y: auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3>问问TA</h3>
+                <button onclick="closeAskModal()" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-color);">✕</button>
+            </div>
+            
+            <div class="ask-tabs">
+                <div class="ask-tab active" onclick="switchAskTab('single')">单选题</div>
+                <div class="ask-tab" onclick="switchAskTab('multi')">多选题</div>
+                <div class="ask-tab" onclick="switchAskTab('text')">文字题</div>
+            </div>
+            
+            <div style="font-size: 12px; color: var(--accent); margin-bottom: 10px;" id="ask-hint">
+                TA 会从下面的答案里选一个回答你
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div>
+                    <div style="font-size: 14px; font-weight: bold;">重复提问</div>
+                    <div style="font-size: 11px; color: #888;">留着这道题和选项，下次打开还在</div>
+                </div>
+                <input type="checkbox" id="ask-repeat" style="width:20px; height:20px; accent-color: #333;" checked>
+            </div>
+
+            <div class="ask-form-group">
+                <label>你想问什么</label>
+                <input type="text" id="ask-question-input" placeholder="输入你的问题...">
+            </div>
+
+            <div class="ask-section active" id="ask-section-single">
+                <div class="ask-form-group">
+                    <label>答案 <span style="font-size:11px; font-weight:normal; color:#888;">TA 会从里面选一个回答（一行一个）</span></label>
+                    <textarea id="ask-options-single" placeholder="选项1&#10;选项2&#10;选项3"></textarea>
+                </div>
+            </div>
+
+            <div class="ask-section" id="ask-section-multi">
+                <div class="ask-form-group">
+                    <label>答案 <span style="font-size:11px; font-weight:normal; color:#888;">TA 会从里面勾几个回答（一行一个）</span></label>
+                    <textarea id="ask-options-multi" placeholder="选项1&#10;选项2&#10;选项3"></textarea>
+                </div>
+                <div class="ask-form-group">
+                    <label>最多选几个 <span style="font-size:11px; font-weight:normal; color:#888;">TA 至少勾 2 个</span></label>
+                    <input type="number" id="ask-max-select" value="3" min="2" style="width: 80px; text-align: center;">
+                </div>
+            </div>
+
+            <div class="ask-section" id="ask-section-text">
+                <div class="ask-form-group" style="color: #666; font-size: 13px; line-height: 1.5;">
+                    TA 会用字卡库「主字卡」里的字卡回答（1~8 张，多张之间空一格）
+                </div>
+            </div>
+
+            <div class="ask-form-group">
+                <label>回答时间</label>
+                <div class="ask-delay-toggle">
+                    <div id="delay-btn-random" class="active" onclick="switchDelayMode('random')">随机</div>
+                    <div id="delay-btn-custom" onclick="switchDelayMode('custom')">自定义</div>
+                </div>
+                <div class="ask-delay-box" id="ask-delay-custom-box" style="display: none;">
+                    <input type="number" id="ask-delay-val" value="30" min="1">
+                    <select id="ask-delay-unit">
+                        <option value="sec">秒</option>
+                        <option value="min">分钟</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div>
+                <div style="font-size: 14px; font-weight: bold; margin-bottom: 5px;">历史记录 <span id="history-count" style="font-weight: normal; color: #888; font-size: 12px;">0 条</span></div>
+                <div class="history-list" id="ask-history-list">
+                    <!-- 历史记录动态渲染 -->
+                </div>
+            </div>
+
+            <div class="modal-btns" style="margin-top: 10px;">
+                <button class="btn-cancel" onclick="closeAskModal()">取消</button>
+                <button class="btn-confirm" onclick="submitAsk()">发送提问</button>
+            </div>
+        </div>
+    </div>
+
     <div id="action-sheet" onclick="closeActionSheet(event)">
         <div id="action-content" onclick="event.stopPropagation()"></div>
     </div>
@@ -535,6 +647,7 @@
     let letterBox = JSON.parse(localStorage.getItem('mirage_letters')) || [];
     let disabledGroups = JSON.parse(localStorage.getItem('mirage_disabled_groups')) || {};
     let patLibrary = JSON.parse(localStorage.getItem('mirage_pats')) || ["拍了拍你的脑袋", "抱了抱你", "亲了亲你"];
+    let askHistory = JSON.parse(localStorage.getItem('mirage_asks')) || [];
     
     let config = JSON.parse(localStorage.getItem('mirage_config')) || {
         delayMin: 2, delayMax: 5,
@@ -570,6 +683,10 @@
     let editingId = null;
     let movingId = null;
     let pattingTargetRole = null;
+
+    // 问问TA 状态
+    let currentAskType = 'single';
+    let currentAskDelayMode = 'random';
 
     // --- 核心：图片压缩引擎 ---
     function compressImage(file, maxWidth, maxHeight, quality) {
@@ -768,8 +885,6 @@
         
         const sysHTML = `<span>${meName}</span> ${patText} <span>${targetName}</span>`;
         renderMsg('system', '', '', sysHTML);
-        
-        // 如果拍的是对方，对方有几率回应（可以选做，这里暂不实现，保持纯粹的系统提示）
     }
 
     function openPatModal() {
@@ -1036,6 +1151,213 @@
         }
     }
 
+    // --- 问问TA 相关 ---
+    function openAskModal() {
+        hidePanels();
+        // 恢复上次的选择状态
+        const savedAskState = JSON.parse(localStorage.getItem('mirage_ask_draft'));
+        if (savedAskState) {
+            switchAskTab(savedAskState.type || 'single');
+            document.getElementById('ask-question-input').value = savedAskState.question || '';
+            document.getElementById('ask-options-single').value = savedAskState.optionsSingle || '';
+            document.getElementById('ask-options-multi').value = savedAskState.optionsMulti || '';
+            document.getElementById('ask-max-select').value = savedAskState.maxSelect || 3;
+            document.getElementById('ask-repeat').checked = savedAskState.repeat !== false;
+        } else {
+            switchAskTab('single');
+        }
+        renderAskHistory();
+        document.getElementById('ask-modal').style.display = 'flex';
+    }
+
+    function closeAskModal() {
+        // 如果勾选了“重复提问”，则保存当前表单状态
+        if (document.getElementById('ask-repeat').checked) {
+            const state = {
+                type: currentAskType,
+                question: document.getElementById('ask-question-input').value,
+                optionsSingle: document.getElementById('ask-options-single').value,
+                optionsMulti: document.getElementById('ask-options-multi').value,
+                maxSelect: document.getElementById('ask-max-select').value,
+                repeat: true
+            };
+            localStorage.setItem('mirage_ask_draft', JSON.stringify(state));
+        } else {
+            localStorage.removeItem('mirage_ask_draft');
+        }
+        document.getElementById('ask-modal').style.display = 'none';
+    }
+
+    function switchAskTab(type) {
+        currentAskType = type;
+        document.querySelectorAll('.ask-tab').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.ask-section').forEach(el => el.classList.remove('active'));
+        
+        if(type === 'single') {
+            document.querySelectorAll('.ask-tab')[0].classList.add('active');
+            document.getElementById('ask-section-single').classList.add('active');
+            document.getElementById('ask-hint').innerText = 'TA 会从下面的答案里选一个回答你';
+        } else if(type === 'multi') {
+            document.querySelectorAll('.ask-tab')[1].classList.add('active');
+            document.getElementById('ask-section-multi').classList.add('active');
+            document.getElementById('ask-hint').innerText = 'TA 会从下面的答案里勾几个回答你 (2~3个)';
+        } else {
+            document.querySelectorAll('.ask-tab')[2].classList.add('active');
+            document.getElementById('ask-section-text').classList.add('active');
+            document.getElementById('ask-hint').innerText = 'TA 会用字卡库「主字卡」里的字卡回答 (1~8 张，多张之间空一格)';
+        }
+    }
+
+    function switchDelayMode(mode) {
+        currentAskDelayMode = mode;
+        if(mode === 'random') {
+            document.getElementById('delay-btn-random').classList.add('active');
+            document.getElementById('delay-btn-custom').classList.remove('active');
+            document.getElementById('ask-delay-custom-box').style.display = 'none';
+        } else {
+            document.getElementById('delay-btn-random').classList.remove('active');
+            document.getElementById('delay-btn-custom').classList.add('active');
+            document.getElementById('ask-delay-custom-box').style.display = 'flex';
+        }
+    }
+
+    function renderAskHistory() {
+        const list = document.getElementById('ask-history-list');
+        document.getElementById('history-count').innerText = `${askHistory.length} 条`;
+        if(askHistory.length === 0) {
+            list.innerHTML = '<div style="text-align:center; padding:10px;">暂无历史记录</div>';
+            return;
+        }
+        // 倒序渲染
+        list.innerHTML = [...askHistory].reverse().map((h, index) => `
+            <div class="history-item" style="cursor:pointer;" onclick="loadAskHistory(${askHistory.length - 1 - index})">
+                <div style="font-weight:bold; color:var(--text-color);">${h.question}</div>
+                <div style="margin-top:3px;">题型: ${h.type === 'single' ? '单选' : h.type === 'multi' ? '多选' : '文字'} | ${new Date(h.time).toLocaleString()}</div>
+            </div>
+        `).join('');
+    }
+
+    function loadAskHistory(index) {
+        const h = askHistory[index];
+        if(!h) return;
+        switchAskTab(h.type);
+        document.getElementById('ask-question-input').value = h.question;
+        if(h.type === 'single') document.getElementById('ask-options-single').value = h.options.join('\n');
+        if(h.type === 'multi') {
+            document.getElementById('ask-options-multi').value = h.options.join('\n');
+            document.getElementById('ask-max-select').value = h.maxSelect || 3;
+        }
+        // 回显回答时间设定 (这里简单处理，直接切回随机)
+        switchDelayMode('random');
+    }
+
+    function submitAsk() {
+        const question = document.getElementById('ask-question-input').value.trim();
+        if(!question) return alert('请输入你想问的问题');
+
+        let askData = {
+            id: Date.now().toString(),
+            type: currentAskType,
+            question: question,
+            time: Date.now()
+        };
+
+        if (currentAskType === 'single') {
+            const opts = document.getElementById('ask-options-single').value.split('\n').map(t=>t.trim()).filter(t=>t);
+            if(opts.length < 1) return alert('请至少输入一个选项');
+            askData.options = opts;
+        } else if (currentAskType === 'multi') {
+            const opts = document.getElementById('ask-options-multi').value.split('\n').map(t=>t.trim()).filter(t=>t);
+            const maxSel = parseInt(document.getElementById('ask-max-select').value) || 2;
+            if(opts.length < 2) return alert('多选题请至少输入两个选项');
+            askData.options = opts;
+            askData.maxSelect = Math.min(maxSel, opts.length); // 不能超过选项数
+        } else {
+            // 文字题，不需要选项
+        }
+
+        // 计算延迟时间
+        let delayMs = 0;
+        if(currentAskDelayMode === 'random') {
+            delayMs = (config.delayMin + Math.random() * (config.delayMax - config.delayMin)) * 1000;
+        } else {
+            const val = parseInt(document.getElementById('ask-delay-val').value) || 30;
+            const unit = document.getElementById('ask-delay-unit').value;
+            delayMs = val * (unit === 'min' ? 60000 : 1000);
+        }
+        askData.delayMs = delayMs;
+
+        // 保存历史
+        askHistory.push(askData);
+        if(askHistory.length > 50) askHistory.shift(); // 限制最多存50条
+        saveData('mirage_asks', askHistory);
+
+        // 关闭弹窗
+        document.getElementById('ask-modal').style.display = 'none';
+        
+        // 聊天框显示用户提问
+        renderMsg('user', config.userName, config.userAvatar, `【提问】${question}`);
+
+        // 触发回答
+        document.getElementById('typing-status').style.display = 'block';
+        document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
+
+        setTimeout(() => {
+            document.getElementById('typing-status').style.display = 'none';
+            generateBotAnswer(askData);
+        }, delayMs);
+    }
+
+    function generateBotAnswer(askData) {
+        let senderName = config.botName;
+        let senderAvatar = config.botAvatar;
+
+        if (config.isGroup && config.groupMembers.length > 0) {
+            const member = config.groupMembers[Math.floor(Math.random() * config.groupMembers.length)];
+            senderName = member.name;
+            senderAvatar = member.avatar || config.botAvatar;
+        }
+
+        let replyText = '';
+
+        if (askData.type === 'single') {
+            const ans = askData.options[Math.floor(Math.random() * askData.options.length)];
+            replyText = `我选：${ans}`;
+        } else if (askData.type === 'multi') {
+            // 随机勾 2 到 maxSelect 个
+            const count = Math.floor(Math.random() * (askData.maxSelect - 1)) + 2; 
+            const shuffled = [...askData.options].sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, count);
+            replyText = `我选：${selected.join('、')}`;
+        } else if (askData.type === 'text') {
+            // 文字题，从主字卡里抽 1-8 张
+            const availableCards = cardLibrary.filter(c => c.enabled && !disabledGroups[c.group]);
+            if(availableCards.length === 0) {
+                replyText = `(字卡库空了，回答不出来)`;
+            } else {
+                const count = Math.floor(Math.random() * 8) + 1; // 1-8 张
+                let texts = [];
+                for(let i=0; i<count; i++) {
+                    texts.push(availableCards[Math.floor(Math.random() * availableCards.length)].text);
+                }
+                // 多张之间空一格（这里用换行或者空格，为了排版好看，用空格或标点）
+                replyText = texts.join('，'); 
+            }
+        }
+
+        const newRow = renderMsg('other', senderName, senderAvatar, replyText);
+        playSound();
+        
+        if (Math.random() * 100 < config.recallProb) {
+            setTimeout(() => {
+                if (newRow && newRow.parentNode) {
+                    newRow.className = 'msg-row system';
+                    newRow.innerHTML = `<div class="sys-msg">${senderName}撤回了一条消息</div>`;
+                }
+            }, 2000 + Math.random() * 3000);
+        }
+    }
+
     // --- UI面板控制 ---
     function hidePanels() {
         document.getElementById('extra-panel').style.display = 'none';
@@ -1080,13 +1402,13 @@
 
         if(filteredCards.length === 0) { list.innerHTML = '<div style="text-align:center; color:#999; margin-top:50px;">没有找到字卡</div>'; return; }
         
-        const displayCards = filteredCards.slice(0, 300);
+        const displayCards = filteredCards; // 解除限制
         const grouped = {};
         displayCards.forEach((card) => { if(!grouped[card.group]) grouped[card.group] = []; grouped[card.group].push(card); });
         
         let htmlArr = [];
         for (let groupName in grouped) {
-            const isCollapsed = keyword ? false : collapsedGroups[groupName];
+            const isCollapsed = keyword ? false : (collapsedGroups[groupName] === true);
             const isDisabled = disabledGroups[groupName];
             
             htmlArr.push(`
@@ -1169,8 +1491,15 @@
                 if (match) { currentGroup = match[1]; } 
                 else { if(!existingTexts.has(line)) { cardLibrary.push({ id: Date.now().toString() + Math.random(), text: line, group: currentGroup, enabled: true }); existingTexts.add(line); added++; } }
             });
-            saveData('mirage_cards_v2', cardLibrary); closeBatchModal(); document.getElementById('batch-text').value = ''; btn.innerText = originalText; btn.disabled = false;
-            renderCards(); alert(`成功添加 ${added} 条字卡！`);
+            saveData('mirage_cards_v2', cardLibrary); 
+            closeBatchModal(); 
+            document.getElementById('batch-text').value = ''; 
+            btn.innerText = originalText; 
+            btn.disabled = false;
+            
+            collapsedGroups = {}; 
+            renderCards(); 
+            alert(`成功添加 ${added} 条字卡！`);
         }, 50);
     }
 
@@ -1487,7 +1816,8 @@
         config.replyProb = parseInt(document.getElementById('slider-reply-prob').value);
         
         applyAppearance(); saveConfig(); setupProactiveTimer(); setupLetterTimer(); 
-        alert('设置已保存并生效！'); closeApp('settings-app');
+        alert('设置已保存并生效！'); 
+        closeApp('settings-app');
         
         // 刷新一下现有聊天记录以应用时间显示位置
         location.reload(); 
@@ -1496,7 +1826,8 @@
     function exportAllData() {
         const allData = { 
             cards: cardLibrary, config: config, disabledGroups: disabledGroups, 
-            emojis: emojiLibrary, letters: letterBox, pats: patLibrary 
+            emojis: emojiLibrary, letters: letterBox, pats: patLibrary,
+            asks: askHistory
         };
         const blob = new Blob([JSON.stringify(allData, null, 2)], { type: "application/json;charset=utf-8" });
         const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "Mirage_全量备份.json"; a.click();
@@ -1515,6 +1846,7 @@
                     emojiLibrary = data.emojis || [];
                     letterBox = data.letters || [];
                     patLibrary = data.pats || ["拍了拍你的脑袋", "抱了抱你", "亲了亲你"];
+                    askHistory = data.asks || [];
                     
                     saveData('mirage_cards_v2', cardLibrary); 
                     saveConfig(); 
@@ -1522,6 +1854,7 @@
                     saveData('mirage_emojis', emojiLibrary);
                     saveData('mirage_letters', letterBox);
                     saveData('mirage_pats', patLibrary);
+                    saveData('mirage_asks', askHistory);
                     location.reload();
                 } else { alert('文件格式错误'); }
             } catch(err) { alert('解析失败'); }
