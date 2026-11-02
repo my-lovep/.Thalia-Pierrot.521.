@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- 这里就是添加到桌面的名字：爱恋 -->
     <title>爱恋</title>
     
-    <!-- 强制手机系统读取桌面名称为“爱恋” -->
-    <meta name="apple-mobile-web-app-title" content="爱恋">
-    <meta name="application-name" content="爱恋">
-    
-    <!-- 你的专属图标 -->
+    <!-- 专属图标 -->
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/my-lovep/Thalia_p/main/IMG_6507.jpeg">
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/my-lovep/Thalia_p/main/IMG_6507.jpeg">
 
@@ -30,7 +28,7 @@
         .header-right { display: flex; gap: 10px; align-items: center;}
         .header-btn { cursor:pointer; font-size:20px; padding: 5px;}
 
-        .chat-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; background-color: var(--chat-bg); background-size: cover; background-position: center; }
+        .chat-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; background-color: var(--chat-bg); background-size: cover; background-position: center; padding-bottom: 20px;}
         .msg-row { display: flex; width: 100%; align-items: flex-start; gap: 10px; }
         .msg-row.user { justify-content: flex-end; }
         .msg-row.other { justify-content: flex-start; }
@@ -38,15 +36,28 @@
         .msg-content-wrapper { display: flex; flex-direction: column; max-width: 70%; position: relative; }
         .msg-row.user .msg-content-wrapper { align-items: flex-end; }
         .msg-name { font-size: 11px; color: #888; margin-bottom: 3px; margin-left: 2px; }
+        
+        /* 气泡基础样式 */
         .msg { padding: 10px 15px; border-radius: 16px; line-height: 1.4; word-break: break-all; position: relative; cursor: pointer; }
         .msg.user { background: var(--bubble-user); color: var(--bubble-user-text); border-top-right-radius: 4px; }
         .msg.other { background: var(--bubble-other); color: var(--bubble-other-text); border-top-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-        .msg.quote { font-size: 12px; opacity: 0.7; background: rgba(128,128,128,0.2); padding: 4px 8px; border-radius: 4px; margin-bottom: 5px; display: block; }
+        
+        /* 引用样式 */
+        .msg.quote { font-size: 12px; opacity: 0.7; background: rgba(128,128,128,0.2); padding: 4px 8px; border-radius: 4px; margin-bottom: 5px; display: block; border-left: 3px solid #aaa;}
+        
         .msg-time { font-size: 10px; color: #999; margin-top: 4px; display: none; text-align: center; width: 100%;}
         .msg-row.show-time .msg-time { display: block; }
         .read-status { font-size: 10px; color: #999; text-align: right; margin-top: 2px; display: none;}
         .read-status.show { display: block; }
         .typing-status { font-size: 13px; color: #999; padding: 0 15px 10px; display: none; background: var(--bg-color);}
+        
+        /* 居中系统提示（撤回） */
+        .sys-msg { text-align: center; font-size: 12px; color: #999; margin: 10px 0; width: 100%; background: rgba(0,0,0,0.05); padding: 5px 10px; border-radius: 10px; display: inline-block;}
+        .msg-row.system { justify-content: center; }
+
+        #quote-preview { display: none; background: var(--header-bg); padding: 8px 15px; font-size: 13px; color: #666; border-top: 1px solid var(--border-color); align-items: center; justify-content: space-between; }
+        #quote-preview span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
+        #quote-preview button { background: none; border: none; font-size: 16px; color: #999; cursor: pointer; }
 
         .input-area { padding: 10px 15px; padding-bottom: max(10px, env(safe-area-inset-bottom)); background: var(--header-bg); display: flex; gap: 10px; align-items: center; border-top: 1px solid var(--border-color); }
         .input-area input { flex: 1; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 20px; outline: none; font-size: 16px; background: var(--bg-color); color: var(--text-color);}
@@ -58,8 +69,12 @@
         .search-bar input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); outline: none;}
         
         .cards-list { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px;}
-        .group-title { font-size: 13px; color: #888; margin: 15px 0 5px 5px; font-weight: bold; display: flex; justify-content: space-between;}
-        .group-title span { color: #ff3b30; cursor: pointer; font-size: 12px; font-weight: normal;}
+        .group-title { font-size: 13px; color: #888; margin: 15px 0 5px 5px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: pointer;}
+        .group-title-left { display: flex; align-items: center; gap: 5px;}
+        .group-title .arrow { font-size: 10px; transition: transform 0.2s; }
+        .group-title.collapsed .arrow { transform: rotate(-90deg); }
+        .group-title span.delete-grp { color: #ff3b30; cursor: pointer; font-size: 12px; font-weight: normal;}
+        
         .card-item { background: var(--header-bg); padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
         .card-item span { flex: 1; font-size: 15px; line-height: 1.4; word-break: break-all; }
         .card-item.disabled span { color: #999; text-decoration: line-through; }
@@ -93,27 +108,27 @@
         .btn-danger { background: #ff3b30; color: #fff;}
         .btn-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
 
+        #action-sheet { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg-color); z-index: 210; border-top-left-radius: 15px; border-top-right-radius: 15px; padding-bottom: max(10px, env(safe-area-inset-bottom)); box-shadow: 0 -2px 10px rgba(0,0,0,0.1);}
+        .action-btn { padding: 16px; text-align: center; font-size: 16px; border-bottom: 1px solid var(--border-color); cursor: pointer; color: var(--text-color);}
+        .action-btn:active { background: var(--header-bg); }
+        .action-btn.danger { color: #ff3b30; }
+        .action-cancel { margin-top: 8px; border-bottom: none; border-top: 8px solid var(--border-color); font-weight: bold;}
+
         .call-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1c1c1e; z-index: 300; flex-direction: column; align-items: center; justify-content: space-between; padding: 50px 20px; color: white; }
         #video-call { background: #000; padding: 0; justify-content: flex-end;}
         #my-video { width: 110px; height: 160px; position: absolute; top: 40px; right: 20px; background: #222; border-radius: 12px; object-fit: cover; z-index: 101; transform: scaleX(-1); box-shadow: 0 4px 10px rgba(0,0,0,0.5);}
         #other-video { width: 100%; height: 100%; position: absolute; top: 0; left: 0; object-fit: cover; opacity: 0.8; z-index: 100;}
         .video-controls { position: relative; z-index: 102; margin-bottom: 30px;}
-
         .call-info { display: flex; flex-direction: column; align-items: center; margin-top: 80px;}
         .call-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 20px; border: 2px solid rgba(255,255,255,0.2); }
         .call-name { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
         .call-status { font-size: 16px; color: #aaa; }
-        
         .call-btns { display: flex; gap: 50px; margin-bottom: 50px;}
         .call-btn { width: 70px; height: 70px; border-radius: 50%; border: none; display: flex; justify-content: center; align-items: center; font-size: 30px; cursor: pointer; color: white;}
         .btn-accept { background: #34c759; }
         .btn-hangup { background: #ff3b30; }
-        
         .pulse { animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(52, 199, 89, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); } }
-
-        #floating-call { display: none; position: absolute; top: max(20px, env(safe-area-inset-top)); right: 20px; width: 80px; height: 120px; background: #000; border-radius: 12px; z-index: 250; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); overflow: hidden;}
-        #floating-call img { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body>
@@ -127,7 +142,7 @@
     <div id="chat-app" class="page">
         <div class="header">
             <div class="back-btn" onclick="closeApp('chat-app')">←</div>
-            <div style="flex:1;" id="chat-title">爱恋</div>
+            <div style="flex:1;" id="chat-title">梦角</div>
             <div class="header-right">
                 <div class="header-btn" onclick="startCall('voice', 'user')">📞</div>
                 <div class="header-btn" onclick="startCall('video', 'user')">📹</div>
@@ -135,6 +150,12 @@
         </div>
         <div class="chat-area" id="chat-area"></div>
         <div class="typing-status" id="typing-status">对方正在输入...</div>
+        
+        <div id="quote-preview">
+            <span id="quote-text"></span>
+            <button onclick="cancelQuote()">✕</button>
+        </div>
+
         <div class="input-area">
             <input type="text" id="msg-input" placeholder="发消息..." onkeypress="if(event.key==='Enter') sendMessage()">
             <button class="btn-send" onclick="sendMessage()">↑</button>
@@ -171,7 +192,7 @@
             <h3 style="margin-bottom:10px; font-size:16px; color:#666;">角色资料</h3>
             <div class="setting-item">
                 <label>我的名字</label>
-                <input type="text" id="set-my-name" placeholder="我的名字">
+                <input type="text" id="set-my-name">
                 <label style="margin-top:10px;">我的头像 (点击上传)</label>
                 <div class="profile-edit">
                     <img id="my-avatar-preview" src="" onerror="this.src='https://via.placeholder.com/40'">
@@ -180,7 +201,7 @@
             </div>
             <div class="setting-item">
                 <label>对方的名字</label>
-                <input type="text" id="set-bot-name" placeholder="对方名字">
+                <input type="text" id="set-bot-name">
                 <label style="margin-top:10px;">对方头像 (点击上传)</label>
                 <div class="profile-edit">
                     <img id="bot-avatar-preview" src="" onerror="this.src='https://via.placeholder.com/40'">
@@ -198,9 +219,19 @@
                 </select>
             </div>
             <div class="setting-item">
-                <label>聊天气泡颜色 (你的)</label>
-                <input type="text" id="set-bubble-color" placeholder="#333333">
+                <label>系统字体大小 (<span id="val-font-size">16</span>px)</label>
+                <input type="range" id="slider-font-size" min="12" max="24" step="1" value="16" oninput="document.getElementById('val-font-size').innerText=this.value; document.documentElement.style.setProperty('--font-size-base', this.value+'px');">
             </div>
+            <div class="setting-item">
+                <label>自定义字体链接 (CSS/URL)</label>
+                <input type="text" id="set-font-url" placeholder="https://fonts.googleapis.com/...">
+            </div>
+            
+            <div class="setting-item">
+                <label>自定义气泡 CSS (全局生效)</label>
+                <input type="text" id="set-bubble-css" placeholder="例如: border-radius: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+            </div>
+
             <div class="setting-item">
                 <label>聊天背景图</label>
                 <input type="file" id="set-bg" accept="image/*" onchange="uploadBg(event)" style="border:none; padding:5px 0;">
@@ -214,14 +245,14 @@
             <h3 style="margin:20px 0 10px; font-size:16px; color:#666;">逻辑与概率</h3>
             <div class="setting-item">
                 <label>主动发消息间隔 (分钟，0关)</label>
-                <input type="number" id="set-proactive" min="0" step="1">
+                <input type="number" id="set-proactive" min="0">
             </div>
             <div class="setting-item">
                 <label>主动打电话间隔 (分钟，0关)</label>
-                <input type="number" id="set-proactive-call" min="0" step="1">
+                <input type="number" id="set-proactive-call" min="0">
             </div>
             <div class="setting-item">
-                <label>主动打电话概率 (%) <span id="val-call-prob">30%</span></label>
+                <label>梦角主动打电话概率 (%) <span id="val-call-prob">30%</span></label>
                 <input type="range" id="slider-call-prob" min="0" max="100" value="30" oninput="document.getElementById('val-call-prob').innerText=this.value+'%'">
             </div>
             <div class="setting-item">
@@ -229,11 +260,19 @@
                 <input type="range" id="slider-ignore" min="0" max="100" value="20" oninput="document.getElementById('val-ignore').innerText=this.value+'%'">
             </div>
             <div class="setting-item">
-                <label>对方拒接概率 (%) <span id="val-reject">20%</span></label>
+                <label>梦角引用回复概率 (%) <span id="val-quote">30%</span></label>
+                <input type="range" id="slider-quote" min="0" max="100" value="30" oninput="document.getElementById('val-quote').innerText=this.value+'%'">
+            </div>
+            <div class="setting-item">
+                <label>梦角撤回消息概率 (%) <span id="val-recall">10%</span></label>
+                <input type="range" id="slider-recall" min="0" max="100" value="10" oninput="document.getElementById('val-recall').innerText=this.value+'%'">
+            </div>
+            <div class="setting-item">
+                <label>梦角拒接电话概率 (%) <span id="val-reject">20%</span></label>
                 <input type="range" id="slider-reject" min="0" max="100" value="20" oninput="document.getElementById('val-reject').innerText=this.value+'%'">
             </div>
             <div class="setting-item">
-                <label>对方中途挂断概率 (%) <span id="val-hangup">10%</span></label>
+                <label>梦角中途挂断概率 (%) <span id="val-hangup">10%</span></label>
                 <input type="range" id="slider-hangup" min="0" max="100" value="10" oninput="document.getElementById('val-hangup').innerText=this.value+'%'">
             </div>
             
@@ -272,10 +311,14 @@
         </div>
     </div>
 
+    <div id="action-sheet" onclick="closeActionSheet(event)">
+        <div id="action-content" onclick="event.stopPropagation()"></div>
+    </div>
+
     <div id="voice-call" class="call-overlay">
         <div class="call-info">
             <img id="voice-avatar" class="call-avatar" src="">
-            <div id="voice-name" class="call-name">爱恋</div>
+            <div id="voice-name" class="call-name">梦角</div>
             <div id="voice-status" class="call-status">正在呼叫...</div>
         </div>
         <div class="call-btns">
@@ -285,7 +328,7 @@
     </div>
 
     <div id="video-call" class="call-overlay">
-        <img id="other-video" src="" alt="爱恋">
+        <img id="other-video" src="" alt="梦角">
         <video id="my-video" autoplay playsinline muted></video>
         <div class="call-info" style="position:absolute; top:50px; z-index:101;">
             <div id="video-status" class="call-status" style="color:white; text-shadow:1px 1px 2px black;">正在呼叫...</div>
@@ -294,10 +337,6 @@
             <button id="video-accept-btn" class="call-btn btn-accept pulse" style="display:none;" onclick="acceptCall('video')">📹</button>
             <button class="call-btn btn-hangup" onclick="endCall('video')">📞</button>
         </div>
-    </div>
-
-    <div id="floating-call" onclick="restoreCall()">
-        <img src="" id="float-img">
     </div>
 
 <script>
@@ -316,24 +355,28 @@
     }
     
     let config = JSON.parse(localStorage.getItem('mirage_config')) || {
-        ignoreProb: 20, quoteProb: 30, proactiveMin: 0, proactiveCallMin: 0,
+        ignoreProb: 20, quoteProb: 30, recallProb: 10, proactiveMin: 0, proactiveCallMin: 0,
         proactiveCallProb: 30, botRejectProb: 20, botHangupProb: 10,
         userName: "我", userAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop",
-        botName: "爱恋", botAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop",
-        theme: 'system', bubbleColor: '#333333', bgImage: '',
+        botName: "梦角", botAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop",
+        theme: 'system', fontSize: '16', fontUrl: '', bubbleCss: '', bgImage: '',
         showAvatar: true, showName: true, showRead: false, typingText: '对方正在输入...'
     };
     
+    if(config.botName === "爱恋" || !config.botName) config.botName = "梦角";
     if(!config.userName) config.userName = "我";
-    if(!config.botName || config.botName === "梦角") config.botName = "爱恋";
-    if(config.proactiveCallProb === undefined) config.proactiveCallProb = 30;
-    if(config.botRejectProb === undefined) config.botRejectProb = 20;
-    if(config.botHangupProb === undefined) config.botHangupProb = 10;
+    if(config.recallProb === undefined) config.recallProb = 10;
+    if(config.fontSize === undefined) config.fontSize = '16';
+    if(config.fontUrl === undefined) config.fontUrl = '';
+    if(config.bubbleCss === undefined) config.bubbleCss = '';
 
     let recentUserMsgs = [];
     let activeMsgTimer, activeCallTimer;
     let editingId = null;
     let searchTimer, saveTimer;
+    let currentQuote = null;
+    let targetMsgElement = null;
+    let collapsedGroups = {};
 
     let currentCallType = null; 
     let callDuration = 0;
@@ -367,10 +410,11 @@
             if(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.setAttribute('data-theme', 'dark');
             else document.documentElement.removeAttribute('data-theme');
         }
-        if(config.bubbleColor) {
-            document.documentElement.style.setProperty('--bubble-user', config.bubbleColor);
-            document.documentElement.style.setProperty('--bubble-user-text', '#fff'); 
-        }
+
+        // 字体大小
+        document.documentElement.style.setProperty('--font-size-base', config.fontSize + 'px');
+
+        // 背景图
         if(config.bgImage) {
             document.getElementById('chat-area').style.backgroundImage = `url(${config.bgImage})`;
             document.getElementById('chat-area').style.backgroundColor = 'transparent';
@@ -378,13 +422,20 @@
             document.getElementById('chat-area').style.backgroundImage = 'none';
             document.getElementById('chat-area').style.backgroundColor = 'var(--chat-bg)';
         }
+
+        // 动态注入 CSS (字体链接、显隐控制、气泡自定义)
         let styleEl = document.getElementById('dynamic-style') || document.createElement('style');
         styleEl.id = 'dynamic-style';
         styleEl.innerHTML = `
             ${!config.showAvatar ? '.msg-row .avatar { display: none; }' : ''}
             ${!config.showName ? '.msg-name { display: none; }' : ''}
+            ${config.fontUrl ? `@import url('${config.fontUrl}'); * { font-family: 'CustomFont', -apple-system, sans-serif !important; }` : ''}
+            
+            /* 气泡自定义CSS (全局生效) */
+            .msg { ${config.bubbleCss || ''} }
         `;
         document.head.appendChild(styleEl);
+        
         document.getElementById('typing-status').innerText = config.typingText;
     }
 
@@ -399,11 +450,20 @@
         document.getElementById('home-screen').style.display = 'grid';
     }
 
+    // --- 消息渲染 ---
     function renderMsg(role, name, avatar, contentHTML) {
         const chatArea = document.getElementById('chat-area');
         const row = document.createElement('div');
-        row.className = `msg-row ${role}`;
         
+        if (role === 'system') {
+            row.className = 'msg-row system';
+            row.innerHTML = `<div class="sys-msg">${contentHTML}</div>`;
+            chatArea.appendChild(row);
+            chatArea.scrollTop = chatArea.scrollHeight;
+            return row;
+        }
+
+        row.className = `msg-row ${role}`;
         let avatarHTML = `<img class="avatar" src="${avatar}" onerror="this.src='https://via.placeholder.com/40'">`;
         let nameHTML = `<div class="msg-name">${name}</div>`;
         const now = new Date();
@@ -413,10 +473,10 @@
             ${avatarHTML}
             <div class="msg-content-wrapper">
                 ${nameHTML}
-                <div class="msg ${role}" onclick="toggleTime(this, '${timeStr}')" oncontextmenu="deleteMsg(this); return false;">
+                <div class="msg ${role}" onclick="showActionSheet(this, '${role}')">
                     ${contentHTML}
                 </div>
-                <div class="msg-time">${timeStr} (长按气泡删除)</div>
+                <div class="msg-time">${timeStr}</div>
                 ${role === 'user' ? '<div class="read-status">已读</div>' : ''}
             </div>
         `;
@@ -425,18 +485,116 @@
         return row;
     }
 
-    function toggleTime(element, timeStr) {
-        const row = element.closest('.msg-row');
-        row.classList.toggle('show-time');
-        let textToCopy = element.innerText.split('\n')[0];
-        if(textToCopy.startsWith('回复:')) textToCopy = textToCopy.split('\n').pop();
-        if(confirm(`要把这条加入字卡库吗？\n\n"${textToCopy}"`)) {
-            if(cardLibrary.some(c => c.text === textToCopy)) return alert('字卡已存在');
-            cardLibrary.push({ id: Date.now().toString(), text: textToCopy, group: "聊天提取", enabled: true });
-            saveData(); alert('已加入字卡库！');
+    // --- 操作菜单 ---
+    function showActionSheet(msgElement, role) {
+        targetMsgElement = msgElement.closest('.msg-row');
+        if (targetMsgElement.classList.contains('system')) return;
+
+        const contentDiv = document.getElementById('action-content');
+        let html = '';
+        html += `<div class="action-btn" onclick="actionCopy()">复制</div>`;
+        
+        if(role === 'other') {
+            html += `<div class="action-btn" onclick="actionQuote()">引用</div>`;
+            html += `<div class="action-btn" onclick="actionAddCard()">加入字卡库</div>`;
+            html += `<div class="action-btn" onclick="actionEdit('other')">编辑对方消息</div>`;
+            html += `<div class="action-btn" onclick="actionRecall('other')">撤回对方消息</div>`;
+        } else {
+            html += `<div class="action-btn" onclick="actionEdit('user')">编辑</div>`;
+            html += `<div class="action-btn" onclick="actionRecall('user')">撤回</div>`;
+        }
+        html += `<div class="action-btn danger" onclick="actionDelete()">删除记录</div>`;
+        html += `<div class="action-btn action-cancel" onclick="closeActionSheet()">取消</div>`;
+        
+        contentDiv.innerHTML = html;
+        document.getElementById('action-sheet').style.display = 'block';
+    }
+
+    function closeActionSheet(e) {
+        if(!e || e.target.id === 'action-sheet') {
+            document.getElementById('action-sheet').style.display = 'none';
         }
     }
-    function deleteMsg(element) { if(confirm('删除这条消息？')) element.closest('.msg-row').remove(); }
+
+    function getTargetText() {
+        const msgDiv = targetMsgElement.querySelector('.msg');
+        if(!msgDiv) return "";
+        const clone = msgDiv.cloneNode(true);
+        const quote = clone.querySelector('.quote');
+        if (quote) quote.remove();
+        return clone.innerText.trim();
+    }
+
+    // --- 动作实现 ---
+    function actionCopy() {
+        const text = getTargetText();
+        navigator.clipboard.writeText(text).then(() => alert('已复制')).catch(() => {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textArea);
+            alert('已复制');
+        });
+        closeActionSheet();
+    }
+
+    function actionQuote() {
+        currentQuote = getTargetText();
+        document.getElementById('quote-preview').style.display = 'flex';
+        document.getElementById('quote-text').innerText = `正在回复: ${currentQuote}`;
+        document.getElementById('msg-input').focus();
+        closeActionSheet();
+    }
+
+    function actionAddCard() {
+        const text = getTargetText();
+        if(cardLibrary.some(c => c.text === text)) {
+            alert('该字卡已存在');
+        } else {
+            cardLibrary.push({ id: Date.now().toString(), text: text, group: "聊天提取", enabled: true });
+            saveData(); alert('已加入字卡库！');
+        }
+        closeActionSheet();
+    }
+
+    function actionEdit(role) {
+        const text = getTargetText();
+        const newText = prompt('修改消息内容:', text);
+        if(newText !== null && newText.trim() !== '' && newText !== text) {
+            const msgDiv = targetMsgElement.querySelector('.msg');
+            const quoteNode = msgDiv.querySelector('.quote');
+            if(quoteNode) {
+                quoteNode.insertAdjacentText('afterend', newText);
+            } else {
+                msgDiv.innerText = newText;
+            }
+        }
+        closeActionSheet();
+    }
+
+    function actionRecall(role) {
+        if(confirm('确定撤回这条消息吗？')) {
+            const name = role === 'user' ? "你" : config.botName;
+            targetMsgElement.className = 'msg-row system';
+            targetMsgElement.innerHTML = `<div class="sys-msg">${name}撤回了一条消息</div>`;
+        }
+        closeActionSheet();
+    }
+
+    function actionDelete() {
+        if(confirm('彻底删除这条记录？')) {
+            targetMsgElement.remove();
+        }
+        closeActionSheet();
+    }
+
+    function cancelQuote() {
+        currentQuote = null;
+        document.getElementById('quote-preview').style.display = 'none';
+    }
+
     function markUserMsgsAsRead() {
         if(!config.showRead) return;
         const userRows = document.querySelectorAll('.msg-row.user');
@@ -451,8 +609,17 @@
         const input = document.getElementById('msg-input');
         const text = input.value.trim();
         if (!text) return;
-        renderMsg('user', config.userName, config.userAvatar, text);
+        
+        let finalHTML = "";
+        if(currentQuote) {
+            finalHTML += `<span class="quote">回复: ${currentQuote}</span>`;
+            cancelQuote();
+        }
+        finalHTML += text;
+
+        renderMsg('user', config.userName, config.userAvatar, finalHTML);
         input.value = '';
+        
         recentUserMsgs.push(text);
         if(recentUserMsgs.length > 10) recentUserMsgs.shift();
 
@@ -465,267 +632,81 @@
         setTimeout(() => {
             typing.style.display = 'none'; 
             markUserMsgsAsRead();
-            let finalReplyHTML = "";
+            
+            let replyHTML = "";
             if (Math.random() * 100 < config.quoteProb && recentUserMsgs.length > 0) {
                 const quoteMsg = recentUserMsgs[Math.floor(Math.random() * recentUserMsgs.length)];
-                finalReplyHTML += `<span class="quote">回复: ${quoteMsg}</span>`;
+                replyHTML += `<span class="quote">回复: ${quoteMsg}</span>`;
             }
+            
             const availableCards = cardLibrary.filter(c => c.enabled);
             if(availableCards.length === 0) {
-                finalReplyHTML += `(字卡库空的)`;
+                replyHTML += `(字卡库空的)`;
             } else {
                 const count = Math.floor(Math.random() * 3) + 1;
                 let texts = [];
                 for(let i=0; i<count; i++) texts.push(availableCards[Math.floor(Math.random() * availableCards.length)].text);
-                finalReplyHTML += texts.join(["，", "。", "~", " "][Math.floor(Math.random() * 4)]);
+                replyHTML += texts.join(["，", "。", "~", " "][Math.floor(Math.random() * 4)]);
             }
-            renderMsg('other', config.botName, config.botAvatar, finalReplyHTML);
+            
+            const newRow = renderMsg('other', config.botName, config.botAvatar, replyHTML);
+            
+            if (Math.random() * 100 < config.recallProb) {
+                setTimeout(() => {
+                    if (newRow && newRow.parentNode) {
+                        newRow.className = 'msg-row system';
+                        newRow.innerHTML = `<div class="sys-msg">${config.botName}撤回了一条消息</div>`;
+                    }
+                }, 2000 + Math.random() * 3000);
+            }
+
         }, 1500 + (Math.random() * 2000));
     }
 
-    function startCall(type, caller) {
-        if(currentCallType) return; 
-        currentCallType = type;
-        const callUI = document.getElementById(`${type}-call`);
-        const statusText = document.getElementById(`${type}-status`);
-        const acceptBtn = document.getElementById(`${type}-accept-btn`);
-        const hangupBtn = document.getElementById(`${type}-hangup-btn`);
-        
-        if(type === 'voice') {
-            document.getElementById('voice-avatar').src = config.botAvatar;
-            document.getElementById('voice-name').innerText = config.botName;
-        } else {
-            document.getElementById('other-video').src = config.botAvatar;
-            navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-                .then(stream => { localStream = stream; document.getElementById('my-video').srcObject = stream; })
-                .catch(err => console.log("无摄像头权限"));
-        }
-
-        callUI.style.display = 'flex';
-
-        if(caller === 'user') {
-            statusText.innerText = "正在等待对方接听...";
-            acceptBtn.style.display = 'none';
-            hangupBtn.style.display = 'flex';
-            
-            if(Math.random() * 100 < config.botRejectProb) {
-                setTimeout(() => {
-                    if(currentCallType === type) {
-                        statusText.innerText = "对方已拒绝";
-                        setTimeout(() => endCall(type, false), 2000); 
-                    }
-                }, 2000);
-                return;
-            }
-            
-            setTimeout(() => {
-                if(currentCallType === type && statusText.innerText === "正在等待对方接听...") {
-                    connectCall(type);
-                }
-            }, 3000 + Math.random() * 3000);
-            
-        } else {
-            statusText.innerText = "邀请你进行通话...";
-            acceptBtn.style.display = 'flex';
-            hangupBtn.style.display = 'flex';
-            playRingtone();
-            
-            ringtoneTimeout = setTimeout(() => {
-                if(currentCallType === type && acceptBtn.style.display === 'flex') {
-                    stopRingtone();
-                    statusText.innerText = "未接来电";
-                    setTimeout(() => endCall(type, false), 2000);
-                }
-            }, 30000);
-        }
-    }
-
-    function acceptCall(type) {
-        clearTimeout(ringtoneTimeout);
-        stopRingtone();
-        connectCall(type);
-    }
-
-    function connectCall(type) {
-        const statusText = document.getElementById(`${type}-status`);
-        const acceptBtn = document.getElementById(`${type}-accept-btn`);
-        acceptBtn.style.display = 'none';
-        statusText.innerText = "00:00";
-        
-        callDuration = 0;
-        clearInterval(callInterval);
-        clearInterval(botHangupCheckInterval);
-        
-        callInterval = setInterval(() => {
-            callDuration++;
-            const min = Math.floor(callDuration / 60).toString().padStart(2, '0');
-            const sec = (callDuration % 60).toString().padStart(2, '0');
-            statusText.innerText = `${min}:${sec}`;
-        }, 1000);
-
-        botHangupCheckInterval = setInterval(() => {
-            if(callDuration > 10 && Math.random() * 100 < config.botHangupProb) {
-                clearInterval(callInterval);
-                clearInterval(botHangupCheckInterval);
-                statusText.innerText = "对方已挂断";
-                setTimeout(() => endCall(type, false), 1500);
-            }
-        }, 10000); 
-    }
-
-    function endCall(type, needTimeout = false) {
-        clearTimeout(ringtoneTimeout);
-        stopRingtone();
-        clearInterval(callInterval);
-        clearInterval(botHangupCheckInterval);
-        
-        const doClose = () => {
-            document.getElementById(`${type}-call`).style.display = 'none';
-            document.getElementById('floating-call').style.display = 'none';
-            currentCallType = null;
-            if(localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
-        };
-
-        if(needTimeout) setTimeout(doClose, 500);
-        else doClose();
-    }
-
-    function minimizeCall() {
-        document.getElementById(`${currentCallType}-call`).style.display = 'none';
-        document.getElementById('floating-call').style.display = 'block';
-        document.getElementById('float-img').src = config.botAvatar;
-    }
-    function restoreCall() {
-        document.getElementById('floating-call').style.display = 'none';
-        document.getElementById(`${currentCallType}-call`).style.display = 'flex';
-    }
-
-    let ringtoneOsc = null;
-    function playRingtone() {
-        try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            ringtoneOsc = ctx.createOscillator();
-            const gainNode = ctx.createGain();
-            ringtoneOsc.type = 'sine';
-            ringtoneOsc.frequency.setValueAtTime(440, ctx.currentTime);
-            gainNode.gain.setValueAtTime(0, ctx.currentTime);
-            for(let i=0; i<100; i++) {
-                gainNode.gain.setValueAtTime(0.1, ctx.currentTime + i*2);
-                gainNode.gain.setValueAtTime(0, ctx.currentTime + i*2 + 1);
-            }
-            ringtoneOsc.connect(gainNode);
-            gainNode.connect(ctx.destination);
-            ringtoneOsc.start();
-        } catch(e) {}
-    }
-    function stopRingtone() {
-        if(ringtoneOsc) { ringtoneOsc.stop(); ringtoneOsc = null; }
-    }
-
-    function setupProactiveCallTimer() {
-        if(activeCallTimer) clearInterval(activeCallTimer);
-        if(config.proactiveCallMin > 0) {
-            activeCallTimer = setInterval(() => {
-                if(!currentCallType && Math.random() * 100 < config.proactiveCallProb) {
-                    const type = Math.random() > 0.5 ? 'voice' : 'video';
-                    startCall(type, 'bot');
-                }
-            }, config.proactiveCallMin * 60000);
-        }
-    }
-
-    function loadSettingsUI() {
-        document.getElementById('set-my-name').value = config.userName;
-        document.getElementById('my-avatar-preview').src = config.userAvatar;
-        document.getElementById('set-bot-name').value = config.botName;
-        document.getElementById('bot-avatar-preview').src = config.botAvatar;
-        
-        document.getElementById('set-theme').value = config.theme; 
-        document.getElementById('set-bubble-color').value = config.bubbleColor; 
-        document.getElementById('set-show-avatar').checked = config.showAvatar;
-        document.getElementById('set-show-name').checked = config.showName; 
-        document.getElementById('set-show-read').checked = config.showRead;
-        
-        document.getElementById('set-proactive').value = config.proactiveMin;
-        document.getElementById('set-proactive-call').value = config.proactiveCallMin;
-        
-        document.getElementById('slider-call-prob').value = config.proactiveCallProb;
-        document.getElementById('val-call-prob').innerText = config.proactiveCallProb + '%';
-        
-        document.getElementById('slider-ignore').value = config.ignoreProb; 
-        document.getElementById('val-ignore').innerText = config.ignoreProb + '%';
-        
-        document.getElementById('slider-reject').value = config.botRejectProb;
-        document.getElementById('val-reject').innerText = config.botRejectProb + '%';
-        
-        document.getElementById('slider-hangup').value = config.botHangupProb;
-        document.getElementById('val-hangup').innerText = config.botHangupProb + '%';
-    }
-
-    function uploadProfileImg(event, target) {
-        const file = event.target.files[0]; if(!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            if(target === 'user') {
-                config.userAvatar = e.target.result;
-                document.getElementById('my-avatar-preview').src = config.userAvatar;
-            } else {
-                config.botAvatar = e.target.result;
-                document.getElementById('bot-avatar-preview').src = config.botAvatar;
-            }
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function changeTheme(val) { config.theme = val; applyAppearance(); saveConfig(); }
-    function uploadBg(event) {
-        const file = event.target.files[0]; if(!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) { config.bgImage = e.target.result; applyAppearance(); saveConfig(); alert('背景已更新！'); };
-        reader.readAsDataURL(file);
-    }
-
-    function saveSettings() {
-        config.userName = document.getElementById('set-my-name').value.trim() || "我";
-        config.botName = document.getElementById('set-bot-name').value.trim() || "爱恋";
-        document.getElementById('chat-title').innerText = config.botName;
-        
-        config.bubbleColor = document.getElementById('set-bubble-color').value.trim(); 
-        config.showAvatar = document.getElementById('set-show-avatar').checked;
-        config.showName = document.getElementById('set-show-name').checked; 
-        config.showRead = document.getElementById('set-show-read').checked;
-        
-        config.proactiveMin = parseInt(document.getElementById('set-proactive').value) || 0;
-        config.proactiveCallMin = parseInt(document.getElementById('set-proactive-call').value) || 0;
-        
-        config.proactiveCallProb = parseInt(document.getElementById('slider-call-prob').value);
-        config.ignoreProb = parseInt(document.getElementById('slider-ignore').value);
-        config.botRejectProb = parseInt(document.getElementById('slider-reject').value);
-        config.botHangupProb = parseInt(document.getElementById('slider-hangup').value);
-        
-        applyAppearance(); saveConfig(); setupProactiveTimer(); setupProactiveCallTimer(); 
-        alert('设置已保存！'); closeApp('settings-app');
-    }
-
+    // --- 字卡库折叠 ---
     function debouncedRender() { clearTimeout(searchTimer); searchTimer = setTimeout(() => { renderCards(); }, 300); }
+    function toggleGroup(groupName) { collapsedGroups[groupName] = !collapsedGroups[groupName]; renderCards(); }
     function renderCards() {
         const list = document.getElementById('cards-list');
         const keyword = document.getElementById('search-input').value.trim().toLowerCase();
         const filteredCards = cardLibrary.filter(c => c.text.toLowerCase().includes(keyword));
         if(filteredCards.length === 0) { list.innerHTML = '<div style="text-align:center; color:#999; margin-top:50px;">没有找到字卡</div>'; return; }
+        
         const displayCards = filteredCards.slice(0, 300);
         const grouped = {};
         displayCards.forEach((card) => { if(!grouped[card.group]) grouped[card.group] = []; grouped[card.group].push(card); });
+        
         let htmlArr = [];
         for (let groupName in grouped) {
-            htmlArr.push(`<div class="group-title">${groupName} (${grouped[groupName].length})<span onclick="deleteGroup('${groupName}')">删除此组</span></div>`);
-            grouped[groupName].forEach(card => {
-                htmlArr.push(`<div class="card-item ${card.enabled ? '' : 'disabled'}"><span>${card.text}</span><div class="card-actions"><button onclick="toggleEnable('${card.id}')">${card.enabled ? '🚫' : '✅'}</button><button onclick="openEditCard('${card.id}')">✏️</button><button onclick="deleteCard('${card.id}')" style="color:#ff3b30;">🗑️</button></div></div>`);
-            });
+            const isCollapsed = keyword ? false : collapsedGroups[groupName];
+            htmlArr.push(`
+                <div class="group-title ${isCollapsed ? 'collapsed' : ''}" onclick="toggleGroup('${groupName}')">
+                    <div class="group-title-left">
+                        <span class="arrow">▼</span> ${groupName} (${grouped[groupName].length})
+                    </div>
+                    <span class="delete-grp" onclick="event.stopPropagation(); deleteGroup('${groupName}')">删除此组</span>
+                </div>
+            `);
+            if(!isCollapsed) {
+                grouped[groupName].forEach(card => {
+                    htmlArr.push(`
+                        <div class="card-item ${card.enabled ? '' : 'disabled'}">
+                            <span>${card.text}</span>
+                            <div class="card-actions">
+                                <button onclick="toggleEnable('${card.id}')">${card.enabled ? '🚫' : '✅'}</button>
+                                <button onclick="openEditCard('${card.id}')">✏️</button>
+                                <button onclick="deleteCard('${card.id}')" style="color:#ff3b30;">🗑️</button>
+                            </div>
+                        </div>
+                    `);
+                });
+            }
         }
         if(filteredCards.length > 300) htmlArr.push(`<div style="text-align:center; color:#999; padding:20px; font-size:13px;">仅展示前 300 条，请用搜索查找。</div>`);
         list.innerHTML = htmlArr.join('');
     }
+
+    // --- 设置与其他 ---
     function toggleEnable(id) { const card = cardLibrary.find(c => c.id === id); if(card) { card.enabled = !card.enabled; saveData(); renderCards(); } }
     function deleteGroup(groupName) { if(confirm(`确定删除整个【${groupName}】分组？`)) { cardLibrary = cardLibrary.filter(c => c.group !== groupName); saveData(); renderCards(); } }
     function openEditCard(id) {
@@ -779,6 +760,89 @@
         reader.readAsText(file, 'UTF-8');
     }
 
+    function loadSettingsUI() {
+        document.getElementById('set-my-name').value = config.userName;
+        document.getElementById('my-avatar-preview').src = config.userAvatar;
+        document.getElementById('set-bot-name').value = config.botName;
+        document.getElementById('bot-avatar-preview').src = config.botAvatar;
+        document.getElementById('set-theme').value = config.theme; 
+        
+        document.getElementById('slider-font-size').value = config.fontSize;
+        document.getElementById('val-font-size').innerText = config.fontSize;
+        document.getElementById('set-font-url').value = config.fontUrl;
+        
+        document.getElementById('set-bubble-css').value = config.bubbleCss;
+
+        document.getElementById('set-show-avatar').checked = config.showAvatar;
+        document.getElementById('set-show-name').checked = config.showName; 
+        document.getElementById('set-show-read').checked = config.showRead;
+        document.getElementById('set-proactive').value = config.proactiveMin;
+        document.getElementById('set-proactive-call').value = config.proactiveCallMin;
+        
+        document.getElementById('slider-call-prob').value = config.proactiveCallProb;
+        document.getElementById('val-call-prob').innerText = config.proactiveCallProb + '%';
+        
+        document.getElementById('slider-ignore').value = config.ignoreProb; 
+        document.getElementById('val-ignore').innerText = config.ignoreProb + '%';
+
+        document.getElementById('slider-quote').value = config.quoteProb; 
+        document.getElementById('val-quote').innerText = config.quoteProb + '%';
+
+        document.getElementById('slider-recall').value = config.recallProb; 
+        document.getElementById('val-recall').innerText = config.recallProb + '%';
+        
+        document.getElementById('slider-reject').value = config.botRejectProb;
+        document.getElementById('val-reject').innerText = config.botRejectProb + '%';
+        
+        document.getElementById('slider-hangup').value = config.botHangupProb;
+        document.getElementById('val-hangup').innerText = config.botHangupProb + '%';
+    }
+    function uploadProfileImg(event, target) {
+        const file = event.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            if(target === 'user') {
+                config.userAvatar = e.target.result;
+                document.getElementById('my-avatar-preview').src = config.userAvatar;
+            } else {
+                config.botAvatar = e.target.result;
+                document.getElementById('bot-avatar-preview').src = config.botAvatar;
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+    function changeTheme(val) { config.theme = val; applyAppearance(); saveConfig(); }
+    function uploadBg(event) {
+        const file = event.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) { config.bgImage = e.target.result; applyAppearance(); saveConfig(); alert('背景已更新！'); };
+        reader.readAsDataURL(file);
+    }
+    function saveSettings() {
+        config.userName = document.getElementById('set-my-name').value.trim() || "我";
+        config.botName = document.getElementById('set-bot-name').value.trim() || "梦角";
+        document.getElementById('chat-title').innerText = config.botName;
+        
+        config.fontSize = document.getElementById('slider-font-size').value;
+        config.fontUrl = document.getElementById('set-font-url').value.trim();
+        config.bubbleCss = document.getElementById('set-bubble-css').value.trim();
+
+        config.showAvatar = document.getElementById('set-show-avatar').checked;
+        config.showName = document.getElementById('set-show-name').checked; 
+        config.showRead = document.getElementById('set-show-read').checked;
+        config.proactiveMin = parseInt(document.getElementById('set-proactive').value) || 0;
+        config.proactiveCallMin = parseInt(document.getElementById('set-proactive-call').value) || 0;
+        
+        config.proactiveCallProb = parseInt(document.getElementById('slider-call-prob').value);
+        config.ignoreProb = parseInt(document.getElementById('slider-ignore').value);
+        config.quoteProb = parseInt(document.getElementById('slider-quote').value);
+        config.recallProb = parseInt(document.getElementById('slider-recall').value);
+        config.botRejectProb = parseInt(document.getElementById('slider-reject').value);
+        config.botHangupProb = parseInt(document.getElementById('slider-hangup').value);
+        
+        applyAppearance(); saveConfig(); setupProactiveTimer(); setupProactiveCallTimer(); 
+        alert('设置已保存并生效！'); closeApp('settings-app');
+    }
     function exportAllData() {
         const allData = { cards: cardLibrary, config: config };
         const blob = new Blob([JSON.stringify(allData, null, 2)], { type: "application/json;charset=utf-8" });
@@ -828,6 +892,115 @@
             const osc = ctx.createOscillator(); osc.frequency.setValueAtTime(800, ctx.currentTime);
             osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.1);
         } catch(e) {}
+    }
+
+    function startCall(type, caller) {
+        if(currentCallType) return; 
+        currentCallType = type;
+        const callUI = document.getElementById(`${type}-call`);
+        const statusText = document.getElementById(`${type}-status`);
+        const acceptBtn = document.getElementById(`${type}-accept-btn`);
+        const hangupBtn = document.getElementById(`${type}-hangup-btn`);
+        
+        if(type === 'voice') {
+            document.getElementById('voice-avatar').src = config.botAvatar;
+            document.getElementById('voice-name').innerText = config.botName;
+        } else {
+            document.getElementById('other-video').src = config.botAvatar;
+            navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+                .then(stream => { localStream = stream; document.getElementById('my-video').srcObject = stream; })
+                .catch(err => console.log("无摄像头权限"));
+        }
+        callUI.style.display = 'flex';
+
+        if(caller === 'user') {
+            statusText.innerText = "正在等待对方接听...";
+            acceptBtn.style.display = 'none';
+            hangupBtn.style.display = 'flex';
+            if(Math.random() * 100 < config.botRejectProb) {
+                setTimeout(() => {
+                    if(currentCallType === type) {
+                        statusText.innerText = "对方已拒绝";
+                        setTimeout(() => endCall(type, false), 2000); 
+                    }
+                }, 2000);
+                return;
+            }
+            setTimeout(() => {
+                if(currentCallType === type && statusText.innerText === "正在等待对方接听...") connectCall(type);
+            }, 3000 + Math.random() * 3000);
+        } else {
+            statusText.innerText = "邀请你进行通话...";
+            acceptBtn.style.display = 'flex';
+            hangupBtn.style.display = 'flex';
+            playRingtone();
+            ringtoneTimeout = setTimeout(() => {
+                if(currentCallType === type && acceptBtn.style.display === 'flex') {
+                    stopRingtone(); statusText.innerText = "未接来电";
+                    setTimeout(() => endCall(type, false), 2000);
+                }
+            }, 30000);
+        }
+    }
+    function acceptCall(type) { clearTimeout(ringtoneTimeout); stopRingtone(); connectCall(type); }
+    function connectCall(type) {
+        const statusText = document.getElementById(`${type}-status`);
+        const acceptBtn = document.getElementById(`${type}-accept-btn`);
+        acceptBtn.style.display = 'none';
+        statusText.innerText = "00:00";
+        callDuration = 0;
+        clearInterval(callInterval);
+        clearInterval(botHangupCheckInterval);
+        callInterval = setInterval(() => {
+            callDuration++;
+            const min = Math.floor(callDuration / 60).toString().padStart(2, '0');
+            const sec = (callDuration % 60).toString().padStart(2, '0');
+            statusText.innerText = `${min}:${sec}`;
+        }, 1000);
+        botHangupCheckInterval = setInterval(() => {
+            if(callDuration > 10 && Math.random() * 100 < config.botHangupProb) {
+                clearInterval(callInterval); clearInterval(botHangupCheckInterval);
+                statusText.innerText = "对方已挂断";
+                setTimeout(() => endCall(type, false), 1500);
+            }
+        }, 10000); 
+    }
+    function endCall(type, needTimeout = false) {
+        clearTimeout(ringtoneTimeout); stopRingtone();
+        clearInterval(callInterval); clearInterval(botHangupCheckInterval);
+        const doClose = () => {
+            document.getElementById(`${type}-call`).style.display = 'none';
+            currentCallType = null;
+            if(localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+        };
+        if(needTimeout) setTimeout(doClose, 500); else doClose();
+    }
+    let ringtoneOsc = null;
+    function playRingtone() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            ringtoneOsc = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            ringtoneOsc.type = 'sine'; ringtoneOsc.frequency.setValueAtTime(440, ctx.currentTime);
+            gainNode.gain.setValueAtTime(0, ctx.currentTime);
+            for(let i=0; i<100; i++) {
+                gainNode.gain.setValueAtTime(0.1, ctx.currentTime + i*2);
+                gainNode.gain.setValueAtTime(0, ctx.currentTime + i*2 + 1);
+            }
+            ringtoneOsc.connect(gainNode); gainNode.connect(ctx.destination); ringtoneOsc.start();
+        } catch(e) {}
+    }
+    function stopRingtone() { if(ringtoneOsc) { ringtoneOsc.stop(); ringtoneOsc = null; } }
+    function setupProactiveCallTimer() {
+        if(activeCallTimer) clearInterval(activeCallTimer);
+        if(config.proactiveCallMin > 0) {
+            activeCallTimer = setInterval(() => {
+                if(!currentCallType && Math.random() * 100 < config.proactiveCallProb) {
+                    const type = Math.random() > 0.5 ? 'voice' : 'video';
+                    startCall(type, 'bot');
+                }
+            }, config.proactiveCallMin * 60000);
+        }
     }
 </script>
 </body>
