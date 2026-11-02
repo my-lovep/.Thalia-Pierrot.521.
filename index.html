@@ -47,7 +47,10 @@
 
         /* 聊天区域 */
         .chat-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; background-color: var(--chat-bg); background-size: cover; background-position: center; }
-        .msg-row { display: flex; width: 100%; align-items: flex-start; gap: 10px; }
+        
+        /* 【核心性能优化：只渲染可视区域的消息】 */
+        .msg-row { display: flex; width: 100%; align-items: flex-start; gap: 10px; content-visibility: auto; contain-intrinsic-size: auto 60px; }
+        
         .msg-row.user { justify-content: flex-end; }
         .msg-row.other { justify-content: flex-start; }
         
@@ -98,7 +101,7 @@
         .panel-action .icon-box { width: 60px; height: 60px; background: var(--bg-color); border-radius: 12px; border: 1px solid var(--border-color); display: flex; justify-content: center; align-items: center; }
         .panel-action span { font-size: 12px; color: #666; }
 
-        /* 表情面板重构 - 仿照截图 */
+        /* 表情面板 */
         #emoji-panel { height: 300px; display: none; flex-direction: column; padding: 0; }
         .emoji-tabs-header { display: flex; border-bottom: 1px solid var(--border-color); padding: 10px 15px; gap: 15px;}
         .emoji-tab-btn { padding: 6px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; color: var(--accent); border: 1px solid transparent;}
@@ -112,8 +115,10 @@
         .emoji-content-area { flex: 1; overflow-y: auto; padding: 10px 15px; display: none;}
         .emoji-content-area.active { display: block; }
         
+        /* 【核心性能优化：表情包网格和图片隔离渲染，且图片懒加载】 */
         .emoji-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-        .emoji-grid img { width: 100%; aspect-ratio: 1; object-fit: contain; cursor: pointer; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); padding: 5px;}
+        .emoji-grid > div { content-visibility: auto; contain-intrinsic-size: auto 80px; }
+        .emoji-grid img { width: 100%; aspect-ratio: 1; object-fit: contain; cursor: pointer; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); padding: 5px; loading: lazy; }
         .emoji-grid .text-emoji { display: flex; justify-content: center; align-items: center; font-size: 24px; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer; aspect-ratio: 1; padding: 5px; text-align: center; word-break: break-all;}
         .emoji-grid .text-kaomoji { display: flex; justify-content: center; align-items: center; font-size: 14px; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer; aspect-ratio: 1; padding: 5px; text-align: center; word-break: break-all; font-family: monospace;}
 
@@ -130,14 +135,15 @@
         .search-bar { padding: 10px 15px; background: var(--header-bg); border-bottom: 1px solid var(--border-color);}
         .search-bar input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); outline: none;}
         
-        .group-title { font-size: 14px; color: var(--text-color); margin: 15px 0 8px 0; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px dashed var(--border-color); padding-bottom: 5px;}
+        /* 【核心性能优化：字卡全量渲染，但CSS隔离】 */
+        .group-title { font-size: 14px; color: var(--text-color); margin: 15px 0 8px 0; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px dashed var(--border-color); padding-bottom: 5px; content-visibility: auto;}
         .group-title-left { display: flex; align-items: center; gap: 5px;}
         .group-title .arrow { font-size: 10px; transition: transform 0.2s; }
         .group-title.collapsed .arrow { transform: rotate(-90deg); }
         .group-actions { display: flex; gap: 10px;}
         .group-actions span { color: var(--accent); cursor: pointer; font-size: 12px; font-weight: normal;}
         
-        .card-item { background: var(--header-bg); padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color);}
+        .card-item { background: var(--header-bg); padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); content-visibility: auto; contain-intrinsic-size: auto 45px;}
         .card-item span { flex: 1; font-size: 14px; line-height: 1.4; word-break: break-all; }
         .card-item.disabled span { color: #999; text-decoration: line-through; }
         .card-actions { display: flex; gap: 8px;}
@@ -253,32 +259,28 @@
         <div class="chat-area" id="chat-area"></div>
         <div class="typing-status" id="typing-status">对方正在输入...</div>
         
-        <!-- 全新表情面板，复刻截图 UI -->
+        <!-- 全新表情面板 -->
         <div id="emoji-panel">
-            <!-- 头部 Tab -->
             <div class="emoji-tabs-header">
-                <div class="emoji-tab-btn active" onclick="switchEmojiTab('all')">所有表情</div>
-                <div class="emoji-tab-btn" onclick="switchEmojiTab('my')">我的收藏</div>
+                <div class="emoji-tab-btn active" onclick="switchEmojiTab(event, 'all')">所有表情</div>
+                <div class="emoji-tab-btn" onclick="switchEmojiTab(event, 'my')">我的收藏</div>
                 <div style="flex:1;"></div>
                 <div style="cursor:pointer; font-weight:bold; color:#888;" onclick="hidePanels()">✕</div>
             </div>
             
-            <!-- 子 Tab 和 操作 -->
             <div class="emoji-sub-header">
                 <div class="emoji-sub-tabs">
-                    <div class="emoji-sub-tab active" onclick="switchEmojiSubTab('pic')">表情包</div>
-                    <div class="emoji-sub-tab" onclick="switchEmojiSubTab('kaomoji')">颜文字</div>
-                    <div class="emoji-sub-tab" onclick="switchEmojiSubTab('emoji')">emoji</div>
+                    <div class="emoji-sub-tab active" onclick="switchEmojiSubTab(event, 'pic')">表情包</div>
+                    <div class="emoji-sub-tab" onclick="switchEmojiSubTab(event, 'kaomoji')">颜文字</div>
+                    <div class="emoji-sub-tab" onclick="switchEmojiSubTab(event, 'emoji')">emoji</div>
                 </div>
                 <div style="display:flex; gap:10px;">
                     <button class="btn-small" onclick="addEmojiByUrl()">加图片</button>
                     <button class="btn-small" onclick="addTextEmoji()">加文字</button>
-                    <input type="file" id="emoji-upload-input" multiple accept="image/*" style="display:none" onchange="uploadEmojis(event)">
                 </div>
             </div>
             <div style="font-size:11px; color:#999; padding: 0 15px 5px;">自动：有字插入 · 没字直发</div>
 
-            <!-- 内容区 -->
             <div class="emoji-content-area active" id="emoji-content-pic">
                 <div class="emoji-grid" id="emoji-grid-pic"></div>
             </div>
@@ -517,7 +519,7 @@
         </div>
     </div>
 
-    <!-- 弹窗（略，与之前相同） -->
+    <!-- 弹窗 -->
     <div id="batch-modal" class="modal">
         <div class="modal-content">
             <h3 style="text-align:center;">批量添加字卡</h3>
@@ -675,7 +677,7 @@
 
 <script>
     // ==========================================
-    // 核心改造：引入 IndexedDB 突破容量限制
+    // 核心改造：IndexedDB 超大容量存储
     // ==========================================
     const DB_NAME = 'MirageDB';
     const STORE_NAME = 'emojis';
@@ -745,12 +747,11 @@
     const defaultAvatarUser = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23e0e0e0'/><circle cx='50' cy='35' r='18' fill='%23fff'/><path d='M25 85c0-15 12-25 25-25s25 10 25 25' fill='%23fff'/></svg>";
     const defaultAvatarBot = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23dcdcdc'/><circle cx='50' cy='35' r='18' fill='%23f5f5f5'/><path d='M25 85c0-15 12-25 25-25s25 10 25 25' fill='%23f5f5f5'/></svg>";
 
-    // 默认文本表情库
     const defaultEmojis = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕'];
     const defaultKaomoji = ['(๑•̀ㅂ•́)و✧', '( ﾟ∀ﾟ) ﾉ', '(*/ω＼*)', '(╯°□°）╯︵ ┻━┻', '┬─┬ ノ( ゜-゜ノ)', '(´・ω・`)', '( • ̀ω•́ )✧', 'ヾ(≧▽≦*)o', '(๑>؂<๑）', '(*^▽^*)', '(￣ー￣)', '눈_눈', '_(:з」∠)_', 'o(*￣▽￣*)ブ', '(⊙_⊙)?', '(⊙o⊙)', '(*￣3￣)╭', 'ψ(｀∇´)ψ'];
 
     let cardLibrary = JSON.parse(localStorage.getItem('mirage_cards_v2')) || [{ id: '1', text: "早安", group: "默认", enabled: true }];
-    let emojiLibrary = []; // 从 DB 读取后填充
+    let emojiLibrary = []; 
     let letterBox = JSON.parse(localStorage.getItem('mirage_letters')) || [];
     let disabledGroups = JSON.parse(localStorage.getItem('mirage_disabled_groups')) || {};
     let patLibrary = JSON.parse(localStorage.getItem('mirage_pats')) || ["拍了拍你的脑袋", "抱了抱你", "亲了亲你"];
@@ -772,7 +773,6 @@
         timeDisplay: 'bottom'
     };
     
-    // 配置兼容
     if(!config.userAvatar || config.userAvatar.includes('unsplash')) config.userAvatar = defaultAvatarUser;
     if(!config.botAvatar || config.botAvatar.includes('unsplash')) config.botAvatar = defaultAvatarBot;
     if(config.letterProactiveMin === undefined) config.letterProactiveMin = 0;
@@ -790,10 +790,7 @@
     let editingId = null;
     let movingId = null;
     let pattingTargetRole = null;
-    let currentEmojiTab = 'all';
-    let currentEmojiSubTab = 'pic';
 
-    // 问问TA 状态
     let currentAskType = 'single';
     let currentAskDelayMode = 'random';
 
@@ -832,12 +829,11 @@
 
     // --- 初始化与渲染 ---
     window.onload = async () => {
-        // 先初始化数据库
         try {
             await initDB();
             emojiLibrary = await getEmojisFromDB();
         } catch(e) {
-            alert("数据库初始化失败，可能是浏览器不支持或隐私模式限制！");
+            alert("数据库初始化失败！");
         }
 
         setTimeout(() => { document.getElementById('splash-screen').style.display = 'none'; }, 2000);
@@ -946,12 +942,11 @@
         }
 
         let finalContent = contentHTML;
-        // 图片判断（包括 http 链接）
         if (contentHTML.startsWith('data:image/') || contentHTML.startsWith('http')) {
             if (isEmoji) {
-                finalContent = `<img src="${contentHTML}" onclick="window.open(this.src)" class="emoji-img">`;
+                finalContent = `<img src="${contentHTML}" onclick="window.open(this.src)" class="emoji-img" loading="lazy">`;
             } else {
-                finalContent = `<img src="${contentHTML}" onclick="window.open(this.src)">`;
+                finalContent = `<img src="${contentHTML}" onclick="window.open(this.src)" loading="lazy">`;
             }
         }
 
@@ -995,7 +990,6 @@
 
     function triggerPat(patText) {
         closeActionSheet();
-        
         let meName = config.userName;
         let targetName = pattingTargetRole === 'user' ? config.userName : (config.isGroup ? "群友" : config.botName);
         if (pattingTargetRole === 'user') targetName = "自己";
@@ -1171,11 +1165,9 @@
         const input = document.getElementById('msg-input');
         if (type === 'image') {
             if (input.value.trim() === '') {
-                // 没字直发
                 renderMsg('user', config.userName, config.userAvatar, content, true);
                 triggerBotReply();
             } else {
-                // 有字插入，其实是先发字，再发图
                 const text = input.value.trim();
                 renderMsg('user', config.userName, config.userAvatar, text);
                 input.value = '';
@@ -1186,7 +1178,6 @@
             }
             hidePanels();
         } else {
-            // emoji / 颜文字直接插入输入框
             input.value += content;
             input.focus();
         }
@@ -1229,7 +1220,6 @@
             senderAvatar = member.avatar || config.botAvatar;
         }
 
-        // 判断是否发表情包 (只抽图片类)
         const imageEmojis = emojiLibrary.filter(e => e.type === 'image');
         if (imageEmojis.length > 0 && Math.random() * 100 < config.emojiProb) {
             const randomEmoji = imageEmojis[Math.floor(Math.random() * imageEmojis.length)].content;
@@ -1285,7 +1275,7 @@
         }
     }
 
-    // --- 表情包系统重构 ---
+    // --- 表情包系统 ---
     function toggleEmojiPanel() {
         const p = document.getElementById('emoji-panel');
         const isHidden = p.style.display === 'none' || p.style.display === '';
@@ -1296,42 +1286,36 @@
         }
     }
 
-    function switchEmojiTab(tab) {
-        // 这里模拟一下如果要做多个收藏夹的逻辑，目前先简化为展示全部
+    function switchEmojiTab(e, tab) {
         document.querySelectorAll('.emoji-tab-btn').forEach(el => el.classList.remove('active'));
-        event.target.classList.add('active');
+        e.target.classList.add('active');
     }
 
-    function switchEmojiSubTab(subTab) {
-        currentEmojiSubTab = subTab;
+    function switchEmojiSubTab(e, subTab) {
         document.querySelectorAll('.emoji-sub-tab').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.emoji-content-area').forEach(el => el.classList.remove('active'));
         
-        event.target.classList.add('active');
+        e.target.classList.add('active');
         document.getElementById(`emoji-content-${subTab}`).classList.add('active');
     }
 
-    // 后台数据加载并渲染
     function renderEmojiPanels() {
-        // 分类收集
         const picList = emojiLibrary.filter(e => e.type === 'image');
         const emojiList = [...defaultEmojis.map(t => ({id: t, type:'emoji', content:t})), ...emojiLibrary.filter(e => e.type === 'emoji')];
         const kaomojiList = [...defaultKaomoji.map(t => ({id: t, type:'kaomoji', content:t})), ...emojiLibrary.filter(e => e.type === 'kaomoji')];
 
-        // 渲染图片
+        // 【核心性能优化】：使用 loading="lazy" 让图片滚动到可见区域才加载
         let picHTML = picList.map(e => `
             <div style="position:relative;">
-                <img src="${e.content}" onclick="handleEmojiClick('${e.content}', 'image')">
+                <img src="${e.content}" onclick="handleEmojiClick('${e.content}', 'image')" loading="lazy">
                 <div onclick="deleteEmojiFromDBUI(${e.id})" style="position:absolute; top:-5px; right:-5px; background:#333; color:#fff; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:12px; cursor:pointer; z-index:10;">×</div>
             </div>
         `).join('');
         
-        // 渲染 Emoji
         let emojiHTML = emojiList.map(e => `
             <div class="text-emoji" onclick="handleEmojiClick('${e.content}', 'text')">${e.content}</div>
         `).join('');
 
-        // 渲染颜文字
         let kaomojiHTML = kaomojiList.map(e => `
             <div class="text-kaomoji" onclick="handleEmojiClick('${e.content}', 'text')">${e.content}</div>
         `).join('');
@@ -1340,12 +1324,11 @@
         document.getElementById('emoji-grid-emoji').innerHTML = emojiHTML;
         document.getElementById('emoji-grid-kaomoji').innerHTML = kaomojiHTML;
         
-        // 兼容表情包大界面
-        document.getElementById('emoji-grid-full').innerHTML = picHTML.replace(/width:20px; height:20px;/g, 'width:24px; height:24px; font-size:14px;');
+        document.getElementById('emoji-grid-full').innerHTML = picHTML;
     }
 
     function addEmojiByUrl() {
-        const url = prompt('请输入表情包的图片网址（以 http 开头）：\n例如：https://xxx.com/emoji.gif');
+        const url = prompt('请输入表情包的图片网址（以 http 开头）：');
         if(!url) return;
         if(!url.startsWith('http')) return alert('网址格式不正确');
         
@@ -1356,10 +1339,9 @@
     }
 
     function addTextEmoji() {
-        let text = prompt('请输入要添加的 Emoji 或 颜文字：\n（添加后可在面板对应的分类中找到）');
+        let text = prompt('请输入要添加的 Emoji 或 颜文字：');
         if(!text) return;
         let type = 'kaomoji';
-        // 简单判断是否属于单字符 Emoji
         if (text.length <= 2) type = 'emoji';
 
         saveEmojiToDB({ type: type, content: text }).then(id => {
@@ -1375,7 +1357,7 @@
         let loaded = 0;
         for (const file of files) {
             try {
-                const compressedEmoji = await compressImage(file, 300, 300, 0.6); // 稍微放宽一点尺寸提高清晰度
+                const compressedEmoji = await compressImage(file, 300, 300, 0.6);
                 const id = await saveEmojiToDB({ type: 'image', content: compressedEmoji });
                 emojiLibrary.push({ id, type: 'image', content: compressedEmoji });
                 loaded++;
@@ -1395,9 +1377,9 @@
     }
     
     async function clearAllEmojis() {
-        if(confirm('确定清空所有已存的表情包图片吗？（内置的emoji和颜文字不会被删除）')) {
+        if(confirm('确定清空所有已存的表情包图片吗？')) {
             await clearEmojisDB();
-            emojiLibrary = emojiLibrary.filter(e => e.type !== 'image'); // 保留文字类的
+            emojiLibrary = emojiLibrary.filter(e => e.type !== 'image');
             renderEmojiPanels();
         }
     }
@@ -1417,7 +1399,7 @@
         }
     }
 
-    // --- 字卡库相关 (保持不变，直接复用) ---
+    // --- 字卡库全量渲染 (CSS优化) ---
     function debouncedRenderCards() { clearTimeout(searchTimer); searchTimer = setTimeout(() => { renderCards(); }, 300); }
     function toggleGroup(groupName) { collapsedGroups[groupName] = !collapsedGroups[groupName]; renderCards(); }
     function toggleGroupDisable(groupName, e) { 
@@ -1437,7 +1419,7 @@
 
         if(filteredCards.length === 0) { list.innerHTML = '<div style="text-align:center; color:#999; margin-top:50px;">没有找到字卡</div>'; return; }
         
-        const displayCards = filteredCards; 
+        const displayCards = filteredCards; // 全量数据
         const grouped = {};
         displayCards.forEach((card) => { if(!grouped[card.group]) grouped[card.group] = []; grouped[card.group].push(card); });
         
@@ -1459,6 +1441,7 @@
             `);
             if(!isCollapsed) {
                 grouped[groupName].forEach(card => {
+                    // 加上 content-visibility: auto 后，哪怕有1万条，也不会卡
                     htmlArr.push(`
                         <div class="card-item ${card.enabled ? '' : 'disabled'}">
                             <span>${card.text}</span>
@@ -1553,7 +1536,7 @@
         reader.readAsText(file, 'UTF-8');
     }
 
-    // --- 信箱逻辑 (保持不变) ---
+    // --- 信箱逻辑 ---
     function renderLetters() {
         const list = document.getElementById('letters-list');
         if(letterBox.length === 0) {
@@ -1687,7 +1670,7 @@
         }
     }
 
-    // --- 设置逻辑 (保持不变) ---
+    // --- 设置逻辑 ---
     function toggleGroupSettings() {
         const isGroup = document.getElementById('set-is-group').checked;
         document.getElementById('single-bot-settings').style.display = isGroup ? 'none' : 'block';
@@ -1809,7 +1792,6 @@
         location.reload(); 
     }
 
-    // 这里只备份文本数据，图片由于已经在 IndexedDB，体积大不包含在 JSON 里，避免导出卡死
     function exportAllData() {
         const allData = { 
             cards: cardLibrary, config: config, disabledGroups: disabledGroups, 
@@ -1997,3 +1979,77 @@
 
         let delayMs = 0;
         if(currentAskDelayMode === 'random') {
+            delayMs = (config.delayMin + Math.random() * (config.delayMax - config.delayMin)) * 1000;
+        } else {
+            const val = parseInt(document.getElementById('ask-delay-val').value) || 30;
+            const unit = document.getElementById('ask-delay-unit').value;
+            delayMs = val * (unit === 'min' ? 60000 : 1000);
+        }
+        askData.delayMs = delayMs;
+
+        askHistory.push(askData);
+        if(askHistory.length > 50) askHistory.shift();
+        saveData('mirage_asks', askHistory);
+
+        document.getElementById('ask-modal').style.display = 'none';
+        
+        renderMsg('user', config.userName, config.userAvatar, `【提问】${question}`);
+
+        document.getElementById('typing-status').style.display = 'block';
+        document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
+
+        setTimeout(() => {
+            document.getElementById('typing-status').style.display = 'none';
+            generateBotAnswer(askData);
+        }, delayMs);
+    }
+
+    function generateBotAnswer(askData) {
+        let senderName = config.botName;
+        let senderAvatar = config.botAvatar;
+
+        if (config.isGroup && config.groupMembers.length > 0) {
+            const member = config.groupMembers[Math.floor(Math.random() * config.groupMembers.length)];
+            senderName = member.name;
+            senderAvatar = member.avatar || config.botAvatar;
+        }
+
+        let replyText = '';
+
+        if (askData.type === 'single') {
+            const ans = askData.options[Math.floor(Math.random() * askData.options.length)];
+            replyText = `我选：${ans}`;
+        } else if (askData.type === 'multi') {
+            const count = Math.floor(Math.random() * (askData.maxSelect - 1)) + 2; 
+            const shuffled = [...askData.options].sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, count);
+            replyText = `我选：${selected.join('、')}`;
+        } else if (askData.type === 'text') {
+            const availableCards = cardLibrary.filter(c => c.enabled && !disabledGroups[c.group]);
+            if(availableCards.length === 0) {
+                replyText = `(字卡库空了，回答不出来)`;
+            } else {
+                const count = Math.floor(Math.random() * 8) + 1;
+                let texts = [];
+                for(let i=0; i<count; i++) {
+                    texts.push(availableCards[Math.floor(Math.random() * availableCards.length)].text);
+                }
+                replyText = texts.join('，'); 
+            }
+        }
+
+        const newRow = renderMsg('other', senderName, senderAvatar, replyText);
+        playSound();
+        
+        if (Math.random() * 100 < config.recallProb) {
+            setTimeout(() => {
+                if (newRow && newRow.parentNode) {
+                    newRow.className = 'msg-row system';
+                    newRow.innerHTML = `<div class="sys-msg">${senderName}撤回了一条消息</div>`;
+                }
+            }, 2000 + Math.random() * 3000);
+        }
+    }
+</script>
+</body>
+</html>
