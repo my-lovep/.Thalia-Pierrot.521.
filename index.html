@@ -7,15 +7,12 @@
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/my-lovep/Thalia_p/main/IMG_6507.jpeg">
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/my-lovep/Thalia_p/main/IMG_6507.jpeg">
     <style>
-        /* 使用 CSS 变量，实现修改设置无需重绘DOM */
         :root {
             --bg-color: #f5f5f5; --chat-bg: #ededed; --text-color: #111;
             --bubble-user: #333; --bubble-user-text: #fff;
             --bubble-other: #fff; --bubble-other-text: #111;
             --header-bg: #f5f5f5; --border-color: #dcdcdc; --font-size-base: 16px;
             --accent: #888;
-            --custom-font: "SimSun", "Songti SC", serif;
-            --custom-bubble-css: none;
         }
         [data-theme="dark"] {
             --bg-color: #000; --chat-bg: #111; --text-color: #eee;
@@ -26,15 +23,15 @@
         }
         * {
             box-sizing: border-box; margin: 0; padding: 0;
-            font-family: var(--custom-font);
-            transition: background 0.2s, color 0.2s;
+            font-family: "SimSun", "Songti SC", serif;
+            transition: background 0.3s, color 0.3s;
             -webkit-tap-highlight-color: transparent;
         }
         body {
             background: var(--bg-color); color: var(--text-color);
             height: 100vh; height: 100dvh; overflow: hidden;
             display: flex; flex-direction: column; font-size: var(--font-size-base);
-            user-select: none; -webkit-user-select: none;
+            user-select: none;
         }
         svg { fill: currentColor; width: 24px; height: 24px; }
         img { object-fit: cover; }
@@ -93,12 +90,11 @@
         .msg-row.user .msg-header { justify-content: flex-end; }
         .msg-name { font-size: 12px; color: #888; margin-left: 2px; }
 
-        /* 应用自定义 CSS */
+        /* 基础气泡样式 */
         .msg {
             padding: 10px 14px; border-radius: 12px;
             line-height: 1.5; word-break: break-all;
             position: relative; cursor: pointer; border: 1px solid transparent;
-            var(--custom-bubble-css);
         }
         .msg.user { background: var(--bubble-user); color: var(--bubble-user-text); border-top-right-radius: 2px; }
         .msg.other { background: var(--bubble-other); color: var(--bubble-other-text); border-top-left-radius: 2px; border-color: var(--border-color); }
@@ -124,7 +120,7 @@
             background: var(--bubble-other); border: 1px solid var(--border-color);
             border-radius: 16px; padding: 15px; width: 280px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer;
-            color: var(--text-color); font-family: var(--custom-font); /* 强制继承 */
+            color: var(--text-color);
         }
         .msg-row.user .survey-card { background: var(--bubble-user); color: var(--bubble-user-text); border-color: var(--bubble-user); }
         .msg-row.user .survey-card .survey-option { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
@@ -629,6 +625,10 @@
         </div>
     </div>
 
+    <!-- 动态样式注入区 -->
+    <style id="dynamic-font-style"></style>
+    <style id="dynamic-bubble-style"></style>
+
 <script>
 // ===================== 核心应用数据 =====================
 const App = {
@@ -659,16 +659,14 @@ const App = {
     saveData: function() {
         clearTimeout(this.saveTimeout);
         this.saveTimeout = setTimeout(() => {
-            try { 
-                localStorage.setItem('appData_v13', JSON.stringify(this.data)); 
-            } catch(e) {
-                if(e.name === 'QuotaExceededError') App.toast('存储空间已满，本地文件过大，建议使用URL');
+            try { localStorage.setItem('appData_v12', JSON.stringify(this.data)); } catch(e) {
+                if(e.name === 'QuotaExceededError') App.toast('存储空间已满，建议使用URL代替本地音频');
             }
         }, 500);
     },
     loadData: function() {
         try {
-            const stored = localStorage.getItem('appData_v13') || localStorage.getItem('appData_v12');
+            const stored = localStorage.getItem('appData_v12') || localStorage.getItem('appData_v11');
             if (stored) {
                 const parsed = JSON.parse(stored);
                 this.data = { ...this.data, ...parsed, settings: { ...this.data.settings, ...(parsed.settings || {}) } };
@@ -1639,21 +1637,14 @@ const Settings = {
         const s = App.data.settings;
         document.documentElement.style.setProperty('--font-size-base', s.fontSize + 'px');
         
-        // 使用 CSS 变量注入字体，无惧卡顿
+        const fontStyle = document.getElementById('dynamic-font-style');
         if (s.fontUrl) {
-            if (s.fontUrl.startsWith('http')) {
-                const style = document.getElementById('dynamic-font-style');
-                if(!style) { const st = document.createElement('style'); st.id = 'dynamic-font-style'; document.head.appendChild(st); }
-                document.getElementById('dynamic-font-style').innerHTML = `@import url('${s.fontUrl}'); :root { --custom-font: 'CustomFont', sans-serif; }`;
-            } else {
-                document.documentElement.style.setProperty('--custom-font', s.fontUrl);
-            }
-        } else {
-            document.documentElement.style.setProperty('--custom-font', '"SimSun", "Songti SC", serif');
-        }
+            if (s.fontUrl.startsWith('http')) fontStyle.innerHTML = `@import url('${s.fontUrl}'); * { font-family: 'CustomFont', sans-serif !important; }`;
+            else fontStyle.innerHTML = `* { font-family: ${s.fontUrl} !important; }`;
+        } else fontStyle.innerHTML = '';
 
-        // 气泡 CSS 注入
-        document.documentElement.style.setProperty('--custom-bubble-css', s.bubbleCss ? s.bubbleCss : 'none');
+        const bubbleStyle = document.getElementById('dynamic-bubble-style');
+        bubbleStyle.innerHTML = s.bubbleCss ? `.msg { ${s.bubbleCss} !important; }` : '';
         
         if (s.bgImage) document.getElementById('chat-area').style.backgroundImage = `url(${s.bgImage})`;
         else document.getElementById('chat-area').style.backgroundImage = 'none';
@@ -1668,14 +1659,6 @@ const Settings = {
         App.saveData();
         this.applyStyles();
         document.getElementById('chat-title').innerText = App.data.settings.botName;
-    },
-    setupTimers: function() {
-        clearTimeout(this.timerMsg);
-        clearTimeout(this.timerLetter);
-        clearTimeout(this.timerCall);
-        this.scheduleNextMsg();
-        this.scheduleNextLetter();
-        this.scheduleNextCall();
     },
     scheduleNextMsg: function() {
         const s = App.data.settings;
@@ -1722,7 +1705,6 @@ const Settings = {
         }
     },
     init: function() {
-        // 防抖，不实时重绘
         document.getElementById('set-my-name').onchange = (e) => { App.data.settings.myName = e.target.value || '我'; this.saveAndApply(); Chat.render(); };
         document.getElementById('set-bot-name').onchange = (e) => { App.data.settings.botName = e.target.value || '对方'; this.saveAndApply(); Chat.render(); };
 
@@ -1838,28 +1820,7 @@ const Settings = {
             r.readAsText(f); e.target.value = '';
         };
         document.getElementById('btn-reset-all').onclick = () => {
-            if(confirm('确定重置所有数据？该操作不可逆！')) { localStorage.removeItem('appData_v13'); location.reload(); }
+            if(confirm('确定重置所有数据？该操作不可逆！')) { localStorage.removeItem('appData_v12'); location.reload(); }
         };
 
-        // 问问TA 逻辑 (修复发送者为我的问题)
-        document.querySelectorAll('.ask-tab').forEach(tab => {
-            tab.onclick = () => {
-                document.querySelectorAll('.ask-tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.ask-section').forEach(s => s.classList.remove('active'));
-                tab.classList.add('active');
-                document.getElementById(`ask-section-${tab.dataset.askTab}`).classList.add('active');
-            };
-        });
-        
-        document.getElementById('btn-submit-ask').onclick = () => {
-            const q = document.getElementById('ask-question-input').value.trim();
-            if(!q) { App.toast('输入问题'); return; }
-            const activeTab = document.querySelector('.ask-tab.active').dataset.askTab;
-            
-            let selectedTexts = [];
-            let optionTexts = [];
-            
-            if(activeTab === 'text') {
-                const allCards = App.data.cards.flatMap(c => c.items);
-                selectedTexts = [allCards.length > 0 ? allCards[Math.floor(Math.random()*allCards.length)] : "无话可说。"];
-                optionTexts = [...selectedTexts];
+        //
