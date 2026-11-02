@@ -34,16 +34,6 @@
         }
         svg { fill: currentColor; width: 26px; height: 26px; }
         img { object-fit: cover; }
-        /* 开场动画 */
-        #splash-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #fff; z-index: 999;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            animation: fadeOut 1s ease-in-out 1.5s forwards; pointer-events: none;
-        }
-        #splash-screen svg { width: 80px; height: 80px; color: #111; animation: pulse 1.5s infinite; }
-        @keyframes fadeOut { 0% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
-        @keyframes pulse { 0% { transform: scale(0.9); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.8; } }
 
         #home-screen {
             display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px;
@@ -78,10 +68,8 @@
             display: flex; flex-direction: column; gap: 15px;
             background-color: var(--chat-bg); background-size: cover; background-position: center;
         }
-        /* 核心性能：不在视口的DOM浏览器自动休眠，数据完全保留，不删除 */
         .msg-row {
             display: flex; width: 100%; align-items: flex-start; gap: 10px;
-            content-visibility: auto; contain-intrinsic-size: auto 62px;
         }
         .msg-row.user { justify-content: flex-end; }
         .msg-row.other { justify-content: flex-start; }
@@ -148,13 +136,12 @@
         .emoji-content-area.active { display: block; }
 
         .emoji-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-        .emoji-grid > div { content-visibility: auto; contain-intrinsic-size: auto 82px; }
         .emoji-grid img { width: 100%; aspect-ratio: 1; object-fit: contain; cursor: pointer; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); padding: 5px; loading: lazy; }
         .emoji-grid .text-emoji { display: flex; justify-content: center; align-items: center; font-size: 24px; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer; aspect-ratio: 1; padding: 5px; text-align: center; word-break: break-all;}
         .emoji-grid .text-kaomoji { display: flex; justify-content: center; align-items: center; font-size: 14px; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer; aspect-ratio: 1; padding: 5px; text-align: center; word-break: break-all; font-family: monospace;}
 
         .list-container { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px;}
-        .list-item { background: var(--header-bg); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; content-visibility: auto; contain-intrinsic-size:auto 50px; }
+        .list-item { background: var(--header-bg); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
         .list-item-info { flex: 1; }
         .list-item-title { font-weight: bold; font-size: 15px; margin-bottom: 5px;}
         .list-item-desc { font-size: 12px; color: #888; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;}
@@ -164,14 +151,14 @@
         .search-bar { padding: 10px 15px; background: var(--header-bg); border-bottom: 1px solid var(--border-color);}
         .search-bar input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); outline: none;}
 
-        .group-title { font-size: 14px; color: var(--text-color); margin: 15px 0 8px 0; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px dashed var(--border-color); padding-bottom: 5px; content-visibility:auto; }
+        .group-title { font-size: 14px; color: var(--text-color); margin: 15px 0 8px 0; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px dashed var(--border-color); padding-bottom: 5px; }
         .group-title-left { display: flex; align-items: center; gap: 5px;}
         .group-title .arrow { font-size: 10px; transition: transform 0.2s; }
         .group-title.collapsed .arrow { transform: rotate(-90deg); }
         .group-actions { display: flex; gap: 10px;}
         .group-actions span { color: var(--accent); cursor: pointer; font-size: 12px; font-weight: normal;}
 
-        .card-item { background: var(--header-bg); padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); content-visibility: auto; contain-intrinsic-size:auto 46px;}
+        .card-item { background: var(--header-bg); padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
         .card-item span { flex: 1; font-size: 14px; line-height: 1.4; word-break: break-all; }
         .card-item.disabled span { color: #999; text-decoration: line-through; }
         .card-actions { display: flex; gap: 8px;}
@@ -229,7 +216,7 @@
         .ask-delay-toggle div { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-size: 14px;}
         .ask-delay-toggle div.active { background: var(--border-color); font-weight: bold; color: var(--text-color);}
         .history-list { max-height: 150px; overflow-y: auto; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); padding: 10px; font-size: 12px; color: #666;}
-        .history-item { padding: 8px 0; border-bottom: 1px dashed var(--border-color); content-visibility:auto; }
+        .history-item { padding: 8px 0; border-bottom: 1px dashed var(--border-color); }
         .history-item:last-child { border-bottom: none;}
 
         ::-webkit-scrollbar { width: 6px; }
@@ -237,9 +224,7 @@
     </style>
 </head>
 <body>
-    <div id="splash-screen">
-        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
-    </div>
+    <!-- 【已完全删除开屏动画splash-screen】 -->
     <div id="home-screen">
         <div class="app-icon" onclick="openApp('chat-app')">
             <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg>
@@ -623,4 +608,55 @@
                 </div>
                 <input type="checkbox" id="ask-repeat" style="width:20px; height:20px; accent-color: #333;" checked>
             </div>
-            <div class="
+            <div class="ask-form-group">
+                <label>你想问什么</label>
+                <input type="text" id="ask-question-input" placeholder="输入你的问题...">
+            </div>
+            <div class="ask-section active" id="ask-section-single">
+                <div class="ask-form-group">
+                    <label>答案 <span style="font-size:11px; font-weight:normal; color:#888;">TA 会从里面选一个回答（一行一个）</span></label>
+                    <textarea id="ask-options-single" placeholder="选项1&#10;选项2&#10;选项3"></textarea>
+                </div>
+            </div>
+            <div class="ask-section" id="ask-section-multi">
+                <div class="ask-form-group">
+                    <label>答案 <span style="font-size:11px; font-weight:normal; color:#888;">TA 会从里面勾几个回答（一行一个）</span></label>
+                    <textarea id="ask-options-multi" placeholder="选项1&#10;选项2&#10;选项3"></textarea>
+                </div>
+                <div class="ask-form-group">
+                    <label>最多选几个 <span style="font-size:11px; font-weight:normal; color:#888;">TA 至少勾 2 个</span></label>
+                    <input type="number" id="ask-max-select" value="3" min="2" style="width: 80px; text-align: center;">
+                </div>
+            </div>
+            <div class="ask-section" id="ask-section-text">
+                <div class="ask-form-group" style="color: #666; font-size: 13px; line-height: 1.5;">
+                    TA 会用字卡库「主字卡」里的字卡回答（1~8 张，多张之间空一格）
+                </div>
+            </div>
+            <div class="ask-form-group">
+                <label>回答时间</label>
+                <div class="ask-delay-toggle">
+                    <div id="delay-btn-random" class="active" onclick="switchDelayMode('random')">随机</div>
+                    <div id="delay-btn-custom" onclick="switchDelayMode('custom')">自定义</div>
+                </div>
+                <div class="ask-delay-box" id="ask-delay-custom-box" style="display: none;">
+                    <input type="number" id="ask-delay-val" value="30" min="1">
+                    <select id="ask-delay-unit">
+                        <option value="sec">秒</option>
+                        <option value="min">分钟</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <div style="font-size: 14px; font-weight: bold; margin-bottom: 5px;">历史记录 <span id="history-count" style="font-weight: normal; color: #888; font-size: 12px;">0 条</span></div>
+                <div class="history-list" id="ask-history-list"></div>
+            </div>
+            <div class="modal-btns" style="margin-top: 10px;">
+                <button class="btn-cancel" onclick="closeAskModal()">取消</button>
+                <button class="btn-confirm" onclick="submitAsk()">发送提问</button>
+            </div>
+        </div>
+    </div>
+    <div id="action-sheet" onclick="closeActionSheet(event)">
+        <div id="action-content" onclick="event.stopPropagation()"></div>
+    </div>
