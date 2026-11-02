@@ -31,10 +31,12 @@
             background: var(--bg-color); color: var(--text-color);
             height: 100vh; height: 100dvh; overflow: hidden;
             display: flex; flex-direction: column; font-size: var(--font-size-base);
+            user-select: none;
         }
-        svg { fill: currentColor; width: 24px; height: 24px; }
+        svg { fill: currentColor; width: 26px; height: 26px; }
         img { object-fit: cover; }
 
+        /* 首页 */
         #home-screen {
             display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px;
             padding: 60px 20px 20px; align-content: start; height: 100%;
@@ -51,6 +53,7 @@
         .app-icon span { font-size: 13px; margin-top: 10px; font-weight: bold; letter-spacing: 1px;}
         .app-icon:active { transform: scale(0.92); }
 
+        /* 页面基础 */
         .page {
             display: none; flex-direction: column; height: 100%;
             background: var(--bg-color); position: absolute; top: 0; left: 0; width: 100%; z-index: 10;
@@ -64,7 +67,7 @@
         .header-right { display: flex; gap: 15px; align-items: center;}
         .header-btn { cursor:pointer; padding: 5px; display: flex; align-items: center;}
 
-        /* 聊天核心 */
+        /* 聊天区域 */
         .chat-area {
             flex: 1; overflow-y: auto; padding: 15px;
             display: flex; flex-direction: column; gap: 15px;
@@ -96,7 +99,7 @@
         .msg.quote { font-size: 12px; opacity: 0.6; border-left: 2px solid var(--accent); padding-left: 8px; margin-bottom: 5px; display: block; background: rgba(128,128,128,0.05); }
         .msg img { max-width: 100%; max-height: 200px; min-height: 50px; border-radius: 8px; margin-top: 5px; display: block; cursor: zoom-in; background: rgba(0,0,0,0.05);}
 
-        .msg-time-bottom { font-size: 11px; color: #999; margin-top: 4px; display: none; }
+        .msg-time-bottom { font-size: 11px; color: #999; margin-top: 4px; display: none; text-align: center;}
         .msg-time-bottom.show { display: block; }
         .read-status { font-size: 11px; color: #999; text-align: right; margin-top: 2px; display: none;}
         .read-status.show { display: block; }
@@ -141,7 +144,7 @@
         .emoji-grid .text-emoji { display: flex; justify-content: center; align-items: center; font-size: 24px; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer; aspect-ratio: 1; padding: 5px; text-align: center; word-break: break-all;}
         .emoji-grid .text-kaomoji { display: flex; justify-content: center; align-items: center; font-size: 14px; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer; aspect-ratio: 1; padding: 5px; text-align: center; word-break: break-all; font-family: monospace;}
 
-        /* 列表 */
+        /* 列表与字卡 */
         .list-container { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; -webkit-overflow-scrolling: touch;}
         .list-item { background: var(--header-bg); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
         .list-item-info { flex: 1; }
@@ -168,12 +171,13 @@
         .add-card-bar input { flex: 1; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; font-size: 15px; background: var(--bg-color); color: var(--text-color);}
         .add-card-bar button { background: var(--bubble-user); color: var(--bubble-user-text); border: none; border-radius: 8px; padding: 0 20px; font-size: 15px; }
 
-        /* 设置 */
+        /* 设置面板 (全量保留) */
         .settings-content { padding: 20px; overflow-y: auto; flex: 1; padding-bottom: 100px; -webkit-overflow-scrolling: touch;}
         .setting-item { margin-bottom: 20px; background: var(--header-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);}
         .setting-item label { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; font-size: 14px; align-items: center;}
         .setting-item input[type="text"], .setting-item input[type="number"], .setting-item select, .setting-item textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 5px; background: var(--bg-color); color: var(--text-color); font-size: 14px; outline: none;}
         .setting-item textarea { resize: vertical; min-height: 80px; }
+        .setting-item input[type="range"] { width: 100%; }
         .switch-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;}
         .toggle { appearance: none; width: 44px; height: 24px; background: #ddd; border-radius: 12px; position: relative; outline: none; cursor: pointer; transition: 0.3s;}
         .toggle:checked { background: #333; }
@@ -182,7 +186,7 @@
         .profile-edit { display: flex; gap: 10px; margin-bottom: 10px; align-items: center;}
         .profile-edit img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; background: #eee; border: 1px solid var(--border-color);}
 
-        /* 弹窗与操作面板 */
+        /* 弹窗 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 200; justify-content: center; align-items: center; pointer-events: none;}
         .modal.show { display: flex; pointer-events: auto; }
         .modal-content { background: var(--header-bg); color: var(--text-color); width: 90%; max-width: 400px; border-radius: 15px; padding: 20px; display: flex; flex-direction: column; gap: 15px; border: 1px solid var(--border-color);}
@@ -213,6 +217,15 @@
         .ask-form-group label { font-size: 13px; font-weight: bold; color: var(--accent);}
         .ask-form-group input, .ask-form-group textarea { padding: 12px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; outline: none; color: var(--text-color);}
         .ask-form-group textarea { height: 80px; resize: none;}
+        .ask-delay-box { display: flex; gap: 10px; margin-top: 5px;}
+        .ask-delay-box input { flex: 1; text-align: center;}
+        .ask-delay-box select { width: 80px; text-align: center; padding: 0;}
+        .ask-delay-toggle { display: flex; background: var(--bg-color); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color);}
+        .ask-delay-toggle div { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-size: 14px;}
+        .ask-delay-toggle div.active { background: var(--border-color); font-weight: bold; color: var(--text-color);}
+        .history-list { max-height: 150px; overflow-y: auto; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); padding: 10px; font-size: 12px; color: #666;}
+        .history-item { padding: 8px 0; border-bottom: 1px dashed var(--border-color); }
+        .history-item:last-child { border-bottom: none;}
 
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
@@ -246,6 +259,7 @@
         </div>
     </div>
 
+    <!-- 聊天页面 -->
     <div id="chat-app" class="page">
         <div class="header">
             <div class="back-btn" data-close="chat-app">
@@ -253,10 +267,10 @@
             </div>
             <div style="flex:1;" id="chat-title">对方</div>
             <div class="header-right">
-                <div class="header-btn" id="btn-proactive-reply" title="让对方主动发消息">
+                <div class="header-btn" id="btn-proactive-reply" title="触发回复">
                     <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" /></svg>
                 </div>
-                <div class="header-btn" id="btn-clear-chat" title="清空聊天记录">
+                <div class="header-btn" id="btn-clear-chat" title="清空">
                     <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" /></svg>
                 </div>
             </div>
@@ -325,6 +339,7 @@
         </div>
     </div>
 
+    <!-- 字卡页面 -->
     <div id="cards-app" class="page">
         <div class="header">
             <div class="back-btn" data-close="cards-app">
@@ -348,6 +363,7 @@
         </div>
     </div>
 
+    <!-- 拍一拍页面 -->
     <div id="pat-app" class="page">
         <div class="header">
             <div class="back-btn" data-close="pat-app">
@@ -368,6 +384,7 @@
         </div>
     </div>
 
+    <!-- 表情包管理 -->
     <div id="emoji-app" class="page">
         <div class="header">
             <div class="back-btn" data-close="emoji-app">
@@ -386,6 +403,7 @@
         </div>
     </div>
 
+    <!-- 信箱 -->
     <div id="letter-app" class="page">
         <div class="header">
             <div class="back-btn" data-close="letter-app">
@@ -399,6 +417,7 @@
         <div class="list-container" id="letters-list"></div>
     </div>
 
+    <!-- 设置 (原封不动恢复) -->
     <div id="settings-app" class="page">
         <div class="header">
             <div class="back-btn" data-close="settings-app">
@@ -411,7 +430,7 @@
             <div class="setting-item">
                 <label>我的名字</label>
                 <input type="text" id="set-my-name">
-                <label style="margin-top:10px;">我的头像 (URL或本地)</label>
+                <label style="margin-top:10px;">我的头像</label>
                 <div class="profile-edit">
                     <img id="my-avatar-preview" src="">
                     <input type="file" id="set-my-avatar-file" accept="image/*" style="border:none;">
@@ -432,17 +451,17 @@
                     </div>
                 </div>
                 <div id="group-settings" style="display:none; margin-top:10px;">
-                    <label>群成员列表 (JSON, 包含name和avatar)</label>
-                    <textarea id="set-group-members" style="height:80px;" placeholder='[{"name":"张三","avatar":"url"}]'></textarea>
+                    <label>群成员列表 (JSON)</label>
+                    <textarea id="set-group-members" style="height:80px;"></textarea>
                 </div>
             </div>
             <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">外观与交互</h3>
             <div class="setting-item">
-                <label>时间戳显示</label>
+                <label>时间显示位置</label>
                 <select id="set-time-display">
-                    <option value="click">点击消息显示</option>
-                    <option value="always">始终显示</option>
-                    <option value="hidden">隐藏</option>
+                    <option value="bottom">气泡下方</option>
+                    <option value="click">点击显示</option>
+                    <option value="hidden">不显示</option>
                 </select>
             </div>
             <div class="setting-item">
@@ -465,12 +484,16 @@
                 <input type="range" id="slider-font-size" min="12" max="24" step="1" value="16">
             </div>
             <div class="setting-item">
-                <label>自定义字体链接 (CSS)</label>
-                <input type="text" id="set-font-url" placeholder="https://...">
+                <label>自定义字体链接 (CSS/URL)</label>
+                <input type="text" id="set-font-url" placeholder="例如: https://fonts.googleapis.com/...">
                 <label style="margin-top:10px;">自定义气泡 CSS</label>
-                <input type="text" id="set-bubble-css" placeholder="border-radius: 20px;">
+                <input type="text" id="set-bubble-css" placeholder="例如: border-radius: 20px;">
                 <label style="margin-top:10px;">聊天背景图</label>
                 <input type="file" id="set-bg" accept="image/*" style="border:none; padding:5px 0;">
+            </div>
+            <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">拍一拍词条管理</h3>
+            <div class="setting-item">
+                <button class="btn-tool" style="width:100%; padding:12px;" id="btn-goto-pat">管理拍一拍词条</button>
             </div>
             <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">聊天逻辑</h3>
             <div class="setting-item">
@@ -483,17 +506,29 @@
                 </div>
                 <label style="margin-top:10px;">主动发消息 (分钟，0关)</label>
                 <div style="display:flex; gap:10px;">
-                    <input type="number" id="set-proactive-min" min="0" placeholder="最小">
-                    <input type="number" id="set-proactive-max" min="0" placeholder="最大">
+                    <input type="number" id="set-proactive-min" min="0" placeholder="最小时间">
+                    <input type="number" id="set-proactive-max" min="0" placeholder="最大时间">
                 </div>
+                <label style="margin-top:10px;">发消息时带表情包概率 (%) <span id="val-emoji-prob">10%</span></label>
+                <input type="range" id="slider-emoji-prob" min="0" max="100" value="10">
             </div>
             <div class="setting-item">
                 <label>已读不回概率 (%) <span id="val-ignore">20%</span></label>
                 <input type="range" id="slider-ignore" min="0" max="100" value="20">
                 <label style="margin-top:10px;">引用回复概率 (%) <span id="val-quote">30%</span></label>
                 <input type="range" id="slider-quote" min="0" max="100" value="30">
-                <label style="margin-top:10px;">发送表情包概率 (%) <span id="val-emoji-prob">10%</span></label>
-                <input type="range" id="slider-emoji-prob" min="0" max="100" value="10">
+                <label style="margin-top:10px;">撤回消息概率 (%) <span id="val-recall">10%</span></label>
+                <input type="range" id="slider-recall" min="0" max="100" value="10">
+            </div>
+            <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">写信逻辑</h3>
+            <div class="setting-item">
+                <label>主动写信间隔 (分钟，0关)</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="number" id="set-letter-min" min="0" placeholder="最小时间">
+                    <input type="number" id="set-letter-max" min="0" placeholder="最大时间">
+                </div>
+                <label style="margin-top:10px;">收到我的信后回信概率 (%) <span id="val-reply-prob">80%</span></label>
+                <input type="range" id="slider-reply-prob" min="0" max="100" value="80">
             </div>
             <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">数据管理</h3>
             <div class="setting-item">
@@ -506,6 +541,7 @@
         </div>
     </div>
 
+    <!-- 弹窗 -->
     <div id="batch-modal" class="modal">
         <div class="modal-content">
             <h3 style="text-align:center;">批量添加字卡</h3>
@@ -623,10 +659,13 @@ const App = {
             botName: '对方', botAvatar: '',
             isGroup: false, groupMembers: [],
             showAvatar: true, showName: true, showRead: true, sendMulti: false, soundEnabled: true,
-            theme: 'system', fontSize: 16, bubbleCss: '', bgImage: '', timeDisplay: 'click',
+            theme: 'system', fontSize: 16, bubbleCss: '', bgImage: '', timeDisplay: 'bottom',
+            fontUrl: '', // 恢复：自定义字体
             typingText: '对方正在输入...',
             delayMin: 2, delayMax: 5, proactiveMin: 0, proactiveMax: 0,
-            ignoreProb: 20, quoteProb: 30, emojiProb: 10
+            ignoreProb: 20, quoteProb: 30, emojiProb: 10,
+            recallProb: 10, // 恢复：撤回概率
+            letterMin: 0, letterMax: 0, replyProb: 80 // 恢复：写信逻辑
         }
     },
     saveTimeout: null,
@@ -634,7 +673,7 @@ const App = {
         clearTimeout(this.saveTimeout);
         this.saveTimeout = setTimeout(() => {
             const saveTask = () => {
-                try { localStorage.setItem('appData_v4', JSON.stringify(this.data)); } catch(e) {}
+                try { localStorage.setItem('appData_v5', JSON.stringify(this.data)); } catch(e) {}
             };
             if (window.requestIdleCallback) requestIdleCallback(saveTask);
             else setTimeout(saveTask, 0);
@@ -642,7 +681,7 @@ const App = {
     },
     loadData: function() {
         try {
-            const stored = localStorage.getItem('appData_v4');
+            const stored = localStorage.getItem('appData_v5');
             if (stored) {
                 const parsed = JSON.parse(stored);
                 this.data = { ...this.data, ...parsed, settings: { ...this.data.settings, ...(parsed.settings || {}) } };
@@ -752,13 +791,24 @@ const Chat = {
         
         document.getElementById('btn-cancel-quote').onclick = () => { this.quoteMsg = null; document.getElementById('quote-preview').style.display = 'none'; };
         
-        // 主动触发
         document.getElementById('btn-proactive-reply').onclick = () => this.triggerReply("", true);
         
-        // 问问TA
         document.getElementById('btn-open-ask').onclick = () => {
             document.getElementById('ask-modal').classList.add('show');
             App.hidePanels();
+        };
+        
+        document.getElementById('btn-upload-img').onclick = () => document.getElementById('img-upload-input').click();
+        document.getElementById('img-upload-input').onchange = (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                App.data.messages.push({id: Date.now(), role: 'user', content: ev.target.result, isImg: true, time: Date.now()});
+                this.currentLimit = 50; this.render(); App.saveData(); this.playSound();
+            };
+            reader.readAsDataURL(file);
+            e.target.value = '';
         };
     },
     
@@ -797,7 +847,7 @@ const Chat = {
             let readHtml = (isMe && s.showRead) ? `<div class="read-status show">已读</div>` : '';
             
             let timeStr = new Date(msg.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            let timeShowClass = s.timeDisplay === 'always' ? 'show' : '';
+            let timeShowClass = s.timeDisplay === 'bottom' ? 'show' : '';
             let timeHtml = `<div class="msg-time-bottom ${timeShowClass}">${timeStr}</div>`;
             
             row.innerHTML = `
@@ -885,7 +935,6 @@ const Chat = {
     
     playSound: function() {
         if (!App.data.settings.soundEnabled) return;
-        // 简单用 AudioContext 模拟滴声，避免资源加载失败卡顿
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             const osc = ctx.createOscillator();
@@ -923,9 +972,8 @@ const Chat = {
         App.setSafeTimeout(() => {
             typing.style.display = 'none';
             
-            // 连句功能：从字卡库随机抽1-3条，用符号拼接
             let replyText = "嗯。";
-            const allCards = App.data.cards.flatMap(c => c.items);
+            const allCards = App.data.cards.flatMap(c => c.items).filter(i => !i.startsWith('!'));
             if (allCards.length > 0) {
                 if (s.sendMulti) {
                     const count = Math.floor(Math.random() * 3) + 1;
@@ -939,7 +987,6 @@ const Chat = {
             
             let replyMsg = { id: Date.now(), role: 'other', content: replyText, time: Date.now() };
             
-            // 引用回复
             if (!isProactive && userText && Math.random() * 100 < s.quoteProb) {
                 const recentUserMsgs = App.data.messages.filter(m => m.role === 'user').slice(-10);
                 if (recentUserMsgs.length > 0) {
@@ -948,7 +995,6 @@ const Chat = {
                 }
             }
             
-            // 群聊分配
             if (s.isGroup && s.groupMembers.length > 0) {
                 const member = s.groupMembers[Math.floor(Math.random() * s.groupMembers.length)];
                 replyMsg.senderName = member.name; replyMsg.senderAvatar = member.avatar;
@@ -958,7 +1004,6 @@ const Chat = {
             this.currentLimit = Math.max(this.currentLimit, 50);
             this.render(); App.saveData(); this.playSound();
             
-            // 通知
             if (document.hidden && Notification.permission === 'granted') {
                 new Notification(App.data.settings.botName, { body: replyText });
             }
@@ -1229,11 +1274,24 @@ const Letters = {
             if(!content) return;
             App.data.letters.push({title, content, time: Date.now()});
             App.saveData(); document.getElementById('write-letter-modal').classList.remove('show'); this.render();
+            
+            // 触发对方回信逻辑
+            const s = App.data.settings;
+            if (Math.random() * 100 < s.replyProb) {
+                setTimeout(() => {
+                    const allCards = App.data.cards.flatMap(c => c.items).filter(i => !i.startsWith('!'));
+                    const replyText = allCards.length > 0 ? allCards[Math.floor(Math.random() * allCards.length)] : '信收到了。';
+                    App.data.letters.push({title: '回信', content: replyText, time: Date.now()});
+                    App.saveData();
+                    if(document.getElementById('letter-app').style.display === 'flex') this.render();
+                    if (document.hidden && Notification.permission === 'granted') new Notification('收到新回信', { body: replyText });
+                }, (Math.random() * 5 + 2) * 1000);
+            }
         };
     }
 };
 
-// ===================== 设置中心 =====================
+// ===================== 设置中心 (完整恢复) =====================
 const Settings = {
     render: function() {
         const s = App.data.settings;
@@ -1241,7 +1299,6 @@ const Settings = {
         document.getElementById('set-bot-name').value = s.botName;
         document.getElementById('set-is-group').checked = s.isGroup;
         
-        // 修复：单人设置和群聊设置独立显示
         document.getElementById('single-bot-settings').style.display = s.isGroup ? 'none' : 'block';
         document.getElementById('group-settings').style.display = s.isGroup ? 'block' : 'none';
         document.getElementById('set-group-members').value = JSON.stringify(s.groupMembers, null, 2);
@@ -1271,11 +1328,18 @@ const Settings = {
         document.getElementById('val-quote').innerText = s.quoteProb + '%';
         document.getElementById('slider-emoji-prob').value = s.emojiProb;
         document.getElementById('val-emoji-prob').innerText = s.emojiProb + '%';
+        document.getElementById('slider-recall').value = s.recallProb;
+        document.getElementById('val-recall').innerText = s.recallProb + '%';
+        
+        // 写信逻辑
+        document.getElementById('set-letter-min').value = s.letterMin;
+        document.getElementById('set-letter-max').value = s.letterMax;
+        document.getElementById('slider-reply-prob').value = s.replyProb;
+        document.getElementById('val-reply-prob').innerText = s.replyProb + '%';
         
         if(s.myAvatar) document.getElementById('my-avatar-preview').src = s.myAvatar;
         if(s.botAvatar) document.getElementById('bot-avatar-preview').src = s.botAvatar;
         
-        // 通知请求
         if ("Notification" in window && Notification.permission === "default") {
             Notification.requestPermission();
         }
@@ -1286,11 +1350,15 @@ const Settings = {
             document.getElementById('group-settings').style.display = e.target.checked ? 'block' : 'none';
         };
         
-        const sliders = ['font-size', 'ignore', 'quote', 'emoji-prob'];
+        document.getElementById('btn-goto-pat').onclick = () => App.openApp('pat-app');
+        
+        // 滑块联动
+        const sliders = ['font-size', 'ignore', 'quote', 'emoji-prob', 'recall', 'reply-prob'];
         sliders.forEach(id => {
             const el = document.getElementById('slider-'+id);
             if(el) el.oninput = (e) => {
                 if(id==='font-size') document.getElementById('val-font-size').innerText = e.target.value;
+                else if (id === 'reply-prob') document.getElementById('val-reply-prob').innerText = e.target.value + '%';
                 else document.getElementById('val-'+id).innerText = e.target.value + '%';
             };
         });
@@ -1313,11 +1381,12 @@ const Settings = {
             s.fontSize = document.getElementById('slider-font-size').value;
             document.documentElement.style.setProperty('--font-size-base', s.fontSize + 'px');
             
+            // 处理自定义字体
             s.fontUrl = document.getElementById('set-font-url').value.trim();
             if(s.fontUrl) {
-                let link = document.getElementById('custom-font-link');
-                if(!link) { link = document.createElement('link'); link.id = 'custom-font-link'; link.rel = 'stylesheet'; document.head.appendChild(link); }
-                link.href = s.fontUrl;
+                let styleEl = document.getElementById('custom-font-style');
+                if(!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'custom-font-style'; document.head.appendChild(styleEl); }
+                styleEl.innerHTML = s.fontUrl;
             }
             
             s.bubbleCss = document.getElementById('set-bubble-css').value;
@@ -1332,6 +1401,11 @@ const Settings = {
             s.ignoreProb = document.getElementById('slider-ignore').value;
             s.quoteProb = document.getElementById('slider-quote').value;
             s.emojiProb = document.getElementById('slider-emoji-prob').value;
+            s.recallProb = document.getElementById('slider-recall').value;
+            
+            s.letterMin = Number(document.getElementById('set-letter-min').value) || 0;
+            s.letterMax = Number(document.getElementById('set-letter-max').value) || 0;
+            s.replyProb = document.getElementById('slider-reply-prob').value;
             
             App.saveData(); App.toast('设置已保存');
             Chat.render(); App.closeApp('settings-app');
@@ -1364,7 +1438,7 @@ const Settings = {
             reader.readAsText(file);
         };
         document.getElementById('btn-reset-all').onclick = () => {
-            if(confirm('确定重置所有数据吗？不可恢复！')) { localStorage.removeItem('appData_v4'); location.reload(); }
+            if(confirm('确定重置所有数据吗？不可恢复！')) { localStorage.removeItem('appData_v5'); location.reload(); }
         };
     }
 };
@@ -1433,11 +1507,19 @@ window.onload = function() {
     document.documentElement.style.setProperty('--font-size-base', s.fontSize + 'px');
     if (s.bgImage) document.getElementById('chat-area').style.backgroundImage = `url(${s.bgImage})`;
     
-    // 主动发消息定时器
+    // 还原自定义字体
+    if(s.fontUrl) {
+        let styleEl = document.getElementById('custom-font-style');
+        if(!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'custom-font-style'; document.head.appendChild(styleEl); }
+        styleEl.innerHTML = s.fontUrl;
+    }
+    
+    // 定时器：主动发消息 & 主动写信
     setInterval(() => {
-        if (document.getElementById('chat-app').style.display === 'flex') return;
-        if (s.proactiveMin <= 0) return;
-        if (Math.random() < 0.1) { // 每分钟10%概率触发
+        const s = App.data.settings;
+        
+        // 主动发消息
+        if (s.proactiveMin > 0 && document.getElementById('chat-app').style.display !== 'flex' && Math.random() < 0.1) {
             const delay = (Math.random() * (s.proactiveMax - s.proactiveMin) + s.proactiveMin) * 60000;
             App.setSafeTimeout(() => {
                 const allCards = App.data.cards.flatMap(c => c.items).filter(i => !i.startsWith('!'));
@@ -1453,6 +1535,19 @@ window.onload = function() {
                     if (document.getElementById('chat-app').style.display === 'flex') Chat.render();
                     if (document.hidden && Notification.permission === 'granted') new Notification(s.botName, { body: text });
                 }
+            }, delay);
+        }
+        
+        // 主动写信
+        if (s.letterMin > 0 && document.getElementById('letter-app').style.display !== 'flex' && Math.random() < 0.05) {
+            const delay = (Math.random() * (s.letterMax - s.letterMin) + s.letterMin) * 60000;
+            App.setSafeTimeout(() => {
+                const allCards = App.data.cards.flatMap(c => c.items).filter(i => !i.startsWith('!'));
+                const text = allCards.length > 0 ? allCards[Math.floor(Math.random() * allCards.length)] : '你好吗？';
+                App.data.letters.push({title: '主动来信', content: text, time: Date.now()});
+                App.saveData();
+                if (document.getElementById('letter-app').style.display === 'flex') Letters.render();
+                if (document.hidden && Notification.permission === 'granted') new Notification('收到新信件', { body: text });
             }, delay);
         }
     }, 60000);
