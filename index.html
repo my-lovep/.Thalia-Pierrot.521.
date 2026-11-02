@@ -51,7 +51,7 @@
         .msg-row.user { justify-content: flex-end; }
         .msg-row.other { justify-content: flex-start; }
         
-        /* 头像区域（包含头像和下方时间） */
+        /* 头像区域 */
         .avatar-container { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0;}
         .avatar { width: 38px; height: 38px; border-radius: 6px; object-fit: cover; background: #ddd; cursor: pointer; }
         .msg-time-avatar { font-size: 10px; color: #999; text-align: center; white-space: nowrap;}
@@ -59,7 +59,6 @@
         .msg-content-wrapper { display: flex; flex-direction: column; max-width: 70%; position: relative; }
         .msg-row.user .msg-content-wrapper { align-items: flex-end; }
         
-        /* 名字所在行 */
         .msg-header { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
         .msg-row.user .msg-header { justify-content: flex-end; }
         .msg-name { font-size: 12px; color: #888; margin-left: 2px; }
@@ -71,16 +70,13 @@
         
         .msg.quote { font-size: 12px; opacity: 0.6; border-left: 2px solid var(--accent); padding-left: 8px; margin-bottom: 5px; display: block; background: rgba(128,128,128,0.05); }
         .msg img { max-width: 100%; max-height: 200px; border-radius: 8px; margin-top: 5px; display: block; cursor: zoom-in; }
-        .msg .emoji-img { width: 100px; height: 100px; max-height: 100px; margin: 0; background: transparent; border-radius: 0; }
+        .msg .emoji-img { width: 100px; height: 100px; max-height: 100px; margin: 0; background: transparent; border-radius: 0; object-fit: contain;}
 
-        /* 气泡下方时间 */
         .msg-time-bottom { font-size: 11px; color: #999; margin-top: 4px; text-align: center; }
-
         .read-status { font-size: 11px; color: #999; text-align: right; margin-top: 2px; display: none;}
         .read-status.show { display: block; }
         .typing-status { font-size: 12px; color: #888; padding: 0 15px 10px; display: none; }
         
-        /* 系统消息与拍一拍 */
         .sys-msg { text-align: center; font-size: 12px; color: #888; margin: 10px 0; width: 100%;}
         .msg-row.system { justify-content: center; }
         .msg-row.system .sys-msg span { color: var(--text-color); font-weight: bold; margin: 0 4px; }
@@ -96,17 +92,30 @@
         .btn-send { padding: 0; background: var(--bubble-user); color: var(--bubble-user-text); border: none; border-radius: 8px; width: 50px; height: 38px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 14px; font-weight: bold;}
 
         /* 微信风格：加号面板与表情面板 */
-        #extra-panel, #emoji-panel { display: none; background: var(--header-bg); border-top: 1px solid var(--border-color); padding: 20px; }
+        #extra-panel, #emoji-panel { display: none; background: var(--header-bg); border-top: 1px solid var(--border-color); padding: 15px; }
         #extra-panel { height: 130px; display: flex; gap: 25px; overflow-x: auto;}
         .panel-action { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color); flex-shrink: 0; }
         .panel-action .icon-box { width: 60px; height: 60px; background: var(--bg-color); border-radius: 12px; border: 1px solid var(--border-color); display: flex; justify-content: center; align-items: center; }
         .panel-action span { font-size: 12px; color: #666; }
 
-        #emoji-panel { height: 250px; overflow-y: auto; display: none;}
+        /* 表情面板重构 - 仿照截图 */
+        #emoji-panel { height: 300px; display: none; flex-direction: column; padding: 0; }
+        .emoji-tabs-header { display: flex; border-bottom: 1px solid var(--border-color); padding: 10px 15px; gap: 15px;}
+        .emoji-tab-btn { padding: 6px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; color: var(--accent); border: 1px solid transparent;}
+        .emoji-tab-btn.active { background: var(--bg-color); color: var(--text-color); border-color: var(--border-color);}
+        
+        .emoji-sub-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; font-size: 12px; color: #888;}
+        .emoji-sub-tabs { display: flex; gap: 10px;}
+        .emoji-sub-tab { cursor: pointer; padding: 2px 8px; border-radius: 4px;}
+        .emoji-sub-tab.active { background: var(--border-color); color: var(--text-color); font-weight: bold;}
+
+        .emoji-content-area { flex: 1; overflow-y: auto; padding: 10px 15px; display: none;}
+        .emoji-content-area.active { display: block; }
+        
         .emoji-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
         .emoji-grid img { width: 100%; aspect-ratio: 1; object-fit: contain; cursor: pointer; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); padding: 5px;}
-        .emoji-actions { display: flex; justify-content: flex-end; margin-bottom: 10px; }
-        .btn-small { padding: 5px 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px; font-size: 12px; cursor: pointer;}
+        .emoji-grid .text-emoji { display: flex; justify-content: center; align-items: center; font-size: 24px; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer; aspect-ratio: 1; padding: 5px; text-align: center; word-break: break-all;}
+        .emoji-grid .text-kaomoji { display: flex; justify-content: center; align-items: center; font-size: 14px; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer; aspect-ratio: 1; padding: 5px; text-align: center; word-break: break-all; font-family: monospace;}
 
         /* 列表页通用 */
         .list-container { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px;}
@@ -115,7 +124,7 @@
         .list-item-title { font-weight: bold; font-size: 15px; margin-bottom: 5px;}
         .list-item-desc { font-size: 12px; color: #888; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;}
         
-        /* 字卡库 */
+        /* 字卡库等 */
         .cards-toolbar { padding: 10px; background: var(--header-bg); display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); flex-wrap: wrap;}
         .btn-tool { flex: 1; min-width: 30%; padding: 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-color); font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;}
         .search-bar { padding: 10px 15px; background: var(--header-bg); border-bottom: 1px solid var(--border-color);}
@@ -244,13 +253,41 @@
         <div class="chat-area" id="chat-area"></div>
         <div class="typing-status" id="typing-status">对方正在输入...</div>
         
-        <!-- 表情包面板 -->
+        <!-- 全新表情面板，复刻截图 UI -->
         <div id="emoji-panel">
-            <div class="emoji-actions">
-                <button class="btn-small" onclick="document.getElementById('emoji-upload-input').click()">添加表情包</button>
-                <input type="file" id="emoji-upload-input" multiple accept="image/*" style="display:none" onchange="uploadEmojis(event)">
+            <!-- 头部 Tab -->
+            <div class="emoji-tabs-header">
+                <div class="emoji-tab-btn active" onclick="switchEmojiTab('all')">所有表情</div>
+                <div class="emoji-tab-btn" onclick="switchEmojiTab('my')">我的收藏</div>
+                <div style="flex:1;"></div>
+                <div style="cursor:pointer; font-weight:bold; color:#888;" onclick="hidePanels()">✕</div>
             </div>
-            <div class="emoji-grid" id="emoji-grid-inline"></div>
+            
+            <!-- 子 Tab 和 操作 -->
+            <div class="emoji-sub-header">
+                <div class="emoji-sub-tabs">
+                    <div class="emoji-sub-tab active" onclick="switchEmojiSubTab('pic')">表情包</div>
+                    <div class="emoji-sub-tab" onclick="switchEmojiSubTab('kaomoji')">颜文字</div>
+                    <div class="emoji-sub-tab" onclick="switchEmojiSubTab('emoji')">emoji</div>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-small" onclick="addEmojiByUrl()">加图片</button>
+                    <button class="btn-small" onclick="addTextEmoji()">加文字</button>
+                    <input type="file" id="emoji-upload-input" multiple accept="image/*" style="display:none" onchange="uploadEmojis(event)">
+                </div>
+            </div>
+            <div style="font-size:11px; color:#999; padding: 0 15px 5px;">自动：有字插入 · 没字直发</div>
+
+            <!-- 内容区 -->
+            <div class="emoji-content-area active" id="emoji-content-pic">
+                <div class="emoji-grid" id="emoji-grid-pic"></div>
+            </div>
+            <div class="emoji-content-area" id="emoji-content-kaomoji">
+                <div class="emoji-grid" id="emoji-grid-kaomoji"></div>
+            </div>
+            <div class="emoji-content-area" id="emoji-content-emoji">
+                <div class="emoji-grid" id="emoji-grid-emoji"></div>
+            </div>
         </div>
 
         <!-- 加号功能面板 -->
@@ -328,12 +365,13 @@
             <div style="flex:1;">表情包库</div>
         </div>
         <div class="cards-toolbar">
-            <button class="btn-tool" onclick="document.getElementById('batch-emoji-input').click()">批量导入图片</button>
+            <button class="btn-tool" onclick="addEmojiByUrl()">加网络图</button>
+            <button class="btn-tool" onclick="document.getElementById('batch-emoji-input').click()">加本地图</button>
             <input type="file" id="batch-emoji-input" multiple accept="image/*" style="display:none" onchange="uploadEmojis(event)">
-            <button class="btn-tool" onclick="clearAllEmojis()">清空表情</button>
+            <button class="btn-tool" onclick="clearAllEmojis()" style="color: #666;">清空全部</button>
         </div>
         <div class="list-container">
-            <div class="emoji-grid" id="emoji-grid-full"></div>
+            <div class="emoji-grid" id="emoji-grid-full" style="grid-template-columns: repeat(4, 1fr);"></div>
         </div>
     </div>
 
@@ -479,7 +517,7 @@
         </div>
     </div>
 
-    <!-- 常规弹窗 -->
+    <!-- 弹窗（略，与之前相同） -->
     <div id="batch-modal" class="modal">
         <div class="modal-content">
             <h3 style="text-align:center;">批量添加字卡</h3>
@@ -549,7 +587,7 @@
         </div>
     </div>
 
-    <!-- 问问TA 弹窗 (重点) -->
+    <!-- 问问TA 弹窗 -->
     <div id="ask-modal" class="modal">
         <div class="modal-content" style="max-height: 85vh; overflow-y: auto;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -621,9 +659,7 @@
             
             <div>
                 <div style="font-size: 14px; font-weight: bold; margin-bottom: 5px;">历史记录 <span id="history-count" style="font-weight: normal; color: #888; font-size: 12px;">0 条</span></div>
-                <div class="history-list" id="ask-history-list">
-                    <!-- 历史记录动态渲染 -->
-                </div>
+                <div class="history-list" id="ask-history-list"></div>
             </div>
 
             <div class="modal-btns" style="margin-top: 10px;">
@@ -638,12 +674,83 @@
     </div>
 
 <script>
-    // --- 数据初始化 ---
+    // ==========================================
+    // 核心改造：引入 IndexedDB 突破容量限制
+    // ==========================================
+    const DB_NAME = 'MirageDB';
+    const STORE_NAME = 'emojis';
+    let db;
+
+    function initDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, 1);
+            request.onerror = (e) => reject(e);
+            request.onsuccess = (e) => {
+                db = e.target.result;
+                resolve();
+            };
+            request.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                }
+            };
+        });
+    }
+
+    function getEmojisFromDB() {
+        return new Promise((resolve, reject) => {
+            if(!db) return resolve([]);
+            const transaction = db.transaction([STORE_NAME], 'readonly');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.getAll();
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = (e) => reject(e);
+        });
+    }
+
+    function saveEmojiToDB(emoji) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.add(emoji);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = (e) => reject(e);
+        });
+    }
+
+    function deleteEmojiFromDB(id) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.delete(id);
+            request.onsuccess = () => resolve();
+            request.onerror = (e) => reject(e);
+        });
+    }
+
+    function clearEmojisDB() {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.clear();
+            request.onsuccess = () => resolve();
+            request.onerror = (e) => reject(e);
+        });
+    }
+
+    // ==========================================
+    // 数据初始化
+    // ==========================================
     const defaultAvatarUser = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23e0e0e0'/><circle cx='50' cy='35' r='18' fill='%23fff'/><path d='M25 85c0-15 12-25 25-25s25 10 25 25' fill='%23fff'/></svg>";
     const defaultAvatarBot = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23dcdcdc'/><circle cx='50' cy='35' r='18' fill='%23f5f5f5'/><path d='M25 85c0-15 12-25 25-25s25 10 25 25' fill='%23f5f5f5'/></svg>";
 
+    // 默认文本表情库
+    const defaultEmojis = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕'];
+    const defaultKaomoji = ['(๑•̀ㅂ•́)و✧', '( ﾟ∀ﾟ) ﾉ', '(*/ω＼*)', '(╯°□°）╯︵ ┻━┻', '┬─┬ ノ( ゜-゜ノ)', '(´・ω・`)', '( • ̀ω•́ )✧', 'ヾ(≧▽≦*)o', '(๑>؂<๑）', '(*^▽^*)', '(￣ー￣)', '눈_눈', '_(:з」∠)_', 'o(*￣▽￣*)ブ', '(⊙_⊙)?', '(⊙o⊙)', '(*￣3￣)╭', 'ψ(｀∇´)ψ'];
+
     let cardLibrary = JSON.parse(localStorage.getItem('mirage_cards_v2')) || [{ id: '1', text: "早安", group: "默认", enabled: true }];
-    let emojiLibrary = JSON.parse(localStorage.getItem('mirage_emojis')) || [];
+    let emojiLibrary = []; // 从 DB 读取后填充
     let letterBox = JSON.parse(localStorage.getItem('mirage_letters')) || [];
     let disabledGroups = JSON.parse(localStorage.getItem('mirage_disabled_groups')) || {};
     let patLibrary = JSON.parse(localStorage.getItem('mirage_pats')) || ["拍了拍你的脑袋", "抱了抱你", "亲了亲你"];
@@ -662,7 +769,7 @@
         showAvatar: true, showName: true, showRead: false, 
         sendMulti: true, soundEnabled: false, typingText: '对方正在输入...',
         letterProactiveMin: 0, letterProactiveMax: 0, replyProb: 80,
-        timeDisplay: 'bottom' // bottom, avatar, hidden
+        timeDisplay: 'bottom'
     };
     
     // 配置兼容
@@ -683,6 +790,8 @@
     let editingId = null;
     let movingId = null;
     let pattingTargetRole = null;
+    let currentEmojiTab = 'all';
+    let currentEmojiSubTab = 'pic';
 
     // 问问TA 状态
     let currentAskType = 'single';
@@ -715,14 +824,22 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    resolve(canvas.toDataURL('image/jpeg', quality));
+                    resolve(canvas.toDataURL('image/webp', quality));
                 };
             };
         });
     }
 
     // --- 初始化与渲染 ---
-    window.onload = () => {
+    window.onload = async () => {
+        // 先初始化数据库
+        try {
+            await initDB();
+            emojiLibrary = await getEmojisFromDB();
+        } catch(e) {
+            alert("数据库初始化失败，可能是浏览器不支持或隐私模式限制！");
+        }
+
         setTimeout(() => { document.getElementById('splash-screen').style.display = 'none'; }, 2000);
         applyAppearance();
         document.getElementById('chat-title').innerText = config.isGroup ? "群聊" : config.botName;
@@ -737,7 +854,7 @@
     function saveData(key, data) { 
         clearTimeout(saveTimer);
         saveTimer = setTimeout(() => {
-            try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) { alert("⚠️ 存储空间不足！请清理部分聊天图片或表情包。"); }
+            try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) { alert("⚠️ 存储空间不足！请清理部分文字数据。"); }
         }, 300);
     }
     function saveConfig() { localStorage.setItem('mirage_config', JSON.stringify(config)); }
@@ -805,7 +922,6 @@
         const now = new Date();
         const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
         
-        // 构建时间和名字
         let avatarHTML = '';
         let nameHTML = '';
         let timeBottomHTML = '';
@@ -830,7 +946,8 @@
         }
 
         let finalContent = contentHTML;
-        if (contentHTML.startsWith('data:image/')) {
+        // 图片判断（包括 http 链接）
+        if (contentHTML.startsWith('data:image/') || contentHTML.startsWith('http')) {
             if (isEmoji) {
                 finalContent = `<img src="${contentHTML}" onclick="window.open(this.src)" class="emoji-img">`;
             } else {
@@ -1042,20 +1159,39 @@
         const file = event.target.files[0];
         if(!file) return;
         try {
-            const compressedImg = await compressImage(file, 800, 800, 0.6);
+            const compressedImg = await compressImage(file, 800, 800, 0.5);
             renderMsg('user', config.userName, config.userAvatar, compressedImg);
             triggerBotReply();
         } catch(e) { alert('图片处理失败'); }
         event.target.value = '';
     }
 
-    function sendEmoji(imgData) {
-        renderMsg('user', config.userName, config.userAvatar, imgData, true);
-        hidePanels();
-        triggerBotReply();
+    // 处理发送表情（有字插入，没字直发）
+    function handleEmojiClick(content, type) {
+        const input = document.getElementById('msg-input');
+        if (type === 'image') {
+            if (input.value.trim() === '') {
+                // 没字直发
+                renderMsg('user', config.userName, config.userAvatar, content, true);
+                triggerBotReply();
+            } else {
+                // 有字插入，其实是先发字，再发图
+                const text = input.value.trim();
+                renderMsg('user', config.userName, config.userAvatar, text);
+                input.value = '';
+                setTimeout(() => {
+                    renderMsg('user', config.userName, config.userAvatar, content, true);
+                    triggerBotReply();
+                }, 300);
+            }
+            hidePanels();
+        } else {
+            // emoji / 颜文字直接插入输入框
+            input.value += content;
+            input.focus();
+        }
     }
 
-    // 点击三个点，强制触发对方回复
     function triggerBotReplyOnly() {
         hidePanels();
         document.getElementById('typing-status').style.display = 'block';
@@ -1068,10 +1204,9 @@
         }, delay);
     }
 
-    // 发送消息后触发（带概率）
     function triggerBotReply() {
         hidePanels();
-        if (Math.random() * 100 < config.ignoreProb) return; // 已读不回
+        if (Math.random() * 100 < config.ignoreProb) return;
 
         document.getElementById('typing-status').style.display = 'block';
         document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
@@ -1084,7 +1219,6 @@
         }, delay);
     }
 
-    // 生成对方消息
     function generateBotMessage() {
         let senderName = config.botName;
         let senderAvatar = config.botAvatar;
@@ -1095,9 +1229,10 @@
             senderAvatar = member.avatar || config.botAvatar;
         }
 
-        // 判断是否发表情包
-        if (emojiLibrary.length > 0 && Math.random() * 100 < config.emojiProb) {
-            const randomEmoji = emojiLibrary[Math.floor(Math.random() * emojiLibrary.length)];
+        // 判断是否发表情包 (只抽图片类)
+        const imageEmojis = emojiLibrary.filter(e => e.type === 'image');
+        if (imageEmojis.length > 0 && Math.random() * 100 < config.emojiProb) {
+            const randomEmoji = imageEmojis[Math.floor(Math.random() * imageEmojis.length)].content;
             const newRow = renderMsg('other', senderName, senderAvatar, randomEmoji, true);
             playSound();
             if (Math.random() * 100 < config.recallProb) {
@@ -1111,7 +1246,6 @@
             return;
         }
 
-        // 文字回复
         let replyHTML = "";
         if (Math.random() * 100 < config.quoteProb && recentUserMsgs.length > 0) {
             const quoteMsg = recentUserMsgs[Math.floor(Math.random() * recentUserMsgs.length)];
@@ -1151,210 +1285,120 @@
         }
     }
 
-    // --- 问问TA 相关 ---
-    function openAskModal() {
+    // --- 表情包系统重构 ---
+    function toggleEmojiPanel() {
+        const p = document.getElementById('emoji-panel');
+        const isHidden = p.style.display === 'none' || p.style.display === '';
         hidePanels();
-        // 恢复上次的选择状态
-        const savedAskState = JSON.parse(localStorage.getItem('mirage_ask_draft'));
-        if (savedAskState) {
-            switchAskTab(savedAskState.type || 'single');
-            document.getElementById('ask-question-input').value = savedAskState.question || '';
-            document.getElementById('ask-options-single').value = savedAskState.optionsSingle || '';
-            document.getElementById('ask-options-multi').value = savedAskState.optionsMulti || '';
-            document.getElementById('ask-max-select').value = savedAskState.maxSelect || 3;
-            document.getElementById('ask-repeat').checked = savedAskState.repeat !== false;
-        } else {
-            switchAskTab('single');
+        if (isHidden) {
+            p.style.display = 'flex';
+            document.getElementById('msg-input').blur();
         }
-        renderAskHistory();
-        document.getElementById('ask-modal').style.display = 'flex';
     }
 
-    function closeAskModal() {
-        // 如果勾选了“重复提问”，则保存当前表单状态
-        if (document.getElementById('ask-repeat').checked) {
-            const state = {
-                type: currentAskType,
-                question: document.getElementById('ask-question-input').value,
-                optionsSingle: document.getElementById('ask-options-single').value,
-                optionsMulti: document.getElementById('ask-options-multi').value,
-                maxSelect: document.getElementById('ask-max-select').value,
-                repeat: true
-            };
-            localStorage.setItem('mirage_ask_draft', JSON.stringify(state));
-        } else {
-            localStorage.removeItem('mirage_ask_draft');
-        }
-        document.getElementById('ask-modal').style.display = 'none';
+    function switchEmojiTab(tab) {
+        // 这里模拟一下如果要做多个收藏夹的逻辑，目前先简化为展示全部
+        document.querySelectorAll('.emoji-tab-btn').forEach(el => el.classList.remove('active'));
+        event.target.classList.add('active');
     }
 
-    function switchAskTab(type) {
-        currentAskType = type;
-        document.querySelectorAll('.ask-tab').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.ask-section').forEach(el => el.classList.remove('active'));
+    function switchEmojiSubTab(subTab) {
+        currentEmojiSubTab = subTab;
+        document.querySelectorAll('.emoji-sub-tab').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.emoji-content-area').forEach(el => el.classList.remove('active'));
         
-        if(type === 'single') {
-            document.querySelectorAll('.ask-tab')[0].classList.add('active');
-            document.getElementById('ask-section-single').classList.add('active');
-            document.getElementById('ask-hint').innerText = 'TA 会从下面的答案里选一个回答你';
-        } else if(type === 'multi') {
-            document.querySelectorAll('.ask-tab')[1].classList.add('active');
-            document.getElementById('ask-section-multi').classList.add('active');
-            document.getElementById('ask-hint').innerText = 'TA 会从下面的答案里勾几个回答你 (2~3个)';
-        } else {
-            document.querySelectorAll('.ask-tab')[2].classList.add('active');
-            document.getElementById('ask-section-text').classList.add('active');
-            document.getElementById('ask-hint').innerText = 'TA 会用字卡库「主字卡」里的字卡回答 (1~8 张，多张之间空一格)';
-        }
+        event.target.classList.add('active');
+        document.getElementById(`emoji-content-${subTab}`).classList.add('active');
     }
 
-    function switchDelayMode(mode) {
-        currentAskDelayMode = mode;
-        if(mode === 'random') {
-            document.getElementById('delay-btn-random').classList.add('active');
-            document.getElementById('delay-btn-custom').classList.remove('active');
-            document.getElementById('ask-delay-custom-box').style.display = 'none';
-        } else {
-            document.getElementById('delay-btn-random').classList.remove('active');
-            document.getElementById('delay-btn-custom').classList.add('active');
-            document.getElementById('ask-delay-custom-box').style.display = 'flex';
-        }
-    }
+    // 后台数据加载并渲染
+    function renderEmojiPanels() {
+        // 分类收集
+        const picList = emojiLibrary.filter(e => e.type === 'image');
+        const emojiList = [...defaultEmojis.map(t => ({id: t, type:'emoji', content:t})), ...emojiLibrary.filter(e => e.type === 'emoji')];
+        const kaomojiList = [...defaultKaomoji.map(t => ({id: t, type:'kaomoji', content:t})), ...emojiLibrary.filter(e => e.type === 'kaomoji')];
 
-    function renderAskHistory() {
-        const list = document.getElementById('ask-history-list');
-        document.getElementById('history-count').innerText = `${askHistory.length} 条`;
-        if(askHistory.length === 0) {
-            list.innerHTML = '<div style="text-align:center; padding:10px;">暂无历史记录</div>';
-            return;
-        }
-        // 倒序渲染
-        list.innerHTML = [...askHistory].reverse().map((h, index) => `
-            <div class="history-item" style="cursor:pointer;" onclick="loadAskHistory(${askHistory.length - 1 - index})">
-                <div style="font-weight:bold; color:var(--text-color);">${h.question}</div>
-                <div style="margin-top:3px;">题型: ${h.type === 'single' ? '单选' : h.type === 'multi' ? '多选' : '文字'} | ${new Date(h.time).toLocaleString()}</div>
+        // 渲染图片
+        let picHTML = picList.map(e => `
+            <div style="position:relative;">
+                <img src="${e.content}" onclick="handleEmojiClick('${e.content}', 'image')">
+                <div onclick="deleteEmojiFromDBUI(${e.id})" style="position:absolute; top:-5px; right:-5px; background:#333; color:#fff; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:12px; cursor:pointer; z-index:10;">×</div>
             </div>
         `).join('');
-    }
-
-    function loadAskHistory(index) {
-        const h = askHistory[index];
-        if(!h) return;
-        switchAskTab(h.type);
-        document.getElementById('ask-question-input').value = h.question;
-        if(h.type === 'single') document.getElementById('ask-options-single').value = h.options.join('\n');
-        if(h.type === 'multi') {
-            document.getElementById('ask-options-multi').value = h.options.join('\n');
-            document.getElementById('ask-max-select').value = h.maxSelect || 3;
-        }
-        // 回显回答时间设定 (这里简单处理，直接切回随机)
-        switchDelayMode('random');
-    }
-
-    function submitAsk() {
-        const question = document.getElementById('ask-question-input').value.trim();
-        if(!question) return alert('请输入你想问的问题');
-
-        let askData = {
-            id: Date.now().toString(),
-            type: currentAskType,
-            question: question,
-            time: Date.now()
-        };
-
-        if (currentAskType === 'single') {
-            const opts = document.getElementById('ask-options-single').value.split('\n').map(t=>t.trim()).filter(t=>t);
-            if(opts.length < 1) return alert('请至少输入一个选项');
-            askData.options = opts;
-        } else if (currentAskType === 'multi') {
-            const opts = document.getElementById('ask-options-multi').value.split('\n').map(t=>t.trim()).filter(t=>t);
-            const maxSel = parseInt(document.getElementById('ask-max-select').value) || 2;
-            if(opts.length < 2) return alert('多选题请至少输入两个选项');
-            askData.options = opts;
-            askData.maxSelect = Math.min(maxSel, opts.length); // 不能超过选项数
-        } else {
-            // 文字题，不需要选项
-        }
-
-        // 计算延迟时间
-        let delayMs = 0;
-        if(currentAskDelayMode === 'random') {
-            delayMs = (config.delayMin + Math.random() * (config.delayMax - config.delayMin)) * 1000;
-        } else {
-            const val = parseInt(document.getElementById('ask-delay-val').value) || 30;
-            const unit = document.getElementById('ask-delay-unit').value;
-            delayMs = val * (unit === 'min' ? 60000 : 1000);
-        }
-        askData.delayMs = delayMs;
-
-        // 保存历史
-        askHistory.push(askData);
-        if(askHistory.length > 50) askHistory.shift(); // 限制最多存50条
-        saveData('mirage_asks', askHistory);
-
-        // 关闭弹窗
-        document.getElementById('ask-modal').style.display = 'none';
         
-        // 聊天框显示用户提问
-        renderMsg('user', config.userName, config.userAvatar, `【提问】${question}`);
+        // 渲染 Emoji
+        let emojiHTML = emojiList.map(e => `
+            <div class="text-emoji" onclick="handleEmojiClick('${e.content}', 'text')">${e.content}</div>
+        `).join('');
 
-        // 触发回答
-        document.getElementById('typing-status').style.display = 'block';
-        document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
+        // 渲染颜文字
+        let kaomojiHTML = kaomojiList.map(e => `
+            <div class="text-kaomoji" onclick="handleEmojiClick('${e.content}', 'text')">${e.content}</div>
+        `).join('');
 
-        setTimeout(() => {
-            document.getElementById('typing-status').style.display = 'none';
-            generateBotAnswer(askData);
-        }, delayMs);
+        document.getElementById('emoji-grid-pic').innerHTML = picHTML;
+        document.getElementById('emoji-grid-emoji').innerHTML = emojiHTML;
+        document.getElementById('emoji-grid-kaomoji').innerHTML = kaomojiHTML;
+        
+        // 兼容表情包大界面
+        document.getElementById('emoji-grid-full').innerHTML = picHTML.replace(/width:20px; height:20px;/g, 'width:24px; height:24px; font-size:14px;');
     }
 
-    function generateBotAnswer(askData) {
-        let senderName = config.botName;
-        let senderAvatar = config.botAvatar;
-
-        if (config.isGroup && config.groupMembers.length > 0) {
-            const member = config.groupMembers[Math.floor(Math.random() * config.groupMembers.length)];
-            senderName = member.name;
-            senderAvatar = member.avatar || config.botAvatar;
-        }
-
-        let replyText = '';
-
-        if (askData.type === 'single') {
-            const ans = askData.options[Math.floor(Math.random() * askData.options.length)];
-            replyText = `我选：${ans}`;
-        } else if (askData.type === 'multi') {
-            // 随机勾 2 到 maxSelect 个
-            const count = Math.floor(Math.random() * (askData.maxSelect - 1)) + 2; 
-            const shuffled = [...askData.options].sort(() => 0.5 - Math.random());
-            const selected = shuffled.slice(0, count);
-            replyText = `我选：${selected.join('、')}`;
-        } else if (askData.type === 'text') {
-            // 文字题，从主字卡里抽 1-8 张
-            const availableCards = cardLibrary.filter(c => c.enabled && !disabledGroups[c.group]);
-            if(availableCards.length === 0) {
-                replyText = `(字卡库空了，回答不出来)`;
-            } else {
-                const count = Math.floor(Math.random() * 8) + 1; // 1-8 张
-                let texts = [];
-                for(let i=0; i<count; i++) {
-                    texts.push(availableCards[Math.floor(Math.random() * availableCards.length)].text);
-                }
-                // 多张之间空一格（这里用换行或者空格，为了排版好看，用空格或标点）
-                replyText = texts.join('，'); 
-            }
-        }
-
-        const newRow = renderMsg('other', senderName, senderAvatar, replyText);
-        playSound();
+    function addEmojiByUrl() {
+        const url = prompt('请输入表情包的图片网址（以 http 开头）：\n例如：https://xxx.com/emoji.gif');
+        if(!url) return;
+        if(!url.startsWith('http')) return alert('网址格式不正确');
         
-        if (Math.random() * 100 < config.recallProb) {
-            setTimeout(() => {
-                if (newRow && newRow.parentNode) {
-                    newRow.className = 'msg-row system';
-                    newRow.innerHTML = `<div class="sys-msg">${senderName}撤回了一条消息</div>`;
-                }
-            }, 2000 + Math.random() * 3000);
+        saveEmojiToDB({ type: 'image', content: url }).then(id => {
+            emojiLibrary.push({ id, type: 'image', content: url });
+            renderEmojiPanels();
+        });
+    }
+
+    function addTextEmoji() {
+        let text = prompt('请输入要添加的 Emoji 或 颜文字：\n（添加后可在面板对应的分类中找到）');
+        if(!text) return;
+        let type = 'kaomoji';
+        // 简单判断是否属于单字符 Emoji
+        if (text.length <= 2) type = 'emoji';
+
+        saveEmojiToDB({ type: type, content: text }).then(id => {
+            emojiLibrary.push({ id, type, content: text });
+            renderEmojiPanels();
+        });
+    }
+
+    async function uploadEmojis(event) {
+        const files = event.target.files;
+        if (!files.length) return;
+        
+        let loaded = 0;
+        for (const file of files) {
+            try {
+                const compressedEmoji = await compressImage(file, 300, 300, 0.6); // 稍微放宽一点尺寸提高清晰度
+                const id = await saveEmojiToDB({ type: 'image', content: compressedEmoji });
+                emojiLibrary.push({ id, type: 'image', content: compressedEmoji });
+                loaded++;
+            } catch(e) { console.error(e); }
+        }
+        renderEmojiPanels();
+        alert(`成功添加 ${loaded} 个本地表情包，已存入大容量数据库`);
+        event.target.value = '';
+    }
+
+    async function deleteEmojiFromDBUI(id) {
+        if(confirm('删除这个表情包？')) {
+            await deleteEmojiFromDB(id);
+            emojiLibrary = emojiLibrary.filter(e => e.id !== id);
+            renderEmojiPanels();
+        }
+    }
+    
+    async function clearAllEmojis() {
+        if(confirm('确定清空所有已存的表情包图片吗？（内置的emoji和颜文字不会被删除）')) {
+            await clearEmojisDB();
+            emojiLibrary = emojiLibrary.filter(e => e.type !== 'image'); // 保留文字类的
+            renderEmojiPanels();
         }
     }
 
@@ -1372,17 +1416,8 @@
             document.getElementById('msg-input').blur();
         }
     }
-    function toggleEmojiPanel() {
-        const p = document.getElementById('emoji-panel');
-        const isHidden = p.style.display === 'none' || p.style.display === '';
-        hidePanels();
-        if (isHidden) {
-            p.style.display = 'block';
-            document.getElementById('msg-input').blur();
-        }
-    }
 
-    // --- 字卡库相关 ---
+    // --- 字卡库相关 (保持不变，直接复用) ---
     function debouncedRenderCards() { clearTimeout(searchTimer); searchTimer = setTimeout(() => { renderCards(); }, 300); }
     function toggleGroup(groupName) { collapsedGroups[groupName] = !collapsedGroups[groupName]; renderCards(); }
     function toggleGroupDisable(groupName, e) { 
@@ -1402,7 +1437,7 @@
 
         if(filteredCards.length === 0) { list.innerHTML = '<div style="text-align:center; color:#999; margin-top:50px;">没有找到字卡</div>'; return; }
         
-        const displayCards = filteredCards; // 解除限制
+        const displayCards = filteredCards; 
         const grouped = {};
         displayCards.forEach((card) => { if(!grouped[card.group]) grouped[card.group] = []; grouped[card.group].push(card); });
         
@@ -1518,54 +1553,7 @@
         reader.readAsText(file, 'UTF-8');
     }
 
-    // --- 表情包相关 ---
-    async function uploadEmojis(event) {
-        const files = event.target.files;
-        if (!files.length) return;
-        
-        let loaded = 0;
-        for (const file of files) {
-            try {
-                const compressedEmoji = await compressImage(file, 200, 200, 0.6);
-                emojiLibrary.push(compressedEmoji);
-                loaded++;
-            } catch(e) {}
-        }
-        saveData('mirage_emojis', emojiLibrary);
-        renderEmojiPanels();
-        alert(`成功添加 ${loaded} 个表情包`);
-        event.target.value = '';
-    }
-
-    function renderEmojiPanels() {
-        const html = emojiLibrary.map((img, index) => `
-            <div style="position:relative;">
-                <img src="${img}" onclick="sendEmoji('${img}')" style="cursor:pointer; border-radius:8px; aspect-ratio:1; object-fit:contain; background:#fff;">
-                <div onclick="deleteEmoji(${index})" style="position:absolute; top:-5px; right:-5px; background:#333; color:#fff; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:12px; cursor:pointer; z-index:10;">×</div>
-            </div>
-        `).join('');
-        
-        document.getElementById('emoji-grid-inline').innerHTML = html;
-        document.getElementById('emoji-grid-full').innerHTML = html;
-    }
-
-    function deleteEmoji(index) {
-        if(confirm('删除这个表情包？')) {
-            emojiLibrary.splice(index, 1);
-            saveData('mirage_emojis', emojiLibrary);
-            renderEmojiPanels();
-        }
-    }
-    
-    function clearAllEmojis() {
-        if(confirm('确定清空所有表情包？')) {
-            emojiLibrary = [];
-            saveData('mirage_emojis', emojiLibrary);
-            renderEmojiPanels();
-        }
-    }
-
-    // --- 信箱相关 ---
+    // --- 信箱逻辑 (保持不变) ---
     function renderLetters() {
         const list = document.getElementById('letters-list');
         if(letterBox.length === 0) {
@@ -1699,7 +1687,7 @@
         }
     }
 
-    // --- 设置相关 ---
+    // --- 设置逻辑 (保持不变) ---
     function toggleGroupSettings() {
         const isGroup = document.getElementById('set-is-group').checked;
         document.getElementById('single-bot-settings').style.display = isGroup ? 'none' : 'block';
@@ -1818,19 +1806,17 @@
         applyAppearance(); saveConfig(); setupProactiveTimer(); setupLetterTimer(); 
         alert('设置已保存并生效！'); 
         closeApp('settings-app');
-        
-        // 刷新一下现有聊天记录以应用时间显示位置
         location.reload(); 
     }
 
+    // 这里只备份文本数据，图片由于已经在 IndexedDB，体积大不包含在 JSON 里，避免导出卡死
     function exportAllData() {
         const allData = { 
             cards: cardLibrary, config: config, disabledGroups: disabledGroups, 
-            emojis: emojiLibrary, letters: letterBox, pats: patLibrary,
-            asks: askHistory
+            letters: letterBox, pats: patLibrary, asks: askHistory
         };
         const blob = new Blob([JSON.stringify(allData, null, 2)], { type: "application/json;charset=utf-8" });
-        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "Mirage_全量备份.json"; a.click();
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "Mirage_文本数据备份.json"; a.click();
     }
     
     function importAllData(event) {
@@ -1843,7 +1829,6 @@
                     cardLibrary = data.cards.map(c => ({ ...c, id: c.id || Date.now() + Math.random() }));
                     config = { ...config, ...data.config };
                     disabledGroups = data.disabledGroups || {};
-                    emojiLibrary = data.emojis || [];
                     letterBox = data.letters || [];
                     patLibrary = data.pats || ["拍了拍你的脑袋", "抱了抱你", "亲了亲你"];
                     askHistory = data.asks || [];
@@ -1851,7 +1836,6 @@
                     saveData('mirage_cards_v2', cardLibrary); 
                     saveConfig(); 
                     saveData('mirage_disabled_groups', disabledGroups);
-                    saveData('mirage_emojis', emojiLibrary);
                     saveData('mirage_letters', letterBox);
                     saveData('mirage_pats', patLibrary);
                     saveData('mirage_asks', askHistory);
@@ -1865,7 +1849,9 @@
     
     function resetAllData() {
         if(confirm('⚠️ 警告：这将清空你的所有数据！确定吗？')) {
-            localStorage.clear(); location.reload();
+            localStorage.clear();
+            indexedDB.deleteDatabase('MirageDB');
+            setTimeout(() => location.reload(), 500);
         }
     }
 
@@ -1879,8 +1865,8 @@
                 
                 proactiveTimer = setTimeout(() => {
                     const availableCards = cardLibrary.filter(c => c.enabled && !disabledGroups[c.group]);
-                    const availableEmojis = emojiLibrary;
-                    if(availableCards.length > 0 || availableEmojis.length > 0) {
+                    const imageEmojis = emojiLibrary.filter(e => e.type === 'image');
+                    if(availableCards.length > 0 || imageEmojis.length > 0) {
                         generateBotMessage();
                     }
                     scheduleNext();
@@ -1889,6 +1875,125 @@
             scheduleNext();
         }
     }
-</script>
-</body>
-</html>
+
+    // --- 问问TA ---
+    function openAskModal() {
+        hidePanels();
+        const savedAskState = JSON.parse(localStorage.getItem('mirage_ask_draft'));
+        if (savedAskState) {
+            switchAskTab(savedAskState.type || 'single');
+            document.getElementById('ask-question-input').value = savedAskState.question || '';
+            document.getElementById('ask-options-single').value = savedAskState.optionsSingle || '';
+            document.getElementById('ask-options-multi').value = savedAskState.optionsMulti || '';
+            document.getElementById('ask-max-select').value = savedAskState.maxSelect || 3;
+            document.getElementById('ask-repeat').checked = savedAskState.repeat !== false;
+        } else {
+            switchAskTab('single');
+        }
+        renderAskHistory();
+        document.getElementById('ask-modal').style.display = 'flex';
+    }
+
+    function closeAskModal() {
+        if (document.getElementById('ask-repeat').checked) {
+            const state = {
+                type: currentAskType,
+                question: document.getElementById('ask-question-input').value,
+                optionsSingle: document.getElementById('ask-options-single').value,
+                optionsMulti: document.getElementById('ask-options-multi').value,
+                maxSelect: document.getElementById('ask-max-select').value,
+                repeat: true
+            };
+            localStorage.setItem('mirage_ask_draft', JSON.stringify(state));
+        } else {
+            localStorage.removeItem('mirage_ask_draft');
+        }
+        document.getElementById('ask-modal').style.display = 'none';
+    }
+
+    function switchAskTab(type) {
+        currentAskType = type;
+        document.querySelectorAll('.ask-tab').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.ask-section').forEach(el => el.classList.remove('active'));
+        
+        if(type === 'single') {
+            document.querySelectorAll('.ask-tab')[0].classList.add('active');
+            document.getElementById('ask-section-single').classList.add('active');
+            document.getElementById('ask-hint').innerText = 'TA 会从下面的答案里选一个回答你';
+        } else if(type === 'multi') {
+            document.querySelectorAll('.ask-tab')[1].classList.add('active');
+            document.getElementById('ask-section-multi').classList.add('active');
+            document.getElementById('ask-hint').innerText = 'TA 会从下面的答案里勾几个回答你 (2~3个)';
+        } else {
+            document.querySelectorAll('.ask-tab')[2].classList.add('active');
+            document.getElementById('ask-section-text').classList.add('active');
+            document.getElementById('ask-hint').innerText = 'TA 会用字卡库「主字卡」里的字卡回答 (1~8 张，多张之间空一格)';
+        }
+    }
+
+    function switchDelayMode(mode) {
+        currentAskDelayMode = mode;
+        if(mode === 'random') {
+            document.getElementById('delay-btn-random').classList.add('active');
+            document.getElementById('delay-btn-custom').classList.remove('active');
+            document.getElementById('ask-delay-custom-box').style.display = 'none';
+        } else {
+            document.getElementById('delay-btn-random').classList.remove('active');
+            document.getElementById('delay-btn-custom').classList.add('active');
+            document.getElementById('ask-delay-custom-box').style.display = 'flex';
+        }
+    }
+
+    function renderAskHistory() {
+        const list = document.getElementById('ask-history-list');
+        document.getElementById('history-count').innerText = `${askHistory.length} 条`;
+        if(askHistory.length === 0) {
+            list.innerHTML = '<div style="text-align:center; padding:10px;">暂无历史记录</div>';
+            return;
+        }
+        list.innerHTML = [...askHistory].reverse().map((h, index) => `
+            <div class="history-item" style="cursor:pointer;" onclick="loadAskHistory(${askHistory.length - 1 - index})">
+                <div style="font-weight:bold; color:var(--text-color);">${h.question}</div>
+                <div style="margin-top:3px;">题型: ${h.type === 'single' ? '单选' : h.type === 'multi' ? '多选' : '文字'} | ${new Date(h.time).toLocaleString()}</div>
+            </div>
+        `).join('');
+    }
+
+    function loadAskHistory(index) {
+        const h = askHistory[index];
+        if(!h) return;
+        switchAskTab(h.type);
+        document.getElementById('ask-question-input').value = h.question;
+        if(h.type === 'single') document.getElementById('ask-options-single').value = h.options.join('\n');
+        if(h.type === 'multi') {
+            document.getElementById('ask-options-multi').value = h.options.join('\n');
+            document.getElementById('ask-max-select').value = h.maxSelect || 3;
+        }
+        switchDelayMode('random');
+    }
+
+    function submitAsk() {
+        const question = document.getElementById('ask-question-input').value.trim();
+        if(!question) return alert('请输入你想问的问题');
+
+        let askData = {
+            id: Date.now().toString(),
+            type: currentAskType,
+            question: question,
+            time: Date.now()
+        };
+
+        if (currentAskType === 'single') {
+            const opts = document.getElementById('ask-options-single').value.split('\n').map(t=>t.trim()).filter(t=>t);
+            if(opts.length < 1) return alert('请至少输入一个选项');
+            askData.options = opts;
+        } else if (currentAskType === 'multi') {
+            const opts = document.getElementById('ask-options-multi').value.split('\n').map(t=>t.trim()).filter(t=>t);
+            const maxSel = parseInt(document.getElementById('ask-max-select').value) || 2;
+            if(opts.length < 2) return alert('多选题请至少输入两个选项');
+            askData.options = opts;
+            askData.maxSelect = Math.min(maxSel, opts.length);
+        }
+
+        let delayMs = 0;
+        if(currentAskDelayMode === 'random') {
