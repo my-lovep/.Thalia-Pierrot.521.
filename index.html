@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>梦角模拟器</title>
+    <style>
+        /* 基础黑白灰极简风格 */
+        :root { --bg-color: #f5f5f5; --text-color: #333; --bubble-user: #333; --bubble-other: #fff; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'SimSun', serif; transition: 0.3s; }
+        body { background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        
+        /* 模拟手机容器 */
+        #phone { width: 100%; max-width: 400px; height: 100vh; max-height: 850px; background: var(--bg-color); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        @media (min-width: 401px) { #phone { border-radius: 40px; border: 8px solid #222; height: 800px; } }
+
+        /* 主屏幕 (APP图标) */
+        #home-screen { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 40px 20px; align-content: start; height: 100%; }
+        .app-icon { background: #fff; border-radius: 20px; aspect-ratio: 1; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; font-size: 24px; }
+        .app-icon:active { transform: scale(0.95); }
+
+        /* 聊天界面 */
+        #chat-app { display: none; flex-direction: column; height: 100%; background: #f9f9f9; }
+        .header { padding: 15px; background: #fff; display: flex; align-items: center; border-bottom: 1px solid #eee; }
+        .back-btn { margin-right: 15px; cursor: pointer; font-size: 20px; }
+        .chat-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 70%; padding: 10px 15px; border-radius: 15px; font-size: 15px; line-height: 1.4; word-break: break-all; }
+        .msg.user { align-self: flex-end; background: var(--bubble-user); color: #fff; border-bottom-right-radius: 2px; }
+        .msg.other { align-self: flex-start; background: var(--bubble-other); color: var(--text-color); border-bottom-left-radius: 2px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .input-area { padding: 10px; background: #fff; display: flex; gap: 10px; align-items: center; border-top: 1px solid #eee; }
+        .input-area input { flex: 1; padding: 10px 15px; border: 1px solid #ddd; border-radius: 20px; outline: none; }
+        .btn { padding: 10px; background: #333; color: #fff; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+
+        /* 视频通话界面 */
+        #video-call { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100; flex-direction: column; }
+        #my-video { width: 100px; height: 150px; position: absolute; top: 20px; right: 20px; background: #222; border-radius: 10px; object-fit: cover; z-index: 101; transform: scaleX(-1); }
+        #other-video { flex: 1; width: 100%; height: 100%; object-fit: cover; opacity: 0.8; } /* 梦角的画面可以放个本地视频或图片 */
+        .call-controls { position: absolute; bottom: 40px; width: 100%; display: flex; justify-content: space-evenly; z-index: 102; }
+        .call-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 20px; cursor: pointer; }
+        .hangup { background: #ff3b30; color: white; }
+        .minimize { background: #fff; color: #333; }
+        
+        /* 悬浮小窗 */
+        #floating-call { display: none; position: absolute; top: 20px; right: 20px; width: 80px; height: 120px; background: #000; border-radius: 10px; z-index: 100; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+
+        /* 设置界面 */
+        #settings-app { display: none; flex-direction: column; height: 100%; background: #fff; padding: 20px; overflow-y: auto; }
+        .setting-item { margin-bottom: 20px; }
+        .setting-item label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .setting-item input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<div id="phone">
+    <!-- 主屏幕 -->
+    <div id="home-screen">
+        <div class="app-icon" onclick="openApp('chat-app')">💬</div>
+        <div class="app-icon" onclick="openApp('settings-app')">⚙️</div>
+    </div>
+
+    <!-- 聊天界面 -->
+    <div id="chat-app">
+        <div class="header">
+            <div class="back-btn" onclick="closeApp('chat-app')">←</div>
+            <div style="flex:1;" id="contact-name">梦角</div>
+            <div class="btn" onclick="startVideoCall('other')">📹</div> <!-- 主动打电话 -->
+        </div>
+        <div class="chat-area" id="chat-area">
+            <!-- 消息内容 -->
+        </div>
+        <div class="input-area">
+            <input type="text" id="msg-input" placeholder="输入消息..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <button class="btn" onclick="sendMessage()">↑</button>
+        </div>
+    </div>
+
+    <!-- 视频通话界面 -->
+    <div id="video-call">
+        <!-- 梦角画面，可以替换为 <video> 或 <img> -->
+        <img id="other-video" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1000&auto=format&fit=crop" alt="梦角">
+        <video id="my-video" autoplay playsinline muted></video>
+        <div class="call-controls">
+            <button class="call-btn minimize" onclick="minimizeCall()">➖</button>
+            <button class="call-btn hangup" onclick="endCall()">📞</button>
+        </div>
+    </div>
+
+    <!-- 悬浮通话窗 -->
+    <div id="floating-call" onclick="restoreCall()"></div>
+
+    <!-- 设置界面 -->
+    <div id="settings-app">
+        <div class="header" style="margin-bottom:20px;">
+            <div class="back-btn" onclick="closeApp('settings-app')">←</div>
+            <div>设置</div>
+        </div>
+        <div class="setting-item">
+            <label>自定义字体CSS链接 (例如 Google Fonts)</label>
+            <input type="text" id="font-url" placeholder="https://fonts.googleapis.com/css2?family=...">
+            <button class="btn" style="width:100%; border-radius:5px; margin-top:10px;" onclick="applyFont()">应用字体</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. 字卡库数据
+    let cardLibrary = [
+        "这是什么意思呀？",
+        "嗯嗯，我在听。",
+        "我也很想你。",
+        "今天天气真好，你想出去走走吗？",
+        "别难过，有我在呢。",
+        "收到！"
+    ];
+
+    // 2. 打开/关闭 APP
+    function openApp(appId) {
+        document.getElementById('home-screen').style.display = 'none';
+        document.getElementById(appId).style.display = 'flex';
+    }
+    function closeApp(appId) {
+        document.getElementById(appId).style.display = 'none';
+        document.getElementById('home-screen').style.display = 'grid';
+    }
+
+    // 3. 发送消息 & 随机字卡回复
+    function sendMessage() {
+        const input = document.getElementById('msg-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const chatArea = document.getElementById('chat-area');
+        
+        // 添加用户消息
+        chatArea.innerHTML += `<div class="msg user">${text}</div>`;
+        input.value = '';
+        chatArea.scrollTop = chatArea.scrollHeight;
+
+        // 模拟延迟和已读
+        setTimeout(() => {
+            // 随机抽取1-3条
+            const count = Math.floor(Math.random() * 3) + 1;
+            let reply = "";
+            for(let i=0; i<count; i++) {
+                reply += cardLibrary[Math.floor(Math.random() * cardLibrary.length)] + (i < count-1 ? "，" : "");
+            }
+            chatArea.innerHTML += `<div class="msg other">${reply}</div>`;
+            chatArea.scrollTop = chatArea.scrollHeight;
+            playSound(); // 播放提示音
+        }, 1500 + Math.random() * 2000); // 1.5秒 - 3.5秒延迟
+    }
+
+    // 4. 音效 (使用 Web Audio API 生成简单提示音)
+    function playSound() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const ctx = new AudioContext();
+            const osc = ctx.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+            osc.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.1);
+        } catch(e) {}
+    }
+
+    // 5. 视频通话逻辑
+    let localStream = null;
+    function startVideoCall(caller) {
+        openApp('video-call');
+        // 如果自己是拨打方
+        if(caller === 'other') {
+            document.getElementById('other-video').style.opacity = '1'; // 模拟接通后
+        }
+
+        // 开启摄像头
+        navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+            .then(stream => {
+                localStream = stream;
+                const videoElement = document.getElementById('my-video');
+                videoElement.srcObject = stream;
+            })
+            .catch(err => {
+                console.log("无法获取摄像头权限:", err);
+                alert("请允许摄像头权限以进行视频通话");
+            });
+    }
+
+    function endCall() {
+        document.getElementById('video-call').style.display = 'none';
+        document.getElementById('floating-call').style.display = 'none';
+        if(localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+            localStream = null;
+        }
+    }
+
+    function minimizeCall() {
+        document.getElementById('video-call').style.display = 'none';
+        document.getElementById('floating-call').style.display = 'block';
+    }
+
+    function restoreCall() {
+        document.getElementById('floating-call').style.display = 'none';
+        document.getElementById('video-call').style.display = 'flex';
+    }
+
+    // 梦角主动打电话模拟 (15秒后触发)
+    setTimeout(() => {
+        if(confirm("梦角给你打来视频电话啦，要接听吗？")) {
+            startVideoCall('me');
+        }
+    }, 15000);
+
+    // 6. 自定义字体链接注入
+    function applyFont() {
+        const url = document.getElementById('font-url').value;
+        if(!url) return;
+        
+        // 创建 link 标签引入 CSS
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = url;
+        document.head.appendChild(link);
+        
+        // 简单的字体应用，由于不知道你链接里的 font-family 名字，这里覆盖全局
+        document.body.style.fontFamily = '"YourFontName", "SimSun", serif';
+        alert("字体链接已加载，若未生效请检查字体名称是否匹配。");
+    }
+</script>
+</body>
+</html>
