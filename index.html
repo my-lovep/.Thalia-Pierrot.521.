@@ -31,7 +31,7 @@
             background: var(--bg-color); color: var(--text-color);
             height: 100vh; height: 100dvh; overflow: hidden;
             display: flex; flex-direction: column; font-size: var(--font-size-base);
-            user-select: none; /* 优化长按选择，防止误触卡顿 */
+            user-select: none;
         }
         svg { fill: currentColor; width: 24px; height: 24px; }
         img { object-fit: cover; }
@@ -81,17 +81,16 @@
         .avatar-container { display: flex; flex-direction: column; align-items: center; gap:4px; flex-shrink:0; width: 38px;}
         .avatar { width: 38px; height: 38px; border-radius: 6px; object-fit: cover; background: #ddd; cursor: pointer; user-select: none;}
         
-        /* 时间在头像下方 */
         .msg-time-avatar { font-size: 10px; color: #999; text-align: center; line-height: 1; margin-top: 2px; word-break: keep-all;}
 
-        .msg-content-wrapper { display: flex; flex-direction: column; max-width: 70%; position: relative; }
+        .msg-content-wrapper { display: flex; flex-direction: column; max-width: 75%; position: relative; }
         .msg-row.user .msg-content-wrapper { align-items: flex-end; }
         
         .msg-header { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
         .msg-row.user .msg-header { justify-content: flex-end; }
         .msg-name { font-size: 12px; color: #888; margin-left: 2px; }
 
-        /* 基础气泡样式（自定义CSS会覆盖这里） */
+        /* 基础气泡样式 */
         .msg {
             padding: 10px 14px; border-radius: 12px;
             line-height: 1.5; word-break: break-all;
@@ -121,10 +120,14 @@
             background: var(--bubble-other); border: 1px solid var(--border-color);
             border-radius: 16px; padding: 15px; width: 280px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer;
+            color: var(--text-color);
         }
+        .msg-row.user .survey-card { background: var(--bubble-user); color: var(--bubble-user-text); border-color: var(--bubble-user); }
+        .msg-row.user .survey-card .survey-option { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+        
         .survey-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .survey-tag { border: 1px solid var(--text-color); border-radius: 12px; padding: 2px 8px; font-size: 12px; font-weight: bold; }
-        .survey-status { font-size: 12px; color: var(--accent); }
+        .survey-tag { border: 1px solid currentColor; border-radius: 12px; padding: 2px 8px; font-size: 12px; font-weight: bold; }
+        .survey-status { font-size: 12px; opacity: 0.7; }
         .survey-question { font-size: 15px; font-weight: bold; margin-bottom: 15px; line-height: 1.4; }
         .survey-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
         .survey-option {
@@ -138,7 +141,7 @@
         .survey-option.selected .survey-radio { border-color: var(--text-color); }
         .survey-option.selected .survey-radio::after { content: ''; width: 8px; height: 8px; background: var(--text-color); border-radius: 50%; }
         .survey-check { margin-left: auto; font-size: 16px; font-weight: bold; }
-        .survey-footer { font-size: 12px; color: var(--accent); }
+        .survey-footer { font-size: 12px; opacity: 0.7; }
 
         /* 输入框区域 */
         .input-area {
@@ -289,7 +292,7 @@
     </style>
 </head>
 <body>
-    <!-- 隐藏的后台保活音频 -->
+    <!-- 隐藏的后台保活音频 (静音) -->
     <audio id="keep-alive-audio" loop src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA"></audio>
 
     <!-- 首页 -->
@@ -651,13 +654,13 @@ const App = {
             desktopNotify: false, keepAlive: false
         }
     },
-    audioCtx: null, // 复用音频上下文，防止内存泄漏卡顿
+    audioCtx: null,
     saveTimeout: null,
     saveData: function() {
         clearTimeout(this.saveTimeout);
         this.saveTimeout = setTimeout(() => {
             try { localStorage.setItem('appData_v12', JSON.stringify(this.data)); } catch(e) {
-                if(e.name === 'QuotaExceededError') App.toast('存储空间已满，请勿上传过大的本地音频，建议使用URL');
+                if(e.name === 'QuotaExceededError') App.toast('存储空间已满，建议使用URL代替本地音频');
             }
         }, 500);
     },
@@ -709,13 +712,10 @@ document.body.addEventListener('click', function(e) {
     if (e.target.id === 'action-sheet') { e.target.style.display = 'none'; e.target.classList.remove('show'); }
 });
 
-// 第一次点击屏幕时解锁音频（用于后台保活）
+// 音频解锁
 document.body.addEventListener('touchstart', function unlockAudio() {
-    if (!App.audioCtx) {
-        App.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    } else if (App.audioCtx.state === 'suspended') {
-        App.audioCtx.resume();
-    }
+    if (!App.audioCtx) App.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    else if (App.audioCtx.state === 'suspended') App.audioCtx.resume();
     document.body.removeEventListener('touchstart', unlockAudio);
 }, { once: true });
 
@@ -724,7 +724,7 @@ const Chat = {
     currentLimit: 50,
     isFetchingHistory: false,
     quoteMsg: null,
-    patTimer: null, // 独立管理拍一拍防止重叠
+    patTimer: null, 
     
     init: function() {
         const area = document.getElementById('chat-area');
@@ -778,7 +778,7 @@ const Chat = {
     },
     
     triggerPat: function(isMe) {
-        if (this.patTimer) return; // 防止连点
+        if (this.patTimer) return; 
         this.patTimer = setTimeout(() => this.patTimer = null, 500);
 
         const s = App.data.settings;
@@ -859,14 +859,17 @@ const Chat = {
                     </div>`;
                 }).join('');
                 
+                let statusText = msg.status === 'answered' ? '已回答' : '待回答';
+                let footerText = msg.status === 'answered' ? `${App.data.settings.botName} 选了「${msg.selectedText}」` : '等待对方作答...';
+                
                 contentHtml = `<div class="survey-card" data-id="${msg.id}">
                     <div class="survey-header">
                         <div class="survey-tag">问问TA</div>
-                        <div class="survey-status">已回答</div>
+                        <div class="survey-status">${statusText}</div>
                     </div>
                     <div class="survey-question">${msg.question}</div>
                     <div class="survey-options">${optsHtml}</div>
-                    <div class="survey-footer">${App.data.settings.botName} 选了「${msg.selectedText}」</div>
+                    <div class="survey-footer">${footerText}</div>
                 </div>`;
             } else {
                 let quoteHtml = msg.quote ? `<div class="msg quote">${msg.quote.content}</div>` : '';
@@ -963,15 +966,12 @@ const Chat = {
         try {
             if (!App.audioCtx) App.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (App.audioCtx.state === 'suspended') App.audioCtx.resume();
-            
             const osc = App.audioCtx.createOscillator();
             const gain = App.audioCtx.createGain();
             osc.type = 'sine'; osc.frequency.value = 800;
             gain.gain.setValueAtTime(0.1, App.audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.001, App.audioCtx.currentTime + 0.1);
-            
-            osc.connect(gain);
-            gain.connect(App.audioCtx.destination);
+            osc.connect(gain); gain.connect(App.audioCtx.destination);
             osc.start(); setTimeout(() => { osc.stop(); osc.disconnect(); }, 150);
         } catch(e) {}
     },
@@ -1119,12 +1119,8 @@ const Music = {
         if (App.data.music.list.length === 0) return;
         let idx = App.data.music.currentIndex;
         const mode = App.data.music.mode;
-        
-        if (mode === 'shuffle') {
-            idx = Math.floor(Math.random() * App.data.music.list.length);
-        } else {
-            idx = (idx + 1) % App.data.music.list.length;
-        }
+        if (mode === 'shuffle') idx = Math.floor(Math.random() * App.data.music.list.length);
+        else idx = (idx + 1) % App.data.music.list.length;
         this.loadSong(idx, true);
     },
 
@@ -1132,12 +1128,8 @@ const Music = {
         if (App.data.music.list.length === 0) return;
         let idx = App.data.music.currentIndex;
         const mode = App.data.music.mode;
-        
-        if (mode === 'shuffle') {
-            idx = Math.floor(Math.random() * App.data.music.list.length);
-        } else {
-            idx = (idx - 1 + App.data.music.list.length) % App.data.music.list.length;
-        }
+        if (mode === 'shuffle') idx = Math.floor(Math.random() * App.data.music.list.length);
+        else idx = (idx - 1 + App.data.music.list.length) % App.data.music.list.length;
         this.loadSong(idx, true);
     },
 
@@ -1264,12 +1256,8 @@ const Call = {
             status.innerText = '正在等待对方接听...';
             
             setTimeout(() => {
-                if (Math.random() * 100 < s.answerProb) {
-                    status.innerText = '通话中...';
-                } else {
-                    status.innerText = '对方无应答';
-                    setTimeout(() => this.hangup(), 1500);
-                }
+                if (Math.random() * 100 < s.answerProb) status.innerText = '通话中...';
+                else { status.innerText = '对方无应答'; setTimeout(() => this.hangup(), 1500); }
             }, 3000);
         }
     },
@@ -1278,14 +1266,8 @@ const Call = {
         const videoEl = document.getElementById('local-video-preview');
         videoEl.style.display = 'block';
         navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-            .then(stream => {
-                this.localStream = stream;
-                videoEl.srcObject = stream;
-            })
-            .catch(err => {
-                console.log("摄像头开启失败", err);
-                App.toast('无法访问摄像头');
-            });
+            .then(stream => { this.localStream = stream; videoEl.srcObject = stream; })
+            .catch(err => { App.toast('无法访问摄像头'); });
     },
 
     answer: function() {
@@ -1297,10 +1279,7 @@ const Call = {
     hangup: function() {
         document.getElementById('call-overlay').classList.remove('show');
         document.getElementById('local-video-preview').style.display = 'none';
-        if (this.localStream) {
-            this.localStream.getTracks().forEach(track => track.stop());
-            this.localStream = null;
-        }
+        if (this.localStream) { this.localStream.getTracks().forEach(t => t.stop()); this.localStream = null; }
     }
 };
 
@@ -1316,7 +1295,6 @@ const Pat = {
                 <span class="edit-pat">编辑</span>
                 <span class="del-pat">删除</span>
             </div>`;
-            
             div.querySelector('.del-pat').onclick = () => { App.data.pats.splice(i,1); this.render(); App.saveData(); };
             div.querySelector('.edit-pat').onclick = () => {
                 document.getElementById('edit-pat-text').value = p;
@@ -1388,16 +1366,10 @@ const Cards = {
                     <span class="edit-card">编辑</span>
                     <span class="del-card">删除</span>
                 </div>`;
-                div.querySelector('.del-card').onclick = () => {
-                    group.items.splice(iIndex, 1);
-                    this.render(); App.saveData();
-                };
+                div.querySelector('.del-card').onclick = () => { group.items.splice(iIndex, 1); this.render(); App.saveData(); };
                 div.querySelector('.edit-card').onclick = () => {
                     const newText = prompt('修改字卡', item);
-                    if (newText !== null && newText.trim()) {
-                        group.items[iIndex] = newText.trim();
-                        this.render(); App.saveData();
-                    }
+                    if (newText !== null && newText.trim()) { group.items[iIndex] = newText.trim(); this.render(); App.saveData(); }
                 };
                 gContainer.appendChild(div);
             });
@@ -1424,10 +1396,7 @@ const Cards = {
         document.getElementById('btn-batch-confirm').onclick = () => {
             const text = document.getElementById('batch-text').value;
             let currentGroup = '默认';
-            
-            if (!App.data.cards.find(c => c.group === currentGroup)) {
-                App.data.cards.push({ group: currentGroup, items: [] });
-            }
+            if (!App.data.cards.find(c => c.group === currentGroup)) App.data.cards.push({ group: currentGroup, items: [] });
             
             text.split('\n').forEach(line => {
                 line = line.trim();
@@ -1435,9 +1404,7 @@ const Cards = {
                 const match = line.match(/^【(.*?)】$/);
                 if (match) {
                     currentGroup = match[1];
-                    if (!App.data.cards.find(c => c.group === currentGroup)) {
-                        App.data.cards.push({ group: currentGroup, items: [] });
-                    }
+                    if (!App.data.cards.find(c => c.group === currentGroup)) App.data.cards.push({ group: currentGroup, items: [] });
                 } else {
                     let g = App.data.cards.find(c => c.group === currentGroup);
                     if (g && !g.items.includes(line)) g.items.push(line);
@@ -1449,9 +1416,7 @@ const Cards = {
         };
         document.getElementById('btn-export-cards').onclick = () => {
             let out = '';
-            App.data.cards.forEach(c => {
-                out += `【${c.group}】\n${c.items.join('\n')}\n`;
-            });
+            App.data.cards.forEach(c => { out += `【${c.group}】\n${c.items.join('\n')}\n`; });
             const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([out], {type:'text/plain'})); a.download = 'cards.txt'; a.click();
         };
         document.getElementById('btn-import-cards').onclick = () => document.getElementById('file-input').click();
@@ -1467,9 +1432,7 @@ const Cards = {
                     const match = line.match(/^【(.*?)】$/);
                     if (match) {
                         currentGroup = match[1];
-                        if (!App.data.cards.find(c => c.group === currentGroup)) {
-                            App.data.cards.push({ group: currentGroup, items: [] });
-                        }
+                        if (!App.data.cards.find(c => c.group === currentGroup)) App.data.cards.push({ group: currentGroup, items: [] });
                     } else {
                         let g = App.data.cards.find(c => c.group === currentGroup);
                         if (g && !g.items.includes(line)) g.items.push(line);
@@ -1575,9 +1538,7 @@ const Letters = {
             if(!content) { App.toast('内容不能为空'); return; }
             
             if(!App.data.letters) App.data.letters = [];
-            App.data.letters.push({
-                id: Date.now(), title, content, sender: 'me', time: Date.now(), read: true
-            });
+            App.data.letters.push({ id: Date.now(), title, content, sender: 'me', time: Date.now(), read: true });
             App.saveData();
             document.getElementById('write-letter-modal').classList.remove('show');
             this.render();
@@ -1596,9 +1557,7 @@ const Letters = {
         let title = isReply ? '回复: ' + (App.data.letters[App.data.letters.length-1]?.title || '你的来信') : '来自' + s.botName + '的信';
         
         if(!App.data.letters) App.data.letters = [];
-        App.data.letters.push({
-            id: Date.now(), title, content, sender: 'other', time: Date.now(), read: false
-        });
+        App.data.letters.push({ id: Date.now(), title, content, sender: 'other', time: Date.now(), read: false });
         App.saveData();
         
         if (document.getElementById('letter-app').style.display === 'flex') {
@@ -1619,11 +1578,8 @@ const Settings = {
 
     render: function() {
         const s = App.data.settings;
-        
-        // 角色资料
         document.getElementById('set-my-name').value = s.myName;
         document.getElementById('my-avatar-preview').src = s.myAvatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-        
         document.getElementById('set-bot-name').value = s.botName;
         document.getElementById('bot-avatar-preview').src = s.botAvatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
         
@@ -1632,11 +1588,9 @@ const Settings = {
         document.getElementById('group-settings').style.display = s.isGroup ? 'block' : 'none';
         document.getElementById('set-group-members').value = JSON.stringify(s.groupMembers);
         
-        // 系统与通知
         document.getElementById('set-desktop-notify').checked = s.desktopNotify;
         document.getElementById('set-keep-alive').checked = s.keepAlive;
         
-        // 外观
         document.getElementById('set-time-display').value = s.timeDisplay;
         document.getElementById('set-show-avatar').checked = s.showAvatar;
         document.getElementById('set-show-name').checked = s.showName;
@@ -1645,14 +1599,11 @@ const Settings = {
         document.getElementById('set-sound-enabled').checked = s.soundEnabled;
         
         document.getElementById('set-theme').value = s.theme;
-        
         document.getElementById('slider-font-size').value = s.fontSize;
         document.getElementById('val-font-size').innerText = s.fontSize;
-        
         document.getElementById('set-font-url').value = s.fontUrl;
         document.getElementById('set-bubble-css').value = s.bubbleCss;
         
-        // 逻辑
         document.getElementById('set-typing-text').value = s.typingText;
         document.getElementById('set-delay-min').value = s.delayMin;
         document.getElementById('set-delay-max').value = s.delayMax;
@@ -1688,27 +1639,15 @@ const Settings = {
         
         const fontStyle = document.getElementById('dynamic-font-style');
         if (s.fontUrl) {
-            if (s.fontUrl.startsWith('http')) {
-                fontStyle.innerHTML = `@import url('${s.fontUrl}'); * { font-family: 'CustomFont', sans-serif !important; }`;
-            } else {
-                fontStyle.innerHTML = `* { font-family: ${s.fontUrl} !important; }`;
-            }
-        } else {
-            fontStyle.innerHTML = '';
-        }
+            if (s.fontUrl.startsWith('http')) fontStyle.innerHTML = `@import url('${s.fontUrl}'); * { font-family: 'CustomFont', sans-serif !important; }`;
+            else fontStyle.innerHTML = `* { font-family: ${s.fontUrl} !important; }`;
+        } else fontStyle.innerHTML = '';
 
         const bubbleStyle = document.getElementById('dynamic-bubble-style');
-        if (s.bubbleCss) {
-            bubbleStyle.innerHTML = `.msg { ${s.bubbleCss} !important; }`;
-        } else {
-            bubbleStyle.innerHTML = '';
-        }
+        bubbleStyle.innerHTML = s.bubbleCss ? `.msg { ${s.bubbleCss} !important; }` : '';
         
-        if (s.bgImage) {
-            document.getElementById('chat-area').style.backgroundImage = `url(${s.bgImage})`;
-        } else {
-            document.getElementById('chat-area').style.backgroundImage = 'none';
-        }
+        if (s.bgImage) document.getElementById('chat-area').style.backgroundImage = `url(${s.bgImage})`;
+        else document.getElementById('chat-area').style.backgroundImage = 'none';
         
         if (s.theme === 'dark' || (s.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.setAttribute('data-theme', 'dark');
@@ -1719,19 +1658,7 @@ const Settings = {
     saveAndApply: function() {
         App.saveData();
         this.applyStyles();
-        // 避免输入时频繁重绘聊天，只在改变设置时重绘
         document.getElementById('chat-title').innerText = App.data.settings.botName;
-    },
-    setupTimers: function() {
-        const s = App.data.settings;
-        clearTimeout(this.timerMsg);
-        clearTimeout(this.timerLetter);
-        clearTimeout(this.timerCall);
-
-        // 彻底修复定时器死循环，拆分独立调度
-        this.scheduleNextMsg();
-        this.scheduleNextLetter();
-        this.scheduleNextCall();
     },
     scheduleNextMsg: function() {
         const s = App.data.settings;
@@ -1746,15 +1673,13 @@ const Settings = {
                         const m = s.groupMembers[Math.floor(Math.random()*s.groupMembers.length)];
                         msg.senderName = m.name; msg.senderAvatar = m.avatar;
                     }
-                    App.data.messages.push(msg);
-                    App.saveData();
+                    App.data.messages.push(msg); App.saveData();
                     if (document.getElementById('chat-app').style.display === 'flex') Chat.render();
-                    
                     if (document.hidden && s.desktopNotify && Notification.permission === 'granted') {
                         new Notification(s.botName, { body: text, icon: s.botAvatar || '' });
                     }
                 }
-                this.scheduleNextMsg(); // 只调度下一次，绝对不递归全量
+                this.scheduleNextMsg(); 
             }, delay);
         }
     },
@@ -1763,9 +1688,7 @@ const Settings = {
         if (s.letterMin > 0) {
             const delay = (Math.random() * (s.letterMax - s.letterMin) + s.letterMin) * 60000;
             this.timerLetter = setTimeout(() => {
-                if (Math.random() < (s.letterProb / 100)) {
-                    Letters.receiveLetter(false);
-                }
+                if (Math.random() < (s.letterProb / 100)) Letters.receiveLetter(false);
                 this.scheduleNextLetter();
             }, delay);
         }
@@ -1775,86 +1698,54 @@ const Settings = {
         if (s.callProb > 0) {
             this.timerCall = setTimeout(() => {
                 if (Math.random() < (s.callProb / 100)) {
-                    if (!document.getElementById('call-overlay').classList.contains('show')) {
-                        Call.start(Math.random() < 0.5, true); 
-                    }
+                    if (!document.getElementById('call-overlay').classList.contains('show')) Call.start(Math.random() < 0.5, true); 
                 }
                 this.scheduleNextCall();
-            }, 60000); // 每分钟判断一次
+            }, 60000); 
         }
     },
     init: function() {
-        // 名字打字防抖，不再卡顿，改为 onchange 或失焦时更新
-        document.getElementById('set-my-name').onchange = (e) => {
-            App.data.settings.myName = e.target.value || '我';
-            this.saveAndApply();
-            Chat.render();
-        };
-        document.getElementById('set-bot-name').onchange = (e) => {
-            App.data.settings.botName = e.target.value || '对方';
-            this.saveAndApply();
-            Chat.render();
-        };
+        document.getElementById('set-my-name').onchange = (e) => { App.data.settings.myName = e.target.value || '我'; this.saveAndApply(); Chat.render(); };
+        document.getElementById('set-bot-name').onchange = (e) => { App.data.settings.botName = e.target.value || '对方'; this.saveAndApply(); Chat.render(); };
 
-        // 头像上传
         document.getElementById('set-my-avatar-file').onchange = (e) => {
             const f = e.target.files[0]; if(!f) return;
-            const r = new FileReader();
-            r.onload = (ev) => { 
-                const base64 = ev.target.result;
-                document.getElementById('my-avatar-preview').src = base64;
-                App.data.settings.myAvatar = base64;
-                this.saveAndApply(); Chat.render();
-                App.toast('头像已更新');
-            };
-            r.readAsDataURL(f);
+            const r = new FileReader(); r.onload = (ev) => { 
+                document.getElementById('my-avatar-preview').src = ev.target.result;
+                App.data.settings.myAvatar = ev.target.result;
+                this.saveAndApply(); Chat.render(); App.toast('头像已更新');
+            }; r.readAsDataURL(f);
         };
         document.getElementById('set-bot-avatar-file').onchange = (e) => {
             const f = e.target.files[0]; if(!f) return;
-            const r = new FileReader();
-            r.onload = (ev) => { 
-                const base64 = ev.target.result;
-                document.getElementById('bot-avatar-preview').src = base64;
-                App.data.settings.botAvatar = base64;
-                this.saveAndApply(); Chat.render();
-                App.toast('头像已更新');
-            };
-            r.readAsDataURL(f);
+            const r = new FileReader(); r.onload = (ev) => { 
+                document.getElementById('bot-avatar-preview').src = ev.target.result;
+                App.data.settings.botAvatar = ev.target.result;
+                this.saveAndApply(); Chat.render(); App.toast('头像已更新');
+            }; r.readAsDataURL(f);
         };
-
-        // 背景图
         document.getElementById('set-bg').onchange = (e) => {
             const f = e.target.files[0]; if(!f) return;
-            const r = new FileReader();
-            r.onload = (ev) => { App.data.settings.bgImage = ev.target.result; this.saveAndApply(); };
-            r.readAsDataURL(f);
+            const r = new FileReader(); r.onload = (ev) => { App.data.settings.bgImage = ev.target.result; this.saveAndApply(); }; r.readAsDataURL(f);
         };
 
-        // CSS/字体 输入后失焦生效，防止打字卡顿
         document.getElementById('set-font-url').onchange = (e) => { App.data.settings.fontUrl = e.target.value.trim(); this.saveAndApply(); };
         document.getElementById('set-bubble-css').onchange = (e) => { App.data.settings.bubbleCss = e.target.value.trim(); this.saveAndApply(); };
 
-        // 各种开关与下拉框
         const bindChange = (id, key, isNum = false, isBool = false) => {
-            const el = document.getElementById(id);
-            if(!el) return;
+            const el = document.getElementById(id); if(!el) return;
             el.onchange = (e) => {
                 let val = e.target.value;
-                if(isBool) val = e.target.checked;
-                else if(isNum) val = parseInt(val) || 0;
-                App.data.settings[key] = val;
-                this.saveAndApply();
+                if(isBool) val = e.target.checked; else if(isNum) val = parseInt(val) || 0;
+                App.data.settings[key] = val; this.saveAndApply();
                 
                 if (key === 'desktopNotify' && val) {
                     if (Notification.permission !== 'granted') Notification.requestPermission();
                 }
                 if (key === 'keepAlive') {
                     const audio = document.getElementById('keep-alive-audio');
-                    if (val) {
-                        audio.play().catch(() => App.toast('保活失败，请点击屏幕任意处重试'));
-                    } else {
-                        audio.pause();
-                    }
+                    if (val) { audio.play().catch(() => App.toast('保活失败，请点击屏幕重试')); }
+                    else { audio.pause(); }
                 }
             };
         };
@@ -1877,32 +1768,59 @@ const Settings = {
         bindChange('set-desktop-notify', 'desktopNotify', false, true);
         bindChange('set-keep-alive', 'keepAlive', false, true);
 
-        // 滑动条
         const bindSlider = (id, valId, key) => {
-            const el = document.getElementById(id);
-            const val = document.getElementById(valId);
+            const el = document.getElementById(id); const val = document.getElementById(valId);
             if(el && val) {
-                el.oninput = (e) => { 
-                    const v = parseInt(e.target.value);
-                    val.innerText = v + '%'; 
-                    App.data.settings[key] = v;
-                };
-                el.onchange = (e) => {
-                    const v = parseInt(e.target.value);
-                    App.data.settings[key] = v;
-                    this.saveAndApply();
-                };
+                el.oninput = (e) => { const v = parseInt(e.target.value); val.innerText = v + '%'; App.data.settings[key] = v; };
+                el.onchange = (e) => { const v = parseInt(e.target.value); App.data.settings[key] = v; this.saveAndApply(); };
             }
         };
         bindSlider('slider-font-size', 'val-font-size', 'fontSize'); 
         document.getElementById('val-font-size').innerText = App.data.settings.fontSize; 
         document.getElementById('slider-font-size').oninput = (e) => {
-            const v = parseInt(e.target.value);
-            document.getElementById('val-font-size').innerText = v;
-            App.data.settings.fontSize = v;
-            document.documentElement.style.setProperty('--font-size-base', v + 'px');
+            const v = parseInt(e.target.value); document.getElementById('val-font-size').innerText = v;
+            App.data.settings.fontSize = v; document.documentElement.style.setProperty('--font-size-base', v + 'px');
         };
         document.getElementById('slider-font-size').onchange = () => this.saveAndApply();
 
         bindSlider('slider-emoji-prob', 'val-emoji-prob', 'emojiProb');
-        bindSlider('slider-
+        bindSlider('slider-ignore', 'val-ignore', 'ignoreProb');
+        bindSlider('slider-quote', 'val-quote', 'quoteProb');
+        bindSlider('slider-recall', 'val-recall', 'recallProb');
+        bindSlider('slider-pat-prob', 'val-pat-prob', 'patProb');
+        bindSlider('slider-call-prob', 'val-call-prob', 'callProb');
+        bindSlider('slider-answer-prob', 'val-answer-prob', 'answerProb');
+        bindSlider('slider-letter-prob', 'val-letter-prob', 'letterProb');
+        bindSlider('slider-reply-prob', 'val-reply-prob', 'replyProb');
+
+        document.getElementById('set-group-members').onchange = (e) => {
+            try { App.data.settings.groupMembers = JSON.parse(e.target.value || '[]'); this.saveAndApply(); } catch(err) { App.toast('JSON格式错误'); }
+        };
+
+        document.getElementById('btn-save-settings').onclick = () => {
+            this.saveAndApply(); Chat.render();
+            App.toast('所有设置已保存并实时生效');
+        };
+
+        document.getElementById('btn-export-all').onclick = () => {
+            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(App.data, null, 2)], {type:'application/json'})); a.download = 'Backup.json'; a.click();
+        };
+        document.getElementById('btn-import-all').onclick = () => document.getElementById('import-all-file').click();
+        document.getElementById('import-all-file').onchange = (e) => {
+            const f = e.target.files[0]; if(!f) return;
+            const r = new FileReader();
+            r.onload = (ev) => {
+                try {
+                    const parsed = JSON.parse(ev.target.result);
+                    App.data = { ...App.data, ...parsed, settings: { ...App.data.settings, ...(parsed.settings || {}) } };
+                    App.saveData(); this.render(); this.saveAndApply(); Chat.render();
+                    App.toast('导入成功');
+                } catch(err) { App.toast('数据格式错误'); }
+            };
+            r.readAsText(f); e.target.value = '';
+        };
+        document.getElementById('btn-reset-all').onclick = () => {
+            if(confirm('确定重置所有数据？该操作不可逆！')) { localStorage.removeItem('appData_v12'); location.reload(); }
+        };
+
+        //
