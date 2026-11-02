@@ -35,6 +35,7 @@
         }
         svg { fill: currentColor; width: 24px; height: 24px; }
         img { object-fit: cover; }
+        /* 首页 */
         #home-screen {
             display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px;
             padding: 60px 20px 20px; align-content: start; height: 100%;
@@ -50,6 +51,7 @@
         }
         .app-icon span { font-size: 13px; margin-top: 10px; font-weight: bold; letter-spacing: 1px;}
         .app-icon:active { transform: scale(0.92); }
+        /* 页面基础 */
         .page {
             display: none; flex-direction: column; height: 100%;
             background: var(--bg-color); position: absolute; top: 0; left: 0; width: 100%; z-index: 10;
@@ -62,6 +64,7 @@
         .back-btn { margin-right: 15px; cursor: pointer; padding: 5px; display: flex; align-items: center;}
         .header-right { display: flex; gap: 15px; align-items: center;}
         .header-btn { cursor:pointer; padding: 5px; display: flex; align-items: center;}
+        /* 聊天区域 */
         .chat-area {
             flex: 1; overflow-y: auto; padding: 15px;
             display: flex; flex-direction: column; gap: 15px;
@@ -71,14 +74,18 @@
         .msg-row { display: flex; width: 100%; align-items: flex-start; gap: 10px; flex-shrink: 0; }
         .msg-row.user { justify-content: flex-end; }
         .msg-row.other { justify-content: flex-start; }
+        
         .avatar-container { display: flex; flex-direction: column; align-items: center; gap:4px; flex-shrink:0; width: 38px;}
         .avatar { width: 38px; height: 38px; border-radius: 6px; object-fit: cover; background: #ddd; cursor: pointer; user-select: none;}
+        
         .msg-time-avatar { font-size: 10px; color: #999; text-align: center; line-height: 1; margin-top: 2px; word-break: keep-all;}
         .msg-content-wrapper { display: flex; flex-direction: column; max-width: 75%; position: relative; }
         .msg-row.user .msg-content-wrapper { align-items: flex-end; }
+        
         .msg-header { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
         .msg-row.user .msg-header { justify-content: flex-end; }
         .msg-name { font-size: 12px; color: #888; margin-left: 2px; }
+        /* 基础气泡样式 */
         .msg {
             padding: 10px 14px; border-radius: 12px;
             line-height: 1.5; word-break: break-all;
@@ -86,6 +93,7 @@
         }
         .msg.user { background: var(--bubble-user); color: var(--bubble-user-text); border-top-right-radius: 2px; }
         .msg.other { background: var(--bubble-other); color: var(--bubble-other-text); border-top-left-radius: 2px; border-color: var(--border-color); }
+        
         .msg.quote { font-size: 12px; opacity: 0.6; border-left: 2px solid var(--accent); padding-left: 8px; margin-bottom: 5px; display: block; background: rgba(128,128,128,0.05); }
         .msg img { max-width: 100%; max-height: 200px; min-height: 50px; border-radius: 8px; margin-top: 5px; display: block; cursor: zoom-in; background: rgba(0,0,0,0.05);}
         .msg-time-bottom { font-size: 11px; color: #999; margin-top: 4px; display: none; text-align: center;}
@@ -98,6 +106,7 @@
         #quote-preview { display: none; background: var(--header-bg); padding: 8px 15px; font-size: 13px; color: #666; border-top: 1px solid var(--border-color); align-items: center; justify-content: space-between; flex-shrink: 0;}
         #quote-preview span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
         #quote-preview button { background: none; border: none; cursor: pointer; color: var(--text-color); }
+        /* --- 问问TA 问卷卡片样式 --- */
         .survey-card {
             background: var(--bubble-other); border: 1px solid var(--border-color);
             border-radius: 16px; padding: 15px; width: 280px;
@@ -106,6 +115,7 @@
         }
         .msg-row.user .survey-card { background: var(--bubble-user); color: var(--bubble-user-text); border-color: var(--bubble-user); }
         .msg-row.user .survey-card .survey-option { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+        
         .survey-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .survey-tag { border: 1px solid currentColor; border-radius: 12px; padding: 2px 8px; font-size: 12px; font-weight: bold; }
         .survey-status { font-size: 12px; opacity: 0.7; }
@@ -123,6 +133,7 @@
         .survey-option.selected .survey-radio::after { content: ''; width: 8px; height: 8px; background: var(--text-color); border-radius: 50%; }
         .survey-check { margin-left: auto; font-size: 16px; font-weight: bold; }
         .survey-footer { font-size: 12px; opacity: 0.7; }
+        /* 输入框区域 */
         .input-area {
             padding: 10px 15px; padding-bottom: max(10px, env(safe-area-inset-bottom));
             background: var(--header-bg); display: flex; gap: 10px; align-items: center;
@@ -131,6 +142,7 @@
         .input-area input { flex: 1; padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; font-size: 15px; background: var(--bg-color); color: var(--text-color);}
         .btn-icon { border: none; background: none; color: var(--text-color); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 5px;}
         .btn-send { padding: 0; background: var(--bubble-user); color: var(--bubble-user-text); border: none; border-radius: 8px; width: 50px; height: 38px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 14px; font-weight: bold;}
+        /* 面板 */
         #extra-panel, #emoji-panel { display: none; background: var(--header-bg); border-top: 1px solid var(--border-color); padding: 15px; flex-shrink: 0;}
         #extra-panel { height: 130px; display: flex; gap: 25px; overflow-x: auto;}
         .panel-action { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color); flex-shrink: 0; }
@@ -148,6 +160,8 @@
         .emoji-content-area.active { display: block; }
         .emoji-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
         .emoji-grid img { width: 100%; aspect-ratio: 1; object-fit: contain; cursor: pointer; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); padding: 5px; loading: lazy; }
+        
+        /* 列表与字卡 */
         .list-container { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; -webkit-overflow-scrolling: touch;}
         .list-item { background: var(--header-bg); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
         .list-item-info { flex: 1; }
@@ -161,6 +175,7 @@
         .group-title-left { display: flex; align-items: center; gap: 5px;}
         .group-title .arrow { font-size: 10px; transition: transform 0.2s; }
         .group-title.collapsed .arrow { transform: rotate(-90deg); }
+        
         .card-item { background: var(--header-bg); padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
         .card-item span { flex: 1; font-size: 14px; line-height: 1.4; word-break: break-all; }
         .card-actions { display: flex; gap: 8px;}
@@ -168,6 +183,7 @@
         .add-card-bar { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--header-bg); padding: 15px; padding-bottom: max(15px, env(safe-area-inset-bottom)); display: flex; gap: 10px; border-top: 1px solid var(--border-color); z-index: 5;}
         .add-card-bar input { flex: 1; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; font-size: 15px; background: var(--bg-color); color: var(--text-color);}
         .add-card-bar button { background: var(--bubble-user); color: var(--bubble-user-text); border: none; border-radius: 8px; padding: 0 20px; font-size: 15px; }
+        /* 音乐模块样式 */
         .music-player { padding: 20px; background: var(--header-bg); border-bottom: 1px solid var(--border-color); text-align: center; }
         .music-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-color);}
         .music-progress { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--accent); margin-bottom: 15px;}
@@ -179,6 +195,8 @@
         .music-add-bar { padding: 10px; display: flex; gap: 5px; border-bottom: 1px solid var(--border-color); background: var(--header-bg);}
         .music-add-bar input { flex: 1; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-color); color: var(--text-color); font-size: 13px; }
         .music-add-bar button { padding: 8px 12px; background: var(--bubble-user); color: var(--bubble-user-text); border: none; border-radius: 5px; cursor: pointer; font-size: 13px; white-space: nowrap;}
+        
+        /* 设置面板 */
         .settings-content { padding: 20px; overflow-y: auto; flex: 1; padding-bottom: 100px; -webkit-overflow-scrolling: touch;}
         .setting-item { margin-bottom: 20px; background: var(--header-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);}
         .setting-item label { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; font-size: 14px; align-items: center;}
@@ -190,9 +208,11 @@
         .toggle:checked { background: #333; }
         .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: #fff; border-radius: 50%; transition: 0.3s; }
         .toggle:checked::after { transform: translateX(20px); }
+        
         .profile-edit { display: flex; gap: 10px; margin-bottom: 10px; align-items: center;}
         .profile-edit img { width: 45px; height: 45px; border-radius: 6px; object-fit: cover; background: #eee; border: 1px solid var(--border-color); display: block;}
         .profile-edit input[type="file"] { flex: 1; font-size: 12px; color: #666; }
+        /* 弹窗 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 200; justify-content: center; align-items: center; pointer-events: none;}
         .modal.show { display: flex; pointer-events: auto; }
         .modal-content { background: var(--header-bg); color: var(--text-color); width: 90%; max-width: 400px; border-radius: 15px; padding: 20px; display: flex; flex-direction: column; gap: 15px; border: 1px solid var(--border-color);}
@@ -203,6 +223,7 @@
         .btn-cancel { background: var(--border-color); color: var(--text-color); }
         .btn-confirm { background: var(--bubble-user); color: var(--bubble-user-text); }
         .btn-danger { background: #444; color: #fff;}
+        /* =========【最小改动：修复action‑sheet点击bug，其余CSS完全不动】========= */
         #action-sheet {
             display: none;
             position: fixed;
@@ -229,6 +250,7 @@
         .action-btn.danger { color: #666; }
         .action-cancel { margin-top: 8px; border-bottom: none; border-top: 8px solid var(--border-color); font-weight: bold;}
         .letter-content { white-space: pre-wrap; line-height: 1.6; font-size: 15px; padding: 10px; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); min-height: 200px;}
+        /* 问问TA 弹窗 */
         .ask-tabs { display: flex; background: var(--bg-color); border-radius: 8px; padding: 4px; margin-bottom: 15px; border: 1px solid var(--border-color);}
         .ask-tab { flex: 1; text-align: center; padding: 8px 0; font-size: 14px; cursor: pointer; border-radius: 6px; color: var(--accent); transition: 0.2s; font-weight: bold;}
         .ask-tab.active { background: var(--header-bg); color: var(--text-color); box-shadow: 0 1px 3px rgba(0,0,0,0.1);}
@@ -238,12 +260,14 @@
         .ask-form-group label { font-size: 13px; font-weight: bold; color: var(--accent);}
         .ask-form-group input, .ask-form-group textarea { padding: 12px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; outline: none; color: var(--text-color);}
         .ask-form-group textarea { height: 80px; resize: none;}
+        /* 通话全屏界面 */
         #call-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #111;
             z-index: 500; display: none; flex-direction: column; align-items: center; justify-content: center;
             color: #fff; pointer-events: none;
         }
         #call-overlay.show { display: flex; pointer-events: auto; }
+        
         #local-video-preview {
             position: absolute; top: 40px; right: 20px; width: 100px; height: 150px;
             border-radius: 12px; object-fit: cover; background: #222; border: 1px solid rgba(255,255,255,0.2);
@@ -253,6 +277,7 @@
         .call-avatar { width: 120px; height: 120px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.2); object-fit: cover;}
         .call-name { font-size: 24px; font-weight: bold; }
         .call-status { font-size: 16px; color: #aaa; margin-top: 10px; }
+        
         .call-actions { position: absolute; bottom: 80px; width: 100%; display: flex; justify-content: space-around; padding: 0 40px; }
         .call-btn { width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 16px; color: #fff; border: none;}
         .btn-reject { background: #ff3b30; }
@@ -263,26 +288,59 @@
     </style>
 </head>
 <body>
+    <!-- 隐藏的后台保活音频 (静音) -->
     <audio id="keep-alive-audio" loop src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA">
+    <!-- 首页 -->
     <div id="home-screen">
-        <div class="app-icon" data-app="chat-app"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg><span>聊天</span></div>
-        <div class="app-icon" data-app="cards-app"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" /></svg><span>字卡库</span></div>
-        <div class="app-icon" data-app="pat-app"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.58 8 8-3.59 8-8 8z" /><path d="M8 12l2 2 4-4" /></svg><span>拍一拍</span></div>
-        <div class="app-icon" data-app="emoji-app"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" /></svg><span>表情包</span></div>
-        <div class="app-icon" data-app="letter-app"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" /></svg><span>信箱</span></div>
-        <div class="app-icon" data-app="music-app"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" /></svg><span>音乐</span></div>
-        <div class="app-icon" data-app="settings-app"><svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" /></svg><span>设置</span></div>
+        <div class="app-icon" data-app="chat-app">
+            <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg>
+            <span>聊天</span>
+        </div>
+        <div class="app-icon" data-app="cards-app">
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" /></svg>
+            <span>字卡库</span>
+        </div>
+        <div class="app-icon" data-app="pat-app">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.58 8 8-3.59 8-8 8z" /><path d="M8 12l2 2 4-4" /></svg>
+            <span>拍一拍</span>
+        </div>
+        <div class="app-icon" data-app="emoji-app">
+            <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" /></svg>
+            <span>表情包</span>
+        </div>
+        <div class="app-icon" data-app="letter-app">
+            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" /></svg>
+            <span>信箱</span>
+        </div>
+        <div class="app-icon" data-app="music-app">
+            <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" /></svg>
+            <span>音乐</span>
+        </div>
+        <div class="app-icon" data-app="settings-app">
+            <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" /></svg>
+            <span>设置</span>
+        </div>
     </div>
+    <!-- 聊天页面 -->
     <div id="chat-app" class="page">
         <div class="header">
-            <div class="back-btn" data-close="chat-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div>
+            <div class="back-btn" data-close="chat-app">
+                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
+            </div>
             <div style="flex:1;" id="chat-title">对方</div>
             <div class="header-right">
-                <div class="header-btn" id="btn-call-voice"><svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" /></svg></div>
-                <div class="header-btn" id="btn-call-video"><svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" /></svg></div>
-                <div class="header-btn" id="btn-clear-chat"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" /></svg></div>
+                <div class="header-btn" id="btn-call-voice" title="语音通话">
+                    <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" /></svg>
+                </div>
+                <div class="header-btn" id="btn-call-video" title="视频通话">
+                    <svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" /></svg>
+                </div>
+                <div class="header-btn" id="btn-clear-chat" title="清空记录">
+                    <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" /></svg>
+                </div>
             </div>
         </div>
+        
         <div class="chat-area" id="chat-area"></div>
         <div class="typing-status" id="typing-status">对方正在输入...</div>
         <div id="emoji-panel">
@@ -304,37 +362,91 @@
             </div>
         </div>
         <div id="extra-panel">
-            <div class="panel-action" id="btn-upload-img"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" /></svg></div><span>相册</span></div>
-            <div class="panel-action" id="btn-open-ask"><div class="icon-box"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" /></svg></div><span>问问TA</span></div>
+            <div class="panel-action" id="btn-upload-img">
+                <div class="icon-box">
+                    <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" /></svg>
+                </div>
+                <span>相册</span>
+            </div>
+            <div class="panel-action" id="btn-open-ask">
+                <div class="icon-box">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" /></svg>
+                </div>
+                <span>问问TA</span>
+            </div>
         </div>
         <input type="file" id="img-upload-input" accept="image/*" style="display:none">
-        <div id="quote-preview"><span id="quote-text"></span><button id="btn-cancel-quote">✕</button></div>
+        
+        <div id="quote-preview">
+            <span id="quote-text"></span>
+            <button id="btn-cancel-quote">✕</button>
+        </div>
+        
         <div class="input-area">
-            <button class="btn-icon" id="btn-toggle-emoji"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" /></svg></button>
+            <button class="btn-icon" id="btn-toggle-emoji">
+                <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" /></svg>
+            </button>
             <input type="text" id="msg-input" placeholder="">
-            <button class="btn-icon" id="btn-toggle-extra"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" /></svg></button>
-            <button class="btn-icon" id="btn-continue"><svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" /></svg></button>
+            <button class="btn-icon" id="btn-toggle-extra">
+                <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" /></svg>
+            </button>
+            <button class="btn-icon" id="btn-continue" title="让对方继续说">
+                <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" /></svg>
+            </button>
             <button class="btn-send" id="btn-send-msg">发送</button>
         </div>
     </div>
+    <!-- 音乐页面 -->
     <div id="music-app" class="page">
-        <div class="header"><div class="back-btn" data-close="music-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">音乐播放器</div></div>
+        <div class="header">
+            <div class="back-btn" data-close="music-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div>
+            <div style="flex:1;">音乐播放器</div>
+        </div>
         <div class="music-player">
             <div class="music-title" id="music-title">未在播放</div>
-            <div class="music-progress"><span id="music-cur-time">00:00</span><input type="range" id="music-progress-bar" value="0" min="0" max="100" step="0.1"><span id="music-total-time">00:00</span></div>
-            <div class="music-controls"><button id="btn-mode" class="music-btn">🔁</button><button id="btn-prev" class="music-btn">⏮</button><button id="btn-play" class="music-btn">▶</button><button id="btn-next" class="music-btn">⏭</button></div>
+            <div class="music-progress">
+                <span id="music-cur-time">00:00</span>
+                <input type="range" id="music-progress-bar" value="0" min="0" max="100" step="0.1">
+                <span id="music-total-time">00:00</span>
+            </div>
+            <div class="music-controls">
+                <button id="btn-mode" class="music-btn" title="播放模式">🔁</button>
+                <button id="btn-prev" class="music-btn">⏮</button>
+                <button id="btn-play" class="music-btn">▶</button>
+                <button id="btn-next" class="music-btn">⏭</button>
+            </div>
         </div>
         <div class="music-list-container">
-            <div class="music-add-bar"><input type="text" id="music-url-input" placeholder="输入音乐直链URL..."><button id="btn-add-music-url">添加</button><button id="btn-add-music-file">本地上传</button><input type="file" id="music-file-input" accept="audio/*" style="display:none"></div>
+            <div class="music-add-bar">
+                <input type="text" id="music-url-input" placeholder="输入音乐直链URL...">
+                <button id="btn-add-music-url">添加</button>
+                <button id="btn-add-music-file">本地上传</button>
+                <input type="file" id="music-file-input" accept="audio/*" style="display:none">
+            </div>
             <div id="music-list" class="list-container" style="padding-bottom:0;"></div>
         </div>
     </div>
+    <!-- 拍一拍管理页面 -->
     <div id="pat-app" class="page">
-        <div class="header"><div class="back-btn" data-close="pat-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">拍一拍词库</div></div>
-        <div class="cards-toolbar"><button class="btn-tool" id="btn-pat-batch">批量添加</button><button class="btn-tool" id="btn-pat-export">导出TXT</button><button class="btn-tool" id="btn-pat-import">导入TXT</button><input type="file" id="pat-file-input" accept=".txt" style="display:none"></div>
+        <div class="header">
+            <div class="back-btn" data-close="pat-app">
+                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
+            </div>
+            <div style="flex:1;">拍一拍词库</div>
+        </div>
+        <div class="cards-toolbar">
+            <button class="btn-tool" id="btn-pat-batch">批量添加</button>
+            <button class="btn-tool" id="btn-pat-export">导出TXT</button>
+            <button class="btn-tool" id="btn-pat-import">导入TXT</button>
+            <input type="file" id="pat-file-input" accept=".txt" style="display:none">
+        </div>
         <div class="list-container" id="pat-list"></div>
-        <div class="add-card-bar"><input type="text" id="new-pat-input" placeholder="单条添加词条..."><button id="btn-pat-single">添加</button></div>
+        <div class="add-card-bar">
+            <input type="text" id="new-pat-input" placeholder="单条添加词条...">
+            <button id="btn-pat-single">添加</button>
+        </div>
     </div>
+    <!-- 字卡库 -->
     <div id="cards-app" class="page">
         <div class="header"><div class="back-btn" data-close="cards-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">字卡库</div></div>
         <div class="search-bar"><input type="text" id="search-input" placeholder="搜索字卡内容..."></div>
@@ -342,15 +454,24 @@
         <div class="list-container" id="cards-list"></div>
         <div class="add-card-bar"><input type="text" id="new-card-input" placeholder="单条添加..."><button id="btn-add-single">添加</button></div>
     </div>
+    <!-- 表情包库 -->
     <div id="emoji-app" class="page">
         <div class="header"><div class="back-btn" data-close="emoji-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">表情包库</div></div>
         <div class="cards-toolbar"><button class="btn-tool" id="btn-add-emoji-net">加网络图</button><button class="btn-tool" id="btn-add-emoji-local">加本地图</button><input type="file" id="batch-emoji-input" multiple accept="image/*" style="display:none"><button class="btn-tool" id="btn-clear-emoji" style="color: #666;">清空全部</button></div>
         <div class="list-container"><div class="emoji-grid" id="emoji-grid-full" style="grid-template-columns: repeat(4, 1fr);"></div></div>
     </div>
+    <!-- 信箱 -->
     <div id="letter-app" class="page">
-        <div class="header"><div class="back-btn" data-close="letter-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">信箱</div><div class="header-right"><div class="header-btn" id="btn-write-letter">写</div></div></div>
+        <div class="header">
+            <div class="back-btn" data-close="letter-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div>
+            <div style="flex:1;">信箱</div>
+            <div class="header-right">
+                <div class="header-btn" id="btn-write-letter">写</div>
+            </div>
+        </div>
         <div class="list-container" id="letters-list"></div>
     </div>
+    <!-- 设置 -->
     <div id="settings-app" class="page">
         <div class="header"><div class="back-btn" data-close="settings-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">设置</div></div>
         <div class="settings-content">
@@ -359,18 +480,25 @@
                 <div class="switch-row"><label>桌面消息通知</label><input type="checkbox" class="toggle" id="set-desktop-notify"></div>
                 <div class="switch-row"><label>后台保活 (静音播放防休眠)</label><input type="checkbox" class="toggle" id="set-keep-alive"></div>
             </div>
+            
             <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">角色资料</h3>
             <div class="setting-item">
                 <label>我的名字</label><input type="text" id="set-my-name">
                 <label style="margin-top:10px;">我的头像</label>
-                <div class="profile-edit"><img id="my-avatar-preview" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z' /></svg>"><input type="file" id="set-my-avatar-file" accept="image/*"></div>
+                <div class="profile-edit">
+                    <img id="my-avatar-preview" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z' /></svg>">
+                    <input type="file" id="set-my-avatar-file" accept="image/*">
+                </div>
             </div>
             <div class="setting-item">
                 <div class="switch-row"><label>群聊模式</label><input type="checkbox" class="toggle" id="set-is-group"></div>
                 <div id="single-bot-settings">
                     <label>对方的名字</label><input type="text" id="set-bot-name">
                     <label style="margin-top:10px;">对方头像</label>
-                    <div class="profile-edit"><img id="bot-avatar-preview" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z' /></svg>"><input type="file" id="set-bot-avatar-file" accept="image/*"></div>
+                    <div class="profile-edit">
+                        <img id="bot-avatar-preview" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z' /></svg>">
+                        <input type="file" id="set-bot-avatar-file" accept="image/*">
+                    </div>
                 </div>
                 <div id="group-settings" style="display:none; margin-top:10px;"><label>群成员列表 (JSON格式)</label><textarea id="set-group-members" style="height:80px;" placeholder='[{"name":"成员1","avatar":"url"}]'></textarea></div>
             </div>
@@ -428,18 +556,4 @@
             <div class="setting-item">
                 <label>对方主动写信间隔 (分钟，0关)</label>
                 <div style="display:flex; gap:10px;"><input type="number" id="set-letter-min" min="0" placeholder="最小"><input type="number" id="set-letter-max" min="0" placeholder="最大"></div>
-                <label style="margin-top:10px;">对方主动写信概率 (%) <span id="val-letter-prob">10%</span></label><input type="range" id="slider-letter-prob" min="0" max="100" value="10">
-                <label style="margin-top:10px;">对方收到我的信后回信概率 (%) <span id="val-reply-prob">80%</span></label><input type="range" id="slider-reply-prob" min="0" max="100" value="80">
-            </div>
-            <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">数据管理</h3>
-            <div class="setting-item">
-                <button class="btn-tool" style="width:100%; padding:12px; margin-bottom:10px;" id="btn-export-all">导出所有数据</button>
-                <button class="btn-tool" style="width:100%; padding:12px; margin-bottom:10px;" id="btn-import-all">导入所有数据</button>
-                <input type="file" id="import-all-file" style="display:none" accept=".json">
-                <button class="btn-tool btn-danger" style="width:100%; padding:12px;" id="btn-reset-all">重置所有数据</button>
-            </div>
-            <button class="btn-confirm" style="width:100%; padding:15px; border-radius:10px; margin-bottom:50px;" id="btn-save-settings">保存所有设置</button>
-        </div>
-    </div>
-    <div id="batch-modal" class="modal"><div class="modal-content"><h3 style="text-align:center;">批量添加字卡</h3><textarea id="batch-text" placeholder="【日常】&#10;早安&#10;晚安"></textarea><div class="modal-btns"><button class="btn-cancel" data-close-modal="batch-modal">取消</button><button class="btn-confirm" id="btn-batch-confirm">确认</button></div></div></div>
-    <div id="pat-batch-modal" class="modal"><div class="modal-content"><h3 style="text-align:center;">批量添加拍一拍</h3><textarea id="pat-text" placeholder="抱了抱你&#10
+                <label style="margin-top:10px;">对方主动写信概率 (%) <span id="val-letter-prob">10%</span></label><input type="range" id="slider-
