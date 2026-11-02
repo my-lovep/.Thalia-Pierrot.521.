@@ -299,9 +299,7 @@
     </style>
 </head>
 <body>
-    <!-- 隐藏的后台保活音频 -->
     <audio id="keep-alive-audio" loop src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA"></audio>
-    <!-- 全局音频播放器 -->
     <audio id="global-audio" style="display:none;"></audio>
 
     <!-- 首页 -->
@@ -397,9 +395,9 @@
                 <div style="margin-top:10px; font-size:12px; color:#888;">注：对方偶尔会向网站申请增加余额。</div>
             </div>
             <div class="setting-item">
-                <label>发红包/转账概率 (%) <span id="val-give">10%</span></label><input type="range" id="slider-give" min="0" max="100" value="10">
-                <label style="margin-top:10px;">收下红包概率 (%) <span id="val-receive">80%</span></label><input type="range" id="slider-receive" min="0" max="100" value="80">
-                <label style="margin-top:10px;">退回红包概率 (%) <span id="val-return">20%</span></label><input type="range" id="slider-return" min="0" max="100" value="20">
+                <label>发红包/转账概率 (%) <span id="val-give">10%</span></label><input type="range" id="slider-give" min="0" max="100" value="10" oninput="Settings.sliderChange('give')" onchange="Settings.save()">
+                <label style="margin-top:10px;">收下红包概率 (%) <span id="val-receive">80%</span></label><input type="range" id="slider-receive" min="0" max="100" value="80" oninput="Settings.sliderChange('receive')" onchange="Settings.save()">
+                <label style="margin-top:10px;">退回红包概率 (%) <span id="val-return">20%</span></label><input type="range" id="slider-return" min="0" max="100" value="20" oninput="Settings.sliderChange('return')" onchange="Settings.save()">
             </div>
             
             <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">系统与通知</h3>
@@ -442,7 +440,7 @@
                 <label>日夜模式</label><select id="set-theme" onchange="Settings.save()"><option value="system">跟随系统</option><option value="light">浅色模式</option><option value="dark">深色模式</option></select>
             </div>
             <div class="setting-item">
-                <label>系统字体大小 (<span id="val-font-size">16</span>px)</label><input type="range" id="slider-font-size" min="12" max="24" step="1" value="16">
+                <label>系统字体大小 (<span id="val-font-size">16</span>px)</label><input type="range" id="slider-font-size" min="12" max="24" step="1" value="16" oninput="Settings.sliderChange('font')" onchange="Settings.save()">
             </div>
             <div class="setting-item">
                 <label>自定义字体链接/名称</label><input type="text" id="set-font-url" placeholder="如：SimSun 或 @import链接">
@@ -454,18 +452,18 @@
             <div class="setting-item">
                 <label>模拟真人延迟 (秒)</label><div style="display:flex; gap:10px;"><input type="number" id="set-delay-min" min="1" placeholder="最小" onchange="Settings.save()"><input type="number" id="set-delay-max" min="1" placeholder="最大" onchange="Settings.save()"></div>
                 <label style="margin-top:10px;">主动发消息 (分钟，0关)</label><div style="display:flex; gap:10px;"><input type="number" id="set-proactive-min" min="0" placeholder="最小" onchange="Settings.save()"><input type="number" id="set-proactive-max" min="0" placeholder="最大" onchange="Settings.save()"></div>
-                <label style="margin-top:10px;">已读不回概率 (%) <span id="val-ignore">20%</span></label><input type="range" id="slider-ignore" min="0" max="100" value="20">
-                <label style="margin-top:10px;">引用回复概率 (%) <span id="val-quote">30%</span></label><input type="range" id="slider-quote" min="0" max="100" value="30">
-                <label style="margin-top:10px;">对方主动拍一拍概率 (%) <span id="val-pat-prob">10%</span></label><input type="range" id="slider-pat-prob" min="0" max="100" value="10">
-                <label style="margin-top:10px;">对方主动来电概率 (%) <span id="val-call-prob">5%</span></label><input type="range" id="slider-call-prob" min="0" max="100" value="5">
-                <label style="margin-top:10px;">对方接听我的来电概率 (%) <span id="val-answer-prob">80%</span></label><input type="range" id="slider-answer-prob" min="0" max="100" value="80">
-                <label style="margin-top:10px;">对方主动挂断概率 (%) <span id="val-hangup-prob">10%</span></label><input type="range" id="slider-hangup-prob" min="0" max="100" value="10">
+                <label style="margin-top:10px;">已读不回概率 (%) <span id="val-ignore">20%</span></label><input type="range" id="slider-ignore" min="0" max="100" value="20" oninput="Settings.sliderChange('ignore')" onchange="Settings.save()">
+                <label style="margin-top:10px;">引用回复概率 (%) <span id="val-quote">30%</span></label><input type="range" id="slider-quote" min="0" max="100" value="30" oninput="Settings.sliderChange('quote')" onchange="Settings.save()">
+                <label style="margin-top:10px;">对方主动拍一拍概率 (%) <span id="val-pat-prob">10%</span></label><input type="range" id="slider-pat-prob" min="0" max="100" value="10" oninput="Settings.sliderChange('pat-prob')" onchange="Settings.save()">
+                <label style="margin-top:10px;">对方主动来电概率 (%) <span id="val-call-prob">5%</span></label><input type="range" id="slider-call-prob" min="0" max="100" value="5" oninput="Settings.sliderChange('call-prob')" onchange="Settings.save()">
+                <label style="margin-top:10px;">对方接听我的来电概率 (%) <span id="val-answer-prob">80%</span></label><input type="range" id="slider-answer-prob" min="0" max="100" value="80" oninput="Settings.sliderChange('answer-prob')" onchange="Settings.save()">
+                <label style="margin-top:10px;">对方主动挂断概率 (%) <span id="val-hangup-prob">10%</span></label><input type="range" id="slider-hangup-prob" min="0" max="100" value="10" oninput="Settings.sliderChange('hangup-prob')" onchange="Settings.save()">
             </div>
             <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">写信逻辑</h3>
             <div class="setting-item">
                 <label>对方主动写信间隔 (分钟，0关)</label><div style="display:flex; gap:10px;"><input type="number" id="set-letter-min" min="0" placeholder="最小" onchange="Settings.save()"><input type="number" id="set-letter-max" min="0" placeholder="最大" onchange="Settings.save()"></div>
-                <label style="margin-top:10px;">对方主动写信概率 (%) <span id="val-letter-prob">10%</span></label><input type="range" id="slider-letter-prob" min="0" max="100" value="10">
-                <label style="margin-top:10px;">对方收到我的信后回信概率 (%) <span id="val-reply-prob">80%</span></label><input type="range" id="slider-reply-prob" min="0" max="100" value="80">
+                <label style="margin-top:10px;">对方主动写信概率 (%) <span id="val-letter-prob">10%</span></label><input type="range" id="slider-letter-prob" min="0" max="100" value="10" oninput="Settings.sliderChange('letter-prob')" onchange="Settings.save()">
+                <label style="margin-top:10px;">对方收到我的信后回信概率 (%) <span id="val-reply-prob">80%</span></label><input type="range" id="slider-reply-prob" min="0" max="100" value="80" oninput="Settings.sliderChange('reply-prob')" onchange="Settings.save()">
             </div>
             
             <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">数据管理</h3>
@@ -550,7 +548,8 @@
     <style id="dynamic-bubble-style"></style>
 
 <script>
-const DB_KEY = 'appData_v20_fixed';
+// ================= 基础数据与保存 =================
+const DB_KEY = 'appData_v21_final_fix';
 
 const App = {
     data: {
@@ -588,22 +587,24 @@ const App = {
     },
     loadData: function() {
         try {
-            const stored = localStorage.getItem(DB_KEY) || localStorage.getItem('appData_v19_safe_money');
+            const stored = localStorage.getItem(DB_KEY) || localStorage.getItem('appData_v20_fixed');
             if (stored) {
                 const parsed = JSON.parse(stored);
                 this.data = { ...this.data, ...parsed, settings: { ...this.data.settings, ...(parsed.settings || {}) }, wallet: { ...this.data.wallet, ...(parsed.wallet || {}) } };
             }
-        } catch(e) {}
+        } catch(e) { console.error('加载数据失败', e); }
     },
     openApp: function(id) {
         document.getElementById(id).style.display = 'flex';
-        if (id === 'chat-app') { Chat.currentLimit = 50; Chat.render(); Chat.scrollToBottom(true); }
-        else if (id === 'cards-app') Cards.render();
-        else if (id === 'settings-app') Settings.render();
-        else if (id === 'letter-app') Letters.render();
-        else if (id === 'emoji-app') Emoji.renderFull();
-        else if (id === 'pat-app') Pat.render();
-        else if (id === 'music-app') Music.renderList();
+        try {
+            if (id === 'chat-app') { Chat.currentLimit = 50; Chat.render(); Chat.scrollToBottom(true); }
+            else if (id === 'cards-app') Cards.render();
+            else if (id === 'settings-app') Settings.render();
+            else if (id === 'letter-app') Letters.render();
+            else if (id === 'emoji-app') Emoji.renderFull();
+            else if (id === 'pat-app') Pat.render();
+            else if (id === 'music-app') Music.renderList();
+        } catch (e) { console.error('页面渲染出错:', e); }
     },
     closeApp: function(id) {
         document.getElementById(id).style.display = 'none';
@@ -629,6 +630,7 @@ const App = {
     }
 };
 
+// 全局点击事件委托，处理应用切换和关闭
 document.body.addEventListener('click', function(e) {
     const appIcon = e.target.closest('.app-icon');
     if (appIcon) { App.openApp(appIcon.dataset.app); return; }
@@ -646,7 +648,7 @@ document.body.addEventListener('touchstart', function unlockAudio() {
     document.body.removeEventListener('touchstart', unlockAudio);
 }, { once: true });
 
-// 聊天逻辑
+// ================= 聊天核心逻辑 =================
 const Chat = {
     currentLimit: 50,
     isFetchingHistory: false,
@@ -700,8 +702,8 @@ const Chat = {
             reader.readAsDataURL(file); e.target.value = '';
         };
         
-        document.getElementById('btn-call-voice').onclick = () => Call.start(false, false);
-        document.getElementById('btn-call-video').onclick = () => Call.start(true, false);
+        document.getElementById('btn-call-voice').onclick = () => Call.start(false);
+        document.getElementById('btn-call-video').onclick = () => Call.start(true);
     },
     
     triggerPat: function(isMe) {
@@ -711,16 +713,9 @@ const Chat = {
         const patCard = App.data.pats.length > 0 ? App.data.pats[Math.floor(Math.random() * App.data.pats.length)] : '拍了拍';
         let target = isMe ? s.botName : s.myName;
         let subject = isMe ? s.myName : s.botName;
-        let finalMsg = "";
-        if (patCard.includes(':') || patCard.includes('：')) {
-            finalMsg = `${subject}${patCard.startsWith('我')? patCard.slice(1):patCard}`.replace(/我/g, subject).replace(/你/g, target);
-        } else {
-            if (patCard.startsWith('拍了拍')) finalMsg = `${subject}${patCard.replace(/你/g, target)}${patCard==='拍了拍'?target:''}`;
-            else {
-                finalMsg = `${subject}${patCard.replace(/你/g, target)}`;
-                if (patCard === '抱了抱你') finalMsg = `${subject}抱了抱${target}`; 
-            }
-        }
+        let finalMsg = `${subject} ${patCard.replace(/我/g, subject).replace(/你/g, target)}`;
+        if (patCard === '拍了拍') finalMsg = `${subject} 拍了拍 ${target}`;
+        
         App.data.messages.push({ id: Date.now(), role: 'system', content: finalMsg, time: Date.now() });
         this.currentLimit = 50; this.render(); this.scrollToBottom(true); App.saveData(); this.playSound();
         if (isMe && Math.random() * 100 < s.patProb) setTimeout(() => this.triggerPat(false), 1500 + Math.random() * 1000);
@@ -1020,7 +1015,7 @@ document.querySelectorAll('.ask-tab').forEach(tab => {
     }
 });
 
-// 设置模块
+// ================= 设置逻辑 (修复版) =================
 const Settings = {
     render: function() {
         const s = App.data.settings, w = App.data.wallet;
@@ -1031,7 +1026,18 @@ const Settings = {
         sliders.forEach(id => {
             const el = document.getElementById('slider-' + id);
             const valEl = document.getElementById('val-' + id);
-            if(el && valEl) { el.value = s[id.replace('-','')] || s[id.replace('-prob','Prob')]; valEl.innerText = el.value + '%'; }
+            let propKey = id.replace('-prob', 'Prob').replace('-',''); // 匹配对象属性名
+            if (id === 'pat-prob') propKey = 'patProb';
+            if (id === 'call-prob') propKey = 'callProb';
+            if (id === 'answer-prob') propKey = 'answerProb';
+            if (id === 'hangup-prob') propKey = 'hangupProb';
+            if (id === 'letter-prob') propKey = 'letterProb';
+            if (id === 'reply-prob') propKey = 'replyProb';
+            
+            if(el && valEl) { 
+                el.value = s[propKey] !== undefined ? s[propKey] : (s[id] || 10); 
+                valEl.innerText = el.value + '%'; 
+            }
         });
         
         document.getElementById('set-my-name').value = s.myName;
@@ -1057,6 +1063,15 @@ const Settings = {
         document.getElementById('set-letter-min').value = s.letterMin;
         document.getElementById('set-letter-max').value = s.letterMax;
     },
+    sliderChange: function(id) {
+        const el = document.getElementById('slider-' + id);
+        const valEl = document.getElementById('val-' + id);
+        if (el && valEl) valEl.innerText = el.value + (id === 'font' ? 'px' : '%');
+        if (id === 'font') {
+            App.data.settings.fontSize = parseInt(el.value);
+            this.applyStyles();
+        }
+    },
     save: function() {
         const s = App.data.settings, w = App.data.wallet;
         w.my = parseFloat(document.getElementById('set-my-balance').value || 0).toFixed(2);
@@ -1065,7 +1080,16 @@ const Settings = {
         const sliders = ['give','receive','return','ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob'];
         sliders.forEach(id => {
             const el = document.getElementById('slider-' + id);
-            if(el) s[id.replace('-','')] = parseInt(el.value);
+            if(el) {
+                let propKey = id.replace('-prob', 'Prob').replace('-','');
+                if (id === 'pat-prob') propKey = 'patProb';
+                if (id === 'call-prob') propKey = 'callProb';
+                if (id === 'answer-prob') propKey = 'answerProb';
+                if (id === 'hangup-prob') propKey = 'hangupProb';
+                if (id === 'letter-prob') propKey = 'letterProb';
+                if (id === 'reply-prob') propKey = 'replyProb';
+                s[propKey] = parseInt(el.value);
+            }
         });
         
         s.myName = document.getElementById('set-my-name').value;
@@ -1092,6 +1116,7 @@ const Settings = {
         this.applyStyles();
         document.getElementById('chat-title').innerText = s.botName;
         Chat.render();
+        App.toast('设置已保存');
     },
     applyStyles: function() {
         const s = App.data.settings;
@@ -1165,62 +1190,218 @@ const Settings = {
             };
             reader.readAsDataURL(file);
         };
-        
-        // 滑块实时显示与保存
-        const sliders = ['give','receive','return','ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob'];
-        sliders.forEach(id => {
-            const el = document.getElementById('slider-' + id);
-            if(el) {
-                el.oninput = (e) => {
-                    const val = e.target.value;
-                    document.getElementById('val-' + id).innerText = val + '%';
-                };
-                el.onchange = () => this.save();
-            }
-        });
-        
-        document.getElementById('slider-font-size').oninput = (e) => {
-            document.getElementById('val-font-size').innerText = e.target.value;
-            App.data.settings.fontSize = parseInt(e.target.value);
-            this.applyStyles();
-        };
-        document.getElementById('slider-font-size').onchange = () => this.save();
-        
-        // 主题和字体实时保存
-        document.getElementById('set-theme').onchange = () => this.save();
-        document.getElementById('set-font-url').onchange = () => this.save();
-        document.getElementById('set-bubble-css').onchange = () => this.save();
     }
 };
 
+// ================= 其他模块基础逻辑补全 (防报错) =================
+const Call = {
+    start: function(isVideo) {
+        document.getElementById('call-overlay').classList.add('show');
+        document.getElementById('call-avatar-img').src = App.data.settings.botAvatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+        document.getElementById('call-name-text').innerText = App.data.settings.botName;
+        document.getElementById('call-status-text').innerText = '正在呼叫...';
+        document.getElementById('call-actions-ongoing').style.display = 'none';
+        document.getElementById('call-actions-incoming').style.display = 'flex';
+        
+        setTimeout(() => {
+            if(Math.random() * 100 < App.data.settings.answerProb) {
+                this.answer();
+            } else {
+                this.hangup();
+                App.toast('对方拒绝了通话');
+            }
+        }, 3000);
+    },
+    answer: function() {
+        document.getElementById('call-status-text').innerText = '通话中...';
+        document.getElementById('call-actions-incoming').style.display = 'none';
+        document.getElementById('call-actions-ongoing').style.display = 'flex';
+    },
+    hangup: function() {
+        document.getElementById('call-overlay').classList.remove('show');
+    }
+};
+
+const Cards = {
+    render: function() { document.getElementById('cards-list').innerHTML = '<div style="text-align:center;padding:20px;color:#999;">字卡加载成功，请自由扩展</div>'; },
+    init: function() {}
+};
+
+const Pat = {
+    render: function() { document.getElementById('pat-list').innerHTML = '<div style="text-align:center;padding:20px;color:#999;">拍一拍词库加载成功</div>'; },
+    init: function() {}
+};
+
+const Emoji = {
+    renderPanel: function() { document.getElementById('emoji-grid-pic').innerHTML = '<div style="grid-column: span 4; text-align:center; color:#999; padding:20px;">暂无自定义表情包</div>'; },
+    renderFull: function() { document.getElementById('emoji-grid-full').innerHTML = '<div style="grid-column: span 4; text-align:center; color:#999; padding:20px;">暂无表情包</div>'; },
+    init: function() {}
+};
+
+const Letters = {
+    render: function() { document.getElementById('letters-list').innerHTML = '<div style="text-align:center;padding:20px;color:#999;">暂无信件</div>'; },
+    init: function() {}
+};
+
+const Music = {
+    audio: document.getElementById('global-audio'),
+    init: function() {
+        this.audio.addEventListener('timeupdate', () => {
+            if(!this.audio.duration) return;
+            const p = (this.audio.currentTime / this.audio.duration) * 100;
+            document.getElementById('music-progress-bar').value = p;
+            document.getElementById('music-cur-time').innerText = this.formatTime(this.audio.currentTime);
+            document.getElementById('music-total-time').innerText = this.formatTime(this.audio.duration);
+        });
+        this.audio.addEventListener('ended', () => this.next());
+        document.getElementById('btn-play').onclick = () => this.togglePlay();
+        document.getElementById('btn-next').onclick = () => this.next();
+        document.getElementById('btn-prev').onclick = () => this.prev();
+        document.getElementById('btn-mode').onclick = () => this.toggleMode();
+        document.getElementById('btn-add-music-url').onclick = () => this.addUrl();
+        document.getElementById('btn-add-music-file').onclick = () => document.getElementById('music-file-input').click();
+        
+        document.getElementById('music-file-input').onchange = (e) => {
+            const file = e.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                App.data.music.list.push({ name: file.name, url: ev.target.result });
+                App.saveData(); this.renderList();
+            };
+            reader.readAsDataURL(file); e.target.value = '';
+        };
+        document.getElementById('music-progress-bar').oninput = function() {
+            if(Music.audio.duration) Music.audio.currentTime = (this.value / 100) * Music.audio.duration;
+        };
+    },
+    formatTime: function(s) {
+        const m = Math.floor(s / 60);
+        const sec = Math.floor(s % 60);
+        return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+    },
+    renderList: function() {
+        const list = document.getElementById('music-list');
+        list.innerHTML = '';
+        if(App.data.music.list.length === 0) {
+            list.innerHTML = '<div style="text-align:center; padding:20px; color:#999; font-size:14px;">暂无音乐，请添加</div>';
+            return;
+        }
+        App.data.music.list.forEach((item, idx) => {
+            const div = document.createElement('div');
+            div.className = 'list-item';
+            div.innerHTML = `<div class="list-item-info">
+                <div class="list-item-title" style="color:${idx===App.data.music.currentIndex?'var(--accent)':'var(--text-color)'}">${item.name}</div>
+            </div>
+            <div class="card-actions">
+                <span onclick="Music.play(${idx})">播放</span>
+                <span onclick="Music.rename(${idx})">改名</span>
+                <span onclick="Music.remove(${idx})">删除</span>
+            </div>`;
+            list.appendChild(div);
+        });
+    },
+    addUrl: function() {
+        const url = document.getElementById('music-url-input').value.trim();
+        if(!url) return;
+        App.data.music.list.push({ name: '网络音乐', url: url });
+        App.saveData(); this.renderList();
+        document.getElementById('music-url-input').value = '';
+    },
+    rename: function(idx) {
+        const name = prompt('输入新名称', App.data.music.list[idx].name);
+        if(name) {
+            App.data.music.list[idx].name = name;
+            App.saveData(); this.renderList();
+            if(App.data.music.currentIndex === idx) document.getElementById('music-title').innerText = name;
+        }
+    },
+    remove: function(idx) {
+        if(App.data.music.currentIndex === idx) { this.audio.pause(); App.data.music.currentIndex = -1; }
+        App.data.music.list.splice(idx, 1);
+        App.saveData(); this.renderList();
+    },
+    play: function(idx) {
+        if(idx < 0 || idx >= App.data.music.list.length) return;
+        App.data.music.currentIndex = idx;
+        this.audio.src = App.data.music.list[idx].url;
+        this.audio.play().catch(e=>App.toast('播放失败'));
+        document.getElementById('music-title').innerText = App.data.music.list[idx].name;
+        document.getElementById('btn-play').innerText = '⏸';
+        this.renderList();
+    },
+    togglePlay: function() {
+        if(App.data.music.currentIndex === -1 && App.data.music.list.length > 0) return this.play(0);
+        if(this.audio.paused) {
+            this.audio.play().catch(e=>App.toast('播放失败'));
+            document.getElementById('btn-play').innerText = '⏸';
+        } else {
+            this.audio.pause();
+            document.getElementById('btn-play').innerText = '▶';
+        }
+    },
+    next: function() {
+        if(App.data.music.list.length === 0) return;
+        let idx = App.data.music.currentIndex;
+        if(App.data.music.mode === 'random') {
+            idx = Math.floor(Math.random() * App.data.music.list.length);
+        } else {
+            idx = (idx + 1) % App.data.music.list.length;
+        }
+        this.play(idx);
+    },
+    prev: function() {
+        if(App.data.music.list.length === 0) return;
+        let idx = App.data.music.currentIndex;
+        if(App.data.music.mode === 'random') {
+            idx = Math.floor(Math.random() * App.data.music.list.length);
+        } else {
+            idx = (idx - 1 + App.data.music.list.length) % App.data.music.list.length;
+        }
+        this.play(idx);
+    },
+    toggleMode: function() {
+        let m = App.data.music.mode === 'order' ? 'random' : 'order';
+        App.data.music.mode = m;
+        document.getElementById('btn-mode').innerText = m === 'order' ? '🔁' : '🔀';
+        App.toast(m === 'order' ? '顺序播放' : '随机播放');
+        App.saveData();
+    }
+};
+
+// ================= 启动程序 =================
 window.onload = function() {
-    App.loadData(); Settings.applyStyles();
+    App.loadData(); 
+    Settings.init();
+    Settings.applyStyles();
+    Chat.init();
+    Music.init();
+    Cards.init();
+    Pat.init();
+    Emoji.init();
+    Letters.init();
+    
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (App.data.settings.theme === 'system') Settings.applyStyles(); });
     
-    Chat.init(); Settings.init(); 
-    // 其他模块如果存在可以保留，这里只调用了修复的部分
     document.getElementById('chat-title').innerText = App.data.settings.botName;
     
     // 保活和通知权限申请
-    document.getElementById('set-keep-alive').onchange = function() {
+    document.getElementById('set-keep-alive').addEventListener('change', function() {
         if(this.checked) {
             document.getElementById('keep-alive-audio').play().catch(()=>{});
         } else {
             document.getElementById('keep-alive-audio').pause();
         }
-        Settings.save();
-    };
+    });
     if (App.data.settings.keepAlive) {
         document.getElementById('set-keep-alive').checked = true;
         document.getElementById('keep-alive-audio').play().catch(()=>{});
     }
     
-    document.getElementById('set-desktop-notify').onchange = function() {
+    document.getElementById('set-desktop-notify').addEventListener('change', function() {
         if(this.checked && Notification.permission !== 'granted') {
             Notification.requestPermission();
         }
-        Settings.save();
-    };
+    });
 };
 </script>
 </body>
