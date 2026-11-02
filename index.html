@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>梦角模拟器</title>
+    <title>爱恋</title>
     
-    <!-- 已经替换为你的专属小兔子图标 -->
+    <!-- 强制手机系统读取桌面名称为“爱恋” -->
+    <meta name="apple-mobile-web-app-title" content="爱恋">
+    <meta name="application-name" content="爱恋">
+    
+    <!-- 你的专属图标 -->
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/my-lovep/Thalia_p/main/IMG_6507.jpeg">
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/my-lovep/Thalia_p/main/IMG_6507.jpeg">
 
@@ -23,6 +27,8 @@
         .page { display: none; flex-direction: column; height: 100%; background: var(--bg-color); position: absolute; top: 0; left: 0; width: 100%; z-index: 10;}
         .header { padding: 15px 20px; padding-top: max(15px, env(safe-area-inset-top)); background: var(--header-bg); display: flex; align-items: center; border-bottom: 1px solid var(--border-color); font-weight: bold; font-size: 17px; color: var(--text-color); }
         .back-btn { margin-right: 15px; cursor: pointer; font-size: 24px; font-weight: normal; color: #007aff; padding: 5px; }
+        .header-right { display: flex; gap: 10px; align-items: center;}
+        .header-btn { cursor:pointer; font-size:20px; padding: 5px;}
 
         .chat-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; background-color: var(--chat-bg); background-size: cover; background-position: center; }
         .msg-row { display: flex; width: 100%; align-items: flex-start; gap: 10px; }
@@ -73,6 +79,8 @@
         .toggle:checked { background: #34c759; }
         .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 26px; height: 26px; background: #fff; border-radius: 50%; transition: 0.3s; }
         .toggle:checked::after { transform: translateX(20px); }
+        .profile-edit { display: flex; gap: 10px; margin-bottom: 10px; align-items: center;}
+        .profile-edit img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #ccc;}
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; justify-content: center; align-items: center; }
         .modal-content { background: var(--header-bg); color: var(--text-color); width: 90%; max-width: 400px; border-radius: 15px; padding: 20px; display: flex; flex-direction: column; gap: 15px;}
@@ -84,6 +92,28 @@
         .btn-confirm { background: var(--bubble-user); color: var(--bubble-user-text); }
         .btn-danger { background: #ff3b30; color: #fff;}
         .btn-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .call-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1c1c1e; z-index: 300; flex-direction: column; align-items: center; justify-content: space-between; padding: 50px 20px; color: white; }
+        #video-call { background: #000; padding: 0; justify-content: flex-end;}
+        #my-video { width: 110px; height: 160px; position: absolute; top: 40px; right: 20px; background: #222; border-radius: 12px; object-fit: cover; z-index: 101; transform: scaleX(-1); box-shadow: 0 4px 10px rgba(0,0,0,0.5);}
+        #other-video { width: 100%; height: 100%; position: absolute; top: 0; left: 0; object-fit: cover; opacity: 0.8; z-index: 100;}
+        .video-controls { position: relative; z-index: 102; margin-bottom: 30px;}
+
+        .call-info { display: flex; flex-direction: column; align-items: center; margin-top: 80px;}
+        .call-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 20px; border: 2px solid rgba(255,255,255,0.2); }
+        .call-name { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+        .call-status { font-size: 16px; color: #aaa; }
+        
+        .call-btns { display: flex; gap: 50px; margin-bottom: 50px;}
+        .call-btn { width: 70px; height: 70px; border-radius: 50%; border: none; display: flex; justify-content: center; align-items: center; font-size: 30px; cursor: pointer; color: white;}
+        .btn-accept { background: #34c759; }
+        .btn-hangup { background: #ff3b30; }
+        
+        .pulse { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(52, 199, 89, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); } }
+
+        #floating-call { display: none; position: absolute; top: max(20px, env(safe-area-inset-top)); right: 20px; width: 80px; height: 120px; background: #000; border-radius: 12px; z-index: 250; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); overflow: hidden;}
+        #floating-call img { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body>
@@ -97,8 +127,11 @@
     <div id="chat-app" class="page">
         <div class="header">
             <div class="back-btn" onclick="closeApp('chat-app')">←</div>
-            <div style="flex:1;" id="chat-title">梦角</div>
-            <div style="cursor:pointer; padding:5px; font-size:14px; color:#ff3b30;" onclick="clearChat()">清空</div>
+            <div style="flex:1;" id="chat-title">爱恋</div>
+            <div class="header-right">
+                <div class="header-btn" onclick="startCall('voice', 'user')">📞</div>
+                <div class="header-btn" onclick="startCall('video', 'user')">📹</div>
+            </div>
         </div>
         <div class="chat-area" id="chat-area"></div>
         <div class="typing-status" id="typing-status">对方正在输入...</div>
@@ -114,7 +147,7 @@
             <div style="flex:1;">字卡库</div>
         </div>
         <div class="search-bar">
-            <input type="text" id="search-input" placeholder="搜索字卡内容 (防卡顿)..." oninput="debouncedRender()">
+            <input type="text" id="search-input" placeholder="搜索字卡内容..." oninput="debouncedRender()">
         </div>
         <div class="cards-toolbar">
             <button class="btn-tool" onclick="openBatchModal()">📝 批量添加</button>
@@ -126,6 +159,93 @@
         <div class="add-card-bar">
             <input type="text" id="new-card-input" placeholder="单条添加...">
             <button onclick="addSingleCard()">添加</button>
+        </div>
+    </div>
+
+    <div id="settings-app" class="page">
+        <div class="header">
+            <div class="back-btn" onclick="closeApp('settings-app')">←</div>
+            <div style="flex:1;">设置</div>
+        </div>
+        <div class="settings-content">
+            <h3 style="margin-bottom:10px; font-size:16px; color:#666;">角色资料</h3>
+            <div class="setting-item">
+                <label>我的名字</label>
+                <input type="text" id="set-my-name" placeholder="我的名字">
+                <label style="margin-top:10px;">我的头像 (点击上传)</label>
+                <div class="profile-edit">
+                    <img id="my-avatar-preview" src="" onerror="this.src='https://via.placeholder.com/40'">
+                    <input type="file" id="set-my-avatar-file" accept="image/*" onchange="uploadProfileImg(event, 'user')" style="border:none;">
+                </div>
+            </div>
+            <div class="setting-item">
+                <label>对方的名字</label>
+                <input type="text" id="set-bot-name" placeholder="对方名字">
+                <label style="margin-top:10px;">对方头像 (点击上传)</label>
+                <div class="profile-edit">
+                    <img id="bot-avatar-preview" src="" onerror="this.src='https://via.placeholder.com/40'">
+                    <input type="file" id="set-bot-avatar-file" accept="image/*" onchange="uploadProfileImg(event, 'bot')" style="border:none;">
+                </div>
+            </div>
+
+            <h3 style="margin:20px 0 10px; font-size:16px; color:#666;">外观与交互</h3>
+            <div class="setting-item">
+                <label>日夜模式</label>
+                <select id="set-theme" onchange="changeTheme(this.value)">
+                    <option value="system">跟随系统</option>
+                    <option value="light">浅色模式</option>
+                    <option value="dark">深色模式</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label>聊天气泡颜色 (你的)</label>
+                <input type="text" id="set-bubble-color" placeholder="#333333">
+            </div>
+            <div class="setting-item">
+                <label>聊天背景图</label>
+                <input type="file" id="set-bg" accept="image/*" onchange="uploadBg(event)" style="border:none; padding:5px 0;">
+            </div>
+            <div class="setting-item">
+                <div class="switch-row"><label>显示头像</label><input type="checkbox" class="toggle" id="set-show-avatar"></div>
+                <div class="switch-row"><label>显示名字</label><input type="checkbox" class="toggle" id="set-show-name"></div>
+                <div class="switch-row"><label>显示已读状态</label><input type="checkbox" class="toggle" id="set-show-read"></div>
+            </div>
+
+            <h3 style="margin:20px 0 10px; font-size:16px; color:#666;">逻辑与概率</h3>
+            <div class="setting-item">
+                <label>主动发消息间隔 (分钟，0关)</label>
+                <input type="number" id="set-proactive" min="0" step="1">
+            </div>
+            <div class="setting-item">
+                <label>主动打电话间隔 (分钟，0关)</label>
+                <input type="number" id="set-proactive-call" min="0" step="1">
+            </div>
+            <div class="setting-item">
+                <label>主动打电话概率 (%) <span id="val-call-prob">30%</span></label>
+                <input type="range" id="slider-call-prob" min="0" max="100" value="30" oninput="document.getElementById('val-call-prob').innerText=this.value+'%'">
+            </div>
+            <div class="setting-item">
+                <label>已读不回概率 (%) <span id="val-ignore">20%</span></label>
+                <input type="range" id="slider-ignore" min="0" max="100" value="20" oninput="document.getElementById('val-ignore').innerText=this.value+'%'">
+            </div>
+            <div class="setting-item">
+                <label>对方拒接概率 (%) <span id="val-reject">20%</span></label>
+                <input type="range" id="slider-reject" min="0" max="100" value="20" oninput="document.getElementById('val-reject').innerText=this.value+'%'">
+            </div>
+            <div class="setting-item">
+                <label>对方中途挂断概率 (%) <span id="val-hangup">10%</span></label>
+                <input type="range" id="slider-hangup" min="0" max="100" value="10" oninput="document.getElementById('val-hangup').innerText=this.value+'%'">
+            </div>
+            
+            <h3 style="margin:20px 0 10px; font-size:16px; color:#666;">数据管理</h3>
+            <div class="setting-item">
+                <button class="btn-tool" style="width:100%; padding:12px; margin-bottom:10px;" onclick="exportAllData()">📤 导出所有数据</button>
+                <button class="btn-tool" style="width:100%; padding:12px; margin-bottom:10px;" onclick="document.getElementById('import-all-file').click()">📥 导入所有数据</button>
+                <input type="file" id="import-all-file" style="display:none" accept=".json" onchange="importAllData(event)">
+                <button class="btn-tool btn-danger" style="width:100%; padding:12px;" onclick="resetAllData()">⚠️ 重置所有数据</button>
+            </div>
+
+            <button class="btn-confirm" style="width:100%; padding:15px; border-radius:10px; margin-bottom:50px;" onclick="saveSettings()">保存所有设置</button>
         </div>
     </div>
 
@@ -152,69 +272,32 @@
         </div>
     </div>
 
-    <div id="settings-app" class="page">
-        <div class="header">
-            <div class="back-btn" onclick="closeApp('settings-app')">←</div>
-            <div style="flex:1;">设置</div>
+    <div id="voice-call" class="call-overlay">
+        <div class="call-info">
+            <img id="voice-avatar" class="call-avatar" src="">
+            <div id="voice-name" class="call-name">爱恋</div>
+            <div id="voice-status" class="call-status">正在呼叫...</div>
         </div>
-        <div class="settings-content">
-            <h3 style="margin-bottom:10px; font-size:16px; color:#666;">外观设置</h3>
-            <div class="setting-item">
-                <label>日夜模式</label>
-                <select id="set-theme" onchange="changeTheme(this.value)">
-                    <option value="system">跟随系统</option>
-                    <option value="light">浅色模式</option>
-                    <option value="dark">深色模式</option>
-                </select>
-            </div>
-            <div class="setting-item">
-                <label>系统字体大小 (<span id="val-font-size">16</span>px)</label>
-                <input type="range" id="slider-font-size" min="12" max="22" step="1" value="16" oninput="document.getElementById('val-font-size').innerText=this.value; document.documentElement.style.setProperty('--font-size-base', this.value+'px');">
-            </div>
-            <div class="setting-item">
-                <label>自定义字体链接 (CSS/URL)</label>
-                <input type="text" id="set-font-url" placeholder="https://...">
-            </div>
-            <div class="setting-item">
-                <label>聊天气泡主色调</label>
-                <input type="text" id="set-bubble-color" placeholder="#333333">
-            </div>
-            <div class="setting-item">
-                <label>聊天背景图 (上传图片)</label>
-                <input type="file" id="set-bg" accept="image/*" onchange="uploadBg(event)" style="border:none; padding:5px 0;">
-            </div>
-
-            <h3 style="margin:20px 0 10px; font-size:16px; color:#666;">聊天交互</h3>
-            <div class="setting-item">
-                <div class="switch-row"><label>显示对方头像</label><input type="checkbox" class="toggle" id="set-show-avatar"></div>
-                <div class="switch-row"><label>显示对方名字</label><input type="checkbox" class="toggle" id="set-show-name"></div>
-                <div class="switch-row"><label>显示已读状态</label><input type="checkbox" class="toggle" id="set-show-read"></div>
-            </div>
-            <div class="setting-item">
-                <label>“正在输入”文案</label>
-                <input type="text" id="set-typing-text" placeholder="对方正在输入...">
-            </div>
-
-            <h3 style="margin:20px 0 10px; font-size:16px; color:#666;">逻辑与通知</h3>
-            <div class="setting-item">
-                <label>主动发消息间隔 (分钟，0关闭)</label>
-                <input type="number" id="set-proactive" min="0" step="1">
-            </div>
-            <div class="setting-item">
-                <label>已读不回概率 (%) <span id="val-ignore">20%</span></label>
-                <input type="range" id="slider-ignore" min="0" max="100" value="20" oninput="document.getElementById('val-ignore').innerText=this.value+'%'">
-            </div>
-            
-            <h3 style="margin:20px 0 10px; font-size:16px; color:#666;">数据管理 (全量备份)</h3>
-            <div class="setting-item">
-                <button class="btn-tool" style="width:100%; padding:12px; margin-bottom:10px;" onclick="exportAllData()">📤 导出所有数据</button>
-                <button class="btn-tool" style="width:100%; padding:12px; margin-bottom:10px;" onclick="document.getElementById('import-all-file').click()">📥 导入所有数据</button>
-                <input type="file" id="import-all-file" style="display:none" accept=".json" onchange="importAllData(event)">
-                <button class="btn-tool btn-danger" style="width:100%; padding:12px;" onclick="resetAllData()">⚠️ 重置所有数据</button>
-            </div>
-
-            <button class="btn-confirm" style="width:100%; padding:15px; border-radius:10px; margin-bottom:50px;" onclick="saveSettings()">保存所有设置</button>
+        <div class="call-btns">
+            <button id="voice-accept-btn" class="call-btn btn-accept pulse" style="display:none;" onclick="acceptCall('voice')">📞</button>
+            <button id="voice-hangup-btn" class="call-btn btn-hangup" onclick="endCall('voice')">📞</button>
         </div>
+    </div>
+
+    <div id="video-call" class="call-overlay">
+        <img id="other-video" src="" alt="爱恋">
+        <video id="my-video" autoplay playsinline muted></video>
+        <div class="call-info" style="position:absolute; top:50px; z-index:101;">
+            <div id="video-status" class="call-status" style="color:white; text-shadow:1px 1px 2px black;">正在呼叫...</div>
+        </div>
+        <div class="call-btns video-controls">
+            <button id="video-accept-btn" class="call-btn btn-accept pulse" style="display:none;" onclick="acceptCall('video')">📹</button>
+            <button class="call-btn btn-hangup" onclick="endCall('video')">📞</button>
+        </div>
+    </div>
+
+    <div id="floating-call" onclick="restoreCall()">
+        <img src="" id="float-img">
     </div>
 
 <script>
@@ -224,49 +307,55 @@
         if(savedData && savedData.length > 0) {
             cardLibrary = savedData.map(c => ({
                 id: c.id || Date.now() + Math.random().toString(36).substr(2, 9),
-                text: c.text,
-                group: c.group,
-                enabled: c.enabled !== undefined ? c.enabled : true
+                text: c.text, group: c.group, enabled: c.enabled !== undefined ? c.enabled : true
             }));
         }
     } catch(e) {}
-
     if(cardLibrary.length === 0) {
-        cardLibrary = [
-            { id: '1', text: "这是什么意思呀？", group: "默认", enabled: true },
-            { id: '2', text: "嗯嗯，我在听。", group: "默认", enabled: true }
-        ];
+        cardLibrary = [{ id: '1', text: "这是什么意思呀？", group: "默认", enabled: true }];
     }
     
     let config = JSON.parse(localStorage.getItem('mirage_config')) || {
-        ignoreProb: 20, quoteProb: 30, proactiveMin: 0,
-        isGroup: false, members: [{ name: "梦角", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop" }],
-        theme: 'system', fontSize: '16', fontUrl: '', bubbleColor: '#333333', bgImage: '',
+        ignoreProb: 20, quoteProb: 30, proactiveMin: 0, proactiveCallMin: 0,
+        proactiveCallProb: 30, botRejectProb: 20, botHangupProb: 10,
+        userName: "我", userAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop",
+        botName: "爱恋", botAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop",
+        theme: 'system', bubbleColor: '#333333', bgImage: '',
         showAvatar: true, showName: true, showRead: false, typingText: '对方正在输入...'
     };
+    
+    if(!config.userName) config.userName = "我";
+    if(!config.botName || config.botName === "梦角") config.botName = "爱恋";
+    if(config.proactiveCallProb === undefined) config.proactiveCallProb = 30;
+    if(config.botRejectProb === undefined) config.botRejectProb = 20;
+    if(config.botHangupProb === undefined) config.botHangupProb = 10;
 
     let recentUserMsgs = [];
-    let activeMsgTimer = null;
+    let activeMsgTimer, activeCallTimer;
     let editingId = null;
-    let searchTimer;
-    let saveTimer;
+    let searchTimer, saveTimer;
+
+    let currentCallType = null; 
+    let callDuration = 0;
+    let callInterval = null;
+    let botHangupCheckInterval = null;
+    let ringtoneTimeout = null;
+    let localStream = null;
 
     window.onload = () => {
         applyAppearance();
+        document.getElementById('chat-title').innerText = config.botName;
         if(document.getElementById('chat-area').children.length === 0) {
-            renderMsg('other', config.members[0].name, config.members[0].avatar, "你好，我在。");
+            renderMsg('other', config.botName, config.botAvatar, "你好，我在。");
         }
         setupProactiveTimer();
+        setupProactiveCallTimer();
     };
 
     function saveData() { 
         clearTimeout(saveTimer);
         saveTimer = setTimeout(() => {
-            try {
-                localStorage.setItem('mirage_cards_v2', JSON.stringify(cardLibrary)); 
-            } catch(e) {
-                alert("存储空间不足，部分数据可能丢失！");
-            }
+            try { localStorage.setItem('mirage_cards_v2', JSON.stringify(cardLibrary)); } catch(e) { alert("存储空间不足！"); }
         }, 300);
     }
     function saveConfig() { localStorage.setItem('mirage_config', JSON.stringify(config)); }
@@ -278,7 +367,6 @@
             if(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.setAttribute('data-theme', 'dark');
             else document.documentElement.removeAttribute('data-theme');
         }
-        document.documentElement.style.setProperty('--font-size-base', config.fontSize + 'px');
         if(config.bubbleColor) {
             document.documentElement.style.setProperty('--bubble-user', config.bubbleColor);
             document.documentElement.style.setProperty('--bubble-user-text', '#fff'); 
@@ -290,13 +378,11 @@
             document.getElementById('chat-area').style.backgroundImage = 'none';
             document.getElementById('chat-area').style.backgroundColor = 'var(--chat-bg)';
         }
-
         let styleEl = document.getElementById('dynamic-style') || document.createElement('style');
         styleEl.id = 'dynamic-style';
         styleEl.innerHTML = `
-            ${!config.showAvatar ? '.msg-row.other .avatar { display: none; }' : ''}
+            ${!config.showAvatar ? '.msg-row .avatar { display: none; }' : ''}
             ${!config.showName ? '.msg-name { display: none; }' : ''}
-            ${config.fontUrl ? `@import url('${config.fontUrl}'); * { font-family: 'CustomFont', -apple-system, sans-serif; }` : ''}
         `;
         document.head.appendChild(styleEl);
         document.getElementById('typing-status').innerText = config.typingText;
@@ -318,8 +404,8 @@
         const row = document.createElement('div');
         row.className = `msg-row ${role}`;
         
-        let avatarHTML = role === 'other' ? `<img class="avatar" src="${avatar}" onerror="this.src='https://via.placeholder.com/40'">` : '';
-        let nameHTML = role === 'other' ? `<div class="msg-name">${name}</div>` : '';
+        let avatarHTML = `<img class="avatar" src="${avatar}" onerror="this.src='https://via.placeholder.com/40'">`;
+        let nameHTML = `<div class="msg-name">${name}</div>`;
         const now = new Date();
         const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
@@ -344,17 +430,13 @@
         row.classList.toggle('show-time');
         let textToCopy = element.innerText.split('\n')[0];
         if(textToCopy.startsWith('回复:')) textToCopy = textToCopy.split('\n').pop();
-        
         if(confirm(`要把这条加入字卡库吗？\n\n"${textToCopy}"`)) {
             if(cardLibrary.some(c => c.text === textToCopy)) return alert('字卡已存在');
             cardLibrary.push({ id: Date.now().toString(), text: textToCopy, group: "聊天提取", enabled: true });
             saveData(); alert('已加入字卡库！');
         }
     }
-
     function deleteMsg(element) { if(confirm('删除这条消息？')) element.closest('.msg-row').remove(); }
-    function clearChat() { if(confirm('清空所有聊天记录？')) document.getElementById('chat-area').innerHTML = ''; }
-
     function markUserMsgsAsRead() {
         if(!config.showRead) return;
         const userRows = document.querySelectorAll('.msg-row.user');
@@ -369,7 +451,7 @@
         const input = document.getElementById('msg-input');
         const text = input.value.trim();
         if (!text) return;
-        renderMsg('user', '我', '', text);
+        renderMsg('user', config.userName, config.userAvatar, text);
         input.value = '';
         recentUserMsgs.push(text);
         if(recentUserMsgs.length > 10) recentUserMsgs.shift();
@@ -397,140 +479,291 @@
                 for(let i=0; i<count; i++) texts.push(availableCards[Math.floor(Math.random() * availableCards.length)].text);
                 finalReplyHTML += texts.join(["，", "。", "~", " "][Math.floor(Math.random() * 4)]);
             }
-            let speaker = config.isGroup ? config.members[Math.floor(Math.random() * config.members.length)] : config.members[0];
-            renderMsg('other', speaker.name, speaker.avatar, finalReplyHTML);
+            renderMsg('other', config.botName, config.botAvatar, finalReplyHTML);
         }, 1500 + (Math.random() * 2000));
     }
 
-    function debouncedRender() {
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(() => { renderCards(); }, 300); 
+    function startCall(type, caller) {
+        if(currentCallType) return; 
+        currentCallType = type;
+        const callUI = document.getElementById(`${type}-call`);
+        const statusText = document.getElementById(`${type}-status`);
+        const acceptBtn = document.getElementById(`${type}-accept-btn`);
+        const hangupBtn = document.getElementById(`${type}-hangup-btn`);
+        
+        if(type === 'voice') {
+            document.getElementById('voice-avatar').src = config.botAvatar;
+            document.getElementById('voice-name').innerText = config.botName;
+        } else {
+            document.getElementById('other-video').src = config.botAvatar;
+            navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+                .then(stream => { localStream = stream; document.getElementById('my-video').srcObject = stream; })
+                .catch(err => console.log("无摄像头权限"));
+        }
+
+        callUI.style.display = 'flex';
+
+        if(caller === 'user') {
+            statusText.innerText = "正在等待对方接听...";
+            acceptBtn.style.display = 'none';
+            hangupBtn.style.display = 'flex';
+            
+            if(Math.random() * 100 < config.botRejectProb) {
+                setTimeout(() => {
+                    if(currentCallType === type) {
+                        statusText.innerText = "对方已拒绝";
+                        setTimeout(() => endCall(type, false), 2000); 
+                    }
+                }, 2000);
+                return;
+            }
+            
+            setTimeout(() => {
+                if(currentCallType === type && statusText.innerText === "正在等待对方接听...") {
+                    connectCall(type);
+                }
+            }, 3000 + Math.random() * 3000);
+            
+        } else {
+            statusText.innerText = "邀请你进行通话...";
+            acceptBtn.style.display = 'flex';
+            hangupBtn.style.display = 'flex';
+            playRingtone();
+            
+            ringtoneTimeout = setTimeout(() => {
+                if(currentCallType === type && acceptBtn.style.display === 'flex') {
+                    stopRingtone();
+                    statusText.innerText = "未接来电";
+                    setTimeout(() => endCall(type, false), 2000);
+                }
+            }, 30000);
+        }
     }
 
+    function acceptCall(type) {
+        clearTimeout(ringtoneTimeout);
+        stopRingtone();
+        connectCall(type);
+    }
+
+    function connectCall(type) {
+        const statusText = document.getElementById(`${type}-status`);
+        const acceptBtn = document.getElementById(`${type}-accept-btn`);
+        acceptBtn.style.display = 'none';
+        statusText.innerText = "00:00";
+        
+        callDuration = 0;
+        clearInterval(callInterval);
+        clearInterval(botHangupCheckInterval);
+        
+        callInterval = setInterval(() => {
+            callDuration++;
+            const min = Math.floor(callDuration / 60).toString().padStart(2, '0');
+            const sec = (callDuration % 60).toString().padStart(2, '0');
+            statusText.innerText = `${min}:${sec}`;
+        }, 1000);
+
+        botHangupCheckInterval = setInterval(() => {
+            if(callDuration > 10 && Math.random() * 100 < config.botHangupProb) {
+                clearInterval(callInterval);
+                clearInterval(botHangupCheckInterval);
+                statusText.innerText = "对方已挂断";
+                setTimeout(() => endCall(type, false), 1500);
+            }
+        }, 10000); 
+    }
+
+    function endCall(type, needTimeout = false) {
+        clearTimeout(ringtoneTimeout);
+        stopRingtone();
+        clearInterval(callInterval);
+        clearInterval(botHangupCheckInterval);
+        
+        const doClose = () => {
+            document.getElementById(`${type}-call`).style.display = 'none';
+            document.getElementById('floating-call').style.display = 'none';
+            currentCallType = null;
+            if(localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+        };
+
+        if(needTimeout) setTimeout(doClose, 500);
+        else doClose();
+    }
+
+    function minimizeCall() {
+        document.getElementById(`${currentCallType}-call`).style.display = 'none';
+        document.getElementById('floating-call').style.display = 'block';
+        document.getElementById('float-img').src = config.botAvatar;
+    }
+    function restoreCall() {
+        document.getElementById('floating-call').style.display = 'none';
+        document.getElementById(`${currentCallType}-call`).style.display = 'flex';
+    }
+
+    let ringtoneOsc = null;
+    function playRingtone() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            ringtoneOsc = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            ringtoneOsc.type = 'sine';
+            ringtoneOsc.frequency.setValueAtTime(440, ctx.currentTime);
+            gainNode.gain.setValueAtTime(0, ctx.currentTime);
+            for(let i=0; i<100; i++) {
+                gainNode.gain.setValueAtTime(0.1, ctx.currentTime + i*2);
+                gainNode.gain.setValueAtTime(0, ctx.currentTime + i*2 + 1);
+            }
+            ringtoneOsc.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            ringtoneOsc.start();
+        } catch(e) {}
+    }
+    function stopRingtone() {
+        if(ringtoneOsc) { ringtoneOsc.stop(); ringtoneOsc = null; }
+    }
+
+    function setupProactiveCallTimer() {
+        if(activeCallTimer) clearInterval(activeCallTimer);
+        if(config.proactiveCallMin > 0) {
+            activeCallTimer = setInterval(() => {
+                if(!currentCallType && Math.random() * 100 < config.proactiveCallProb) {
+                    const type = Math.random() > 0.5 ? 'voice' : 'video';
+                    startCall(type, 'bot');
+                }
+            }, config.proactiveCallMin * 60000);
+        }
+    }
+
+    function loadSettingsUI() {
+        document.getElementById('set-my-name').value = config.userName;
+        document.getElementById('my-avatar-preview').src = config.userAvatar;
+        document.getElementById('set-bot-name').value = config.botName;
+        document.getElementById('bot-avatar-preview').src = config.botAvatar;
+        
+        document.getElementById('set-theme').value = config.theme; 
+        document.getElementById('set-bubble-color').value = config.bubbleColor; 
+        document.getElementById('set-show-avatar').checked = config.showAvatar;
+        document.getElementById('set-show-name').checked = config.showName; 
+        document.getElementById('set-show-read').checked = config.showRead;
+        
+        document.getElementById('set-proactive').value = config.proactiveMin;
+        document.getElementById('set-proactive-call').value = config.proactiveCallMin;
+        
+        document.getElementById('slider-call-prob').value = config.proactiveCallProb;
+        document.getElementById('val-call-prob').innerText = config.proactiveCallProb + '%';
+        
+        document.getElementById('slider-ignore').value = config.ignoreProb; 
+        document.getElementById('val-ignore').innerText = config.ignoreProb + '%';
+        
+        document.getElementById('slider-reject').value = config.botRejectProb;
+        document.getElementById('val-reject').innerText = config.botRejectProb + '%';
+        
+        document.getElementById('slider-hangup').value = config.botHangupProb;
+        document.getElementById('val-hangup').innerText = config.botHangupProb + '%';
+    }
+
+    function uploadProfileImg(event, target) {
+        const file = event.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            if(target === 'user') {
+                config.userAvatar = e.target.result;
+                document.getElementById('my-avatar-preview').src = config.userAvatar;
+            } else {
+                config.botAvatar = e.target.result;
+                document.getElementById('bot-avatar-preview').src = config.botAvatar;
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function changeTheme(val) { config.theme = val; applyAppearance(); saveConfig(); }
+    function uploadBg(event) {
+        const file = event.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) { config.bgImage = e.target.result; applyAppearance(); saveConfig(); alert('背景已更新！'); };
+        reader.readAsDataURL(file);
+    }
+
+    function saveSettings() {
+        config.userName = document.getElementById('set-my-name').value.trim() || "我";
+        config.botName = document.getElementById('set-bot-name').value.trim() || "爱恋";
+        document.getElementById('chat-title').innerText = config.botName;
+        
+        config.bubbleColor = document.getElementById('set-bubble-color').value.trim(); 
+        config.showAvatar = document.getElementById('set-show-avatar').checked;
+        config.showName = document.getElementById('set-show-name').checked; 
+        config.showRead = document.getElementById('set-show-read').checked;
+        
+        config.proactiveMin = parseInt(document.getElementById('set-proactive').value) || 0;
+        config.proactiveCallMin = parseInt(document.getElementById('set-proactive-call').value) || 0;
+        
+        config.proactiveCallProb = parseInt(document.getElementById('slider-call-prob').value);
+        config.ignoreProb = parseInt(document.getElementById('slider-ignore').value);
+        config.botRejectProb = parseInt(document.getElementById('slider-reject').value);
+        config.botHangupProb = parseInt(document.getElementById('slider-hangup').value);
+        
+        applyAppearance(); saveConfig(); setupProactiveTimer(); setupProactiveCallTimer(); 
+        alert('设置已保存！'); closeApp('settings-app');
+    }
+
+    function debouncedRender() { clearTimeout(searchTimer); searchTimer = setTimeout(() => { renderCards(); }, 300); }
     function renderCards() {
         const list = document.getElementById('cards-list');
         const keyword = document.getElementById('search-input').value.trim().toLowerCase();
         const filteredCards = cardLibrary.filter(c => c.text.toLowerCase().includes(keyword));
-        
-        if(filteredCards.length === 0) { 
-            list.innerHTML = '<div style="text-align:center; color:#999; margin-top:50px;">没有找到字卡</div>'; 
-            return; 
-        }
-
-        const MAX_RENDER = 300;
-        const displayCards = filteredCards.slice(0, MAX_RENDER);
-
+        if(filteredCards.length === 0) { list.innerHTML = '<div style="text-align:center; color:#999; margin-top:50px;">没有找到字卡</div>'; return; }
+        const displayCards = filteredCards.slice(0, 300);
         const grouped = {};
-        displayCards.forEach((card) => {
-            if(!grouped[card.group]) grouped[card.group] = [];
-            grouped[card.group].push(card);
-        });
-
+        displayCards.forEach((card) => { if(!grouped[card.group]) grouped[card.group] = []; grouped[card.group].push(card); });
         let htmlArr = [];
         for (let groupName in grouped) {
-            htmlArr.push(`
-                <div class="group-title">
-                    ${groupName} (${grouped[groupName].length})
-                    <span onclick="deleteGroup('${groupName}')">删除此组</span>
-                </div>`);
+            htmlArr.push(`<div class="group-title">${groupName} (${grouped[groupName].length})<span onclick="deleteGroup('${groupName}')">删除此组</span></div>`);
             grouped[groupName].forEach(card => {
-                htmlArr.push(`
-                    <div class="card-item ${card.enabled ? '' : 'disabled'}">
-                        <span>${card.text}</span>
-                        <div class="card-actions">
-                            <button onclick="toggleEnable('${card.id}')" title="屏蔽/启用">${card.enabled ? '🚫' : '✅'}</button>
-                            <button onclick="openEditCard('${card.id}')" title="修改">✏️</button>
-                            <button onclick="deleteCard('${card.id}')" style="color:#ff3b30;">🗑️</button>
-                        </div>
-                    </div>
-                `);
+                htmlArr.push(`<div class="card-item ${card.enabled ? '' : 'disabled'}"><span>${card.text}</span><div class="card-actions"><button onclick="toggleEnable('${card.id}')">${card.enabled ? '🚫' : '✅'}</button><button onclick="openEditCard('${card.id}')">✏️</button><button onclick="deleteCard('${card.id}')" style="color:#ff3b30;">🗑️</button></div></div>`);
             });
         }
-        
-        if(filteredCards.length > MAX_RENDER) {
-            htmlArr.push(`<div style="text-align:center; color:#999; padding:20px; font-size:13px;">为了防卡顿，仅展示前 ${MAX_RENDER} 条，请用搜索查找其余字卡。</div>`);
-        }
-
+        if(filteredCards.length > 300) htmlArr.push(`<div style="text-align:center; color:#999; padding:20px; font-size:13px;">仅展示前 300 条，请用搜索查找。</div>`);
         list.innerHTML = htmlArr.join('');
     }
-
-    function toggleEnable(id) { 
-        const card = cardLibrary.find(c => c.id === id);
-        if(card) { card.enabled = !card.enabled; saveData(); renderCards(); }
-    }
-
-    function deleteGroup(groupName) {
-        if(confirm(`确定删除整个【${groupName}】分组？`)) {
-            cardLibrary = cardLibrary.filter(c => c.group !== groupName); 
-            saveData(); renderCards();
-        }
-    }
-
+    function toggleEnable(id) { const card = cardLibrary.find(c => c.id === id); if(card) { card.enabled = !card.enabled; saveData(); renderCards(); } }
+    function deleteGroup(groupName) { if(confirm(`确定删除整个【${groupName}】分组？`)) { cardLibrary = cardLibrary.filter(c => c.group !== groupName); saveData(); renderCards(); } }
     function openEditCard(id) {
-        editingId = id;
-        const card = cardLibrary.find(c => c.id === id);
-        if(!card) return;
-        document.getElementById('edit-card-text').value = card.text;
-        document.getElementById('edit-card-group').value = card.group;
+        editingId = id; const card = cardLibrary.find(c => c.id === id); if(!card) return;
+        document.getElementById('edit-card-text').value = card.text; document.getElementById('edit-card-group').value = card.group;
         document.getElementById('edit-modal').style.display = 'flex';
     }
-
     function saveEditCard() {
-        const text = document.getElementById('edit-card-text').value.trim();
-        const group = document.getElementById('edit-card-group').value.trim() || "未分组";
+        const text = document.getElementById('edit-card-text').value.trim(); const group = document.getElementById('edit-card-group').value.trim() || "未分组";
         if(!text) return alert('内容不能为空');
-        const card = cardLibrary.find(c => c.id === editingId);
-        if(card) { card.text = text; card.group = group; }
+        const card = cardLibrary.find(c => c.id === editingId); if(card) { card.text = text; card.group = group; }
         saveData(); document.getElementById('edit-modal').style.display = 'none'; renderCards();
     }
-
     function addSingleCard() {
-        const input = document.getElementById('new-card-input'); 
-        const text = input.value.trim();
-        if(!text) return; 
-        if(cardLibrary.some(c => c.text === text)) return alert('字卡已存在');
-        cardLibrary.push({ id: Date.now().toString(), text: text, group: "默认", enabled: true }); 
-        saveData(); input.value = ''; renderCards();
+        const input = document.getElementById('new-card-input'); const text = input.value.trim();
+        if(!text) return; if(cardLibrary.some(c => c.text === text)) return alert('字卡已存在');
+        cardLibrary.push({ id: Date.now().toString(), text: text, group: "默认", enabled: true }); saveData(); input.value = ''; renderCards();
     }
-
-    function deleteCard(id) { 
-        if(confirm('确定删除？')) { 
-            cardLibrary = cardLibrary.filter(c => c.id !== id); 
-            saveData(); renderCards(); 
-        } 
-    }
-
+    function deleteCard(id) { if(confirm('确定删除？')) { cardLibrary = cardLibrary.filter(c => c.id !== id); saveData(); renderCards(); } }
     function openBatchModal() { document.getElementById('batch-modal').style.display = 'flex'; }
     function closeBatchModal() { document.getElementById('batch-modal').style.display = 'none'; }
-
     function saveBatchCards() {
         const text = document.getElementById('batch-text').value; if(!text.trim()) return;
         const btn = document.getElementById('btn-batch-confirm'); const originalText = btn.innerText;
         btn.innerText = "处理中..."; btn.disabled = true;
-        
         setTimeout(() => {
             let lines = text.split('\n'); let currentGroup = "未分组"; let added = 0;
             const existingTexts = new Set(cardLibrary.map(c => c.text));
-            
             lines.forEach(line => {
                 line = line.trim(); if(!line) return;
                 const match = line.match(/^【(.+)】$/);
                 if (match) { currentGroup = match[1]; } 
-                else { 
-                    if(!existingTexts.has(line)) { 
-                        cardLibrary.push({ id: Date.now().toString() + Math.random().toString(36).substr(2, 5), text: line, group: currentGroup, enabled: true }); 
-                        existingTexts.add(line); added++; 
-                    } 
-                }
+                else { if(!existingTexts.has(line)) { cardLibrary.push({ id: Date.now().toString() + Math.random(), text: line, group: currentGroup, enabled: true }); existingTexts.add(line); added++; } }
             });
-            
-            saveData(); 
-            closeBatchModal(); document.getElementById('batch-text').value = ''; 
-            btn.innerText = originalText; btn.disabled = false;
+            saveData(); closeBatchModal(); document.getElementById('batch-text').value = ''; btn.innerText = originalText; btn.disabled = false;
             renderCards(); alert(`成功添加 ${added} 条字卡！`);
         }, 50);
     }
-
     function exportCards() {
         if(cardLibrary.length === 0) return alert('无数据');
         let txt = ""; const grouped = {};
@@ -539,7 +772,6 @@
         const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
         const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "字卡库导出.txt"; a.click();
     }
-
     function importCards(event) {
         const file = event.target.files[0]; if(!file) return;
         const reader = new FileReader();
@@ -547,29 +779,6 @@
         reader.readAsText(file, 'UTF-8');
     }
 
-    function loadSettingsUI() {
-        document.getElementById('set-theme').value = config.theme; document.getElementById('slider-font-size').value = config.fontSize;
-        document.getElementById('val-font-size').innerText = config.fontSize; document.getElementById('set-font-url').value = config.fontUrl;
-        document.getElementById('set-bubble-color').value = config.bubbleColor; document.getElementById('set-show-avatar').checked = config.showAvatar;
-        document.getElementById('set-show-name').checked = config.showName; document.getElementById('set-show-read').checked = config.showRead;
-        document.getElementById('set-typing-text').value = config.typingText; document.getElementById('set-proactive').value = config.proactiveMin;
-        document.getElementById('slider-ignore').value = config.ignoreProb; document.getElementById('val-ignore').innerText = config.ignoreProb + '%';
-    }
-    function changeTheme(val) { config.theme = val; applyAppearance(); saveConfig(); }
-    function uploadBg(event) {
-        const file = event.target.files[0]; if(!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) { config.bgImage = e.target.result; applyAppearance(); saveConfig(); alert('背景已更新！'); };
-        reader.readAsDataURL(file);
-    }
-    function saveSettings() {
-        config.fontSize = document.getElementById('slider-font-size').value; config.fontUrl = document.getElementById('set-font-url').value.trim();
-        config.bubbleColor = document.getElementById('set-bubble-color').value.trim(); config.showAvatar = document.getElementById('set-show-avatar').checked;
-        config.showName = document.getElementById('set-show-name').checked; config.showRead = document.getElementById('set-show-read').checked;
-        config.typingText = document.getElementById('set-typing-text').value || '对方正在输入...'; config.proactiveMin = parseInt(document.getElementById('set-proactive').value) || 0;
-        config.ignoreProb = parseInt(document.getElementById('slider-ignore').value);
-        applyAppearance(); saveConfig(); setupProactiveTimer(); alert('设置已保存！'); closeApp('settings-app');
-    }
     function exportAllData() {
         const allData = { cards: cardLibrary, config: config };
         const blob = new Blob([JSON.stringify(allData, null, 2)], { type: "application/json;charset=utf-8" });
@@ -582,18 +791,17 @@
             try {
                 const data = JSON.parse(e.target.result);
                 if(data.cards && data.config) {
-                    cardLibrary = data.cards.map(c => ({ ...c, id: c.id || Date.now() + Math.random().toString(36).substr(2, 9) }));
-                    config = data.config;
-                    saveData(); saveConfig(); applyAppearance(); setupProactiveTimer();
-                    alert('数据导入成功！请刷新页面。');
+                    cardLibrary = data.cards.map(c => ({ ...c, id: c.id || Date.now() + Math.random() }));
+                    config = { ...config, ...data.config };
+                    saveData(); saveConfig(); location.reload();
                 } else { alert('文件格式错误'); }
-            } catch(err) { alert('解析失败，文件可能损坏'); }
+            } catch(err) { alert('解析失败'); }
             event.target.value = '';
         };
         reader.readAsText(file, 'UTF-8');
     }
     function resetAllData() {
-        if(confirm('⚠️ 警告：这将清空你的所有字卡和设置，且无法恢复！确定吗？')) {
+        if(confirm('⚠️ 警告：这将清空你的所有数据！确定吗？')) {
             localStorage.removeItem('mirage_cards_v2'); localStorage.removeItem('mirage_config'); location.reload();
         }
     }
@@ -604,18 +812,17 @@
                 const availableCards = cardLibrary.filter(c => c.enabled);
                 if(availableCards.length > 0) {
                     const randomCard = availableCards[Math.floor(Math.random() * availableCards.length)].text;
-                    let speaker = config.isGroup ? config.members[Math.floor(Math.random() * config.members.length)] : config.members[0];
                     if(document.getElementById('chat-app').style.display === 'flex') {
-                        renderMsg('other', speaker.name, speaker.avatar, randomCard);
+                        renderMsg('other', config.botName, config.botAvatar, randomCard);
                     } else {
-                        playSound();
-                        if(Notification.permission === "granted") new Notification(speaker.name, { body: randomCard });
+                        playNotifySound();
+                        if(Notification.permission === "granted") new Notification(config.botName, { body: randomCard, icon: config.botAvatar });
                     }
                 }
             }, config.proactiveMin * 60000);
         }
     }
-    function playSound() {
+    function playNotifySound() {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             const osc = ctx.createOscillator(); osc.frequency.setValueAtTime(800, ctx.currentTime);
