@@ -26,37 +26,43 @@
         body { background: var(--bg-color); color: var(--text-color); height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; font-size: var(--font-size-base); }
         svg { fill: currentColor; width: 26px; height: 26px; }
         img { object-fit: cover; }
+
         /* 开场动画 */
         #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; animation: fadeOut 1s ease-in-out 1.5s forwards; pointer-events: none; }
         #splash-screen svg { width: 80px; height: 80px; color: #111; animation: pulse 1.5s infinite; }
         @keyframes fadeOut { 0% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
         @keyframes pulse { 0% { transform: scale(0.9); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.8; } }
+
         /* 桌面应用图标 */
-        #home-screen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; padding: 60px 20px 20px; align-content: start; height: 100%; background: url('data:image/svg+xml;utf8,<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="%23ddd" /></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)" /></svg>'); }
+        #home-screen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; padding: 60px 20px 20px; align-content: start; height: 100%; background: url('data:image/svg+xml;utf8,<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="%23ddd"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>'); }
         .app-icon { background: var(--header-bg); color: var(--text-color); border-radius: 24px; aspect-ratio: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; border: 1px solid var(--border-color); }
         .app-icon span { font-size: 13px; margin-top: 10px; font-weight: bold; letter-spacing: 1px;}
         .app-icon:active { transform: scale(0.92); }
+
         .page { display: none; flex-direction: column; height: 100%; background: var(--bg-color); position: absolute; top: 0; left: 0; width: 100%; z-index: 10;}
         .header { padding: 15px 20px; padding-top: max(15px, env(safe-area-inset-top)); background: var(--header-bg); display: flex; align-items: center; border-bottom: 1px solid var(--border-color); font-weight: bold; font-size: 17px; }
         .back-btn { margin-right: 15px; cursor: pointer; padding: 5px; display: flex; align-items: center;}
         .header-right { display: flex; gap: 15px; align-items: center;}
         .header-btn { cursor:pointer; padding: 5px; display: flex; align-items: center;}
+
         /* 聊天区域 */
         .chat-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; background-color: var(--chat-bg); background-size: cover; background-position: center; }
         .msg-row { display: flex; width: 100%; align-items: flex-start; gap: 10px; }
         .msg-row.user { justify-content: flex-end; }
         .msg-row.other { justify-content: flex-start; }
-        .avatar-wrap { display:flex; flex-direction:column; align-items:center; gap:3px; }
-        .avatar { width: 38px; height: 38px; border-radius: 6px; object-fit: cover; background: #ddd; flex-shrink: 0; cursor:pointer; }
-        .avatar-time-below { font-size:11px; color:#999; }
+        
+        /* 头像区域（包含头像和下方时间） */
+        .avatar-container { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0;}
+        .avatar { width: 38px; height: 38px; border-radius: 6px; object-fit: cover; background: #ddd; cursor: pointer; }
+        .msg-time-avatar { font-size: 10px; color: #999; text-align: center; white-space: nowrap;}
+
         .msg-content-wrapper { display: flex; flex-direction: column; max-width: 70%; position: relative; }
         .msg-row.user .msg-content-wrapper { align-items: flex-end; }
         
-        /* 名字和时间所在行 */
+        /* 名字所在行 */
         .msg-header { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
         .msg-row.user .msg-header { justify-content: flex-end; }
         .msg-name { font-size: 12px; color: #888; margin-left: 2px; }
-        .msg-time-header { font-size: 11px; color: #999; }
         
         /* 气泡样式 */
         .msg { padding: 10px 14px; border-radius: 12px; line-height: 1.5; word-break: break-all; position: relative; cursor: pointer; border: 1px solid transparent; }
@@ -66,33 +72,42 @@
         .msg.quote { font-size: 12px; opacity: 0.6; border-left: 2px solid var(--accent); padding-left: 8px; margin-bottom: 5px; display: block; background: rgba(128,128,128,0.05); }
         .msg img { max-width: 100%; max-height: 200px; border-radius: 8px; margin-top: 5px; display: block; cursor: zoom-in; }
         .msg .emoji-img { width: 100px; height: 100px; max-height: 100px; margin: 0; background: transparent; border-radius: 0; }
+
         /* 气泡下方时间 */
         .msg-time-bottom { font-size: 11px; color: #999; margin-top: 4px; text-align: center; }
+
         .read-status { font-size: 11px; color: #999; text-align: right; margin-top: 2px; display: none;}
         .read-status.show { display: block; }
         .typing-status { font-size: 12px; color: #888; padding: 0 15px 10px; display: none; }
         
+        /* 系统消息与拍一拍 */
         .sys-msg { text-align: center; font-size: 12px; color: #888; margin: 10px 0; width: 100%;}
         .msg-row.system { justify-content: center; }
+        .msg-row.system .sys-msg span { color: var(--text-color); font-weight: bold; margin: 0 4px; }
+
         /* 输入区与扩展面板 */
         #quote-preview { display: none; background: var(--header-bg); padding: 8px 15px; font-size: 13px; color: #666; border-top: 1px solid var(--border-color); align-items: center; justify-content: space-between; }
         #quote-preview span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
         #quote-preview button { background: none; border: none; cursor: pointer; color: var(--text-color); }
+
         .input-area { padding: 10px 15px; padding-bottom: max(10px, env(safe-area-inset-bottom)); background: var(--header-bg); display: flex; gap: 10px; align-items: center; border-top: 1px solid var(--border-color); }
         .input-area input { flex: 1; padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; font-size: 15px; background: var(--bg-color); color: var(--text-color);}
         .btn-icon { border: none; background: none; color: var(--text-color); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 5px;}
         .btn-send { padding: 0; background: var(--bubble-user); color: var(--bubble-user-text); border: none; border-radius: 8px; width: 50px; height: 38px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 14px; font-weight: bold;}
+
         /* 微信风格：加号面板与表情面板 */
         #extra-panel, #emoji-panel { display: none; background: var(--header-bg); border-top: 1px solid var(--border-color); padding: 20px; }
         #extra-panel { height: 120px; display: flex; gap: 30px; }
         .panel-action { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color); }
         .panel-action .icon-box { width: 60px; height: 60px; background: var(--bg-color); border-radius: 12px; border: 1px solid var(--border-color); display: flex; justify-content: center; align-items: center; }
         .panel-action span { font-size: 12px; color: #666; }
+
         #emoji-panel { height: 250px; overflow-y: auto; display: none;}
         .emoji-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
         .emoji-grid img { width: 100%; aspect-ratio: 1; object-fit: contain; cursor: pointer; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); padding: 5px;}
         .emoji-actions { display: flex; justify-content: flex-end; margin-bottom: 10px; }
         .btn-small { padding: 5px 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px; font-size: 12px; cursor: pointer;}
+
         /* 列表页通用 */
         .list-container { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px;}
         .list-item { background: var(--header-bg); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
@@ -121,6 +136,7 @@
         .add-card-bar { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--header-bg); padding: 15px; padding-bottom: max(15px, env(safe-area-inset-bottom)); display: flex; gap: 10px; border-top: 1px solid var(--border-color); }
         .add-card-bar input { flex: 1; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; font-size: 15px; background: var(--bg-color); color: var(--text-color);}
         .add-card-bar button { background: var(--bubble-user); color: var(--bubble-user-text); border: none; border-radius: 8px; padding: 0 20px; font-size: 15px; }
+
         /* 设置 */
         .settings-content { padding: 20px; overflow-y: auto; flex: 1; padding-bottom: 100px;}
         .setting-item { margin-bottom: 20px; background: var(--header-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);}
@@ -135,6 +151,7 @@
         .toggle:checked::after { transform: translateX(20px); }
         .profile-edit { display: flex; gap: 10px; margin-bottom: 10px; align-items: center;}
         .profile-edit img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; background: #eee; border: 1px solid var(--border-color);}
+
         /* 弹窗与菜单 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 200; justify-content: center; align-items: center; }
         .modal-content { background: var(--header-bg); color: var(--text-color); width: 90%; max-width: 400px; border-radius: 15px; padding: 20px; display: flex; flex-direction: column; gap: 15px; border: 1px solid var(--border-color);}
@@ -145,60 +162,58 @@
         .btn-cancel { background: var(--border-color); color: var(--text-color); }
         .btn-confirm { background: var(--bubble-user); color: var(--bubble-user-text); }
         .btn-danger { background: #444; color: #fff;}
+
         #action-sheet { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: var(--bg-color); z-index: 210; border-top-left-radius: 15px; border-top-right-radius: 15px; padding-bottom: max(10px, env(safe-area-inset-bottom)); box-shadow: 0 -2px 10px rgba(0,0,0,0.1); border-top: 1px solid var(--border-color);}
         .action-btn { padding: 16px; text-align: center; font-size: 16px; border-bottom: 1px solid var(--border-color); cursor: pointer; color: var(--text-color);}
         .action-btn:active { background: var(--header-bg); }
         .action-btn.danger { color: #666; }
         .action-cancel { margin-top: 8px; border-bottom: none; border-top: 8px solid var(--border-color); font-weight: bold;}
+
         /* 信箱 */
         .letter-content { white-space: pre-wrap; line-height: 1.6; font-size: 15px; padding: 10px; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--border-color); min-height: 200px;}
-        /*拍一拍弹窗*/
-        #pat-modal .pat-item { padding:12px; border-bottom:1px solid var(--border-color); cursor:pointer; }
-        #pat-modal .pat-item:active { background:var(--chat-bg); }
     </style>
 </head>
 <body>
+
     <!-- 开场动画 -->
     <div id="splash-screen">
-        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
     </div>
+
     <!-- 主屏幕 -->
     <div id="home-screen">
         <div class="app-icon" onclick="openApp('chat-app')">
-            <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg>
+            <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
             <span>聊天</span>
         </div>
         <div class="app-icon" onclick="openApp('cards-app')">
-            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" /></svg>
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
             <span>字卡库</span>
         </div>
-        <div class="app-icon" onclick="openApp('pat-app')">
-            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M8 12l2 2 4-4"/></svg>
-            <span>拍一拍</span>
-        </div>
         <div class="app-icon" onclick="openApp('emoji-app')">
-            <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" /></svg>
+            <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
             <span>表情包</span>
         </div>
         <div class="app-icon" onclick="openApp('letter-app')">
-            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" /></svg>
+            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
             <span>信箱</span>
         </div>
         <div class="app-icon" onclick="openApp('settings-app')">
-            <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" /></svg>
+            <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
             <span>设置</span>
         </div>
     </div>
+
     <!-- 聊天界面 -->
     <div id="chat-app" class="page">
         <div class="header">
             <div class="back-btn" onclick="closeApp('chat-app')">
-                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
+                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
             </div>
             <div style="flex:1;" id="chat-title">梦角</div>
             <div class="header-right">
                 <div class="header-btn" onclick="clearAllMessages()" title="清空聊天记录">
-                    <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" /></svg>
+                    <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
                 </div>
             </div>
         </div>
@@ -213,66 +228,49 @@
             </div>
             <div class="emoji-grid" id="emoji-grid-inline"></div>
         </div>
+
         <!-- 加号功能面板 -->
         <div id="extra-panel">
             <div class="panel-action" onclick="document.getElementById('img-upload-input').click()">
                 <div class="icon-box">
-                    <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" /></svg>
+                    <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
                 </div>
                 <span>相册</span>
             </div>
         </div>
         <input type="file" id="img-upload-input" accept="image/*" style="display:none" onchange="sendImage(event)">
+
         <div id="quote-preview">
             <span id="quote-text"></span>
             <button onclick="cancelQuote()">✕</button>
         </div>
+
         <!-- 输入栏 -->
         <div class="input-area">
             <button class="btn-icon" onclick="toggleEmojiPanel()">
-                <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" /></svg>
+                <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
             </button>
             
             <input type="text" id="msg-input" placeholder="" onfocus="hidePanels()" onkeypress="if(event.key==='Enter') sendMessage()">
             
             <button class="btn-icon" onclick="toggleExtraPanel()">
-                <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" /></svg>
+                <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
             </button>
             
             <!-- 三个点触发回复 -->
             <button class="btn-icon" onclick="triggerBotReplyOnly()" title="让对方继续说">
-                <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" /></svg>
+                <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
             </button>
+
             <button class="btn-send" onclick="sendMessage()">发送</button>
         </div>
     </div>
 
-    <!--拍一拍词库页面-->
-    <div id="pat-app" class="page">
-        <div class="header">
-            <div class="back-btn" onclick="closeApp('pat-app')">
-                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
-            </div>
-            <div style="flex:1;">拍一拍词库</div>
-        </div>
-        <div class="cards-toolbar">
-            <button class="btn-tool" onclick="openPatBatchModal()">批量添加</button>
-            <button class="btn-tool" onclick="exportPat()">导出TXT</button>
-            <button class="btn-tool" onclick="document.getElementById('pat-file-input').click()">导入TXT</button>
-            <input type="file" id="pat-file-input" accept=".txt" style="display:none" onchange="importPat(event)">
-        </div>
-        <div class="list-container" id="pat-list"></div>
-        <div class="add-card-bar">
-            <input type="text" id="new-pat-input" placeholder="单条添加拍一拍词条...">
-            <button onclick="addSinglePat()">添加</button>
-        </div>
-    </div>
-
-    <!--字卡库界面 -->
+    <!-- 字卡库界面 -->
     <div id="cards-app" class="page">
         <div class="header">
             <div class="back-btn" onclick="closeApp('cards-app')">
-                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
+                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
             </div>
             <div style="flex:1;">字卡库</div>
         </div>
@@ -291,11 +289,12 @@
             <button onclick="addSingleCard()">添加</button>
         </div>
     </div>
+
     <!-- 表情包库界面 -->
     <div id="emoji-app" class="page">
         <div class="header">
             <div class="back-btn" onclick="closeApp('emoji-app')">
-                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
+                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
             </div>
             <div style="flex:1;">表情包库</div>
         </div>
@@ -308,24 +307,26 @@
             <div class="emoji-grid" id="emoji-grid-full"></div>
         </div>
     </div>
+
     <!-- 信箱界面 -->
     <div id="letter-app" class="page">
         <div class="header">
             <div class="back-btn" onclick="closeApp('letter-app')">
-                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
+                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
             </div>
             <div style="flex:1;">信箱</div>
             <div class="header-btn" onclick="openWriteLetter()">
-                <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" /></svg>
+                <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
             </div>
         </div>
         <div class="list-container" id="letters-list"></div>
     </div>
+
     <!-- 设置界面 -->
     <div id="settings-app" class="page">
         <div class="header">
             <div class="back-btn" onclick="closeApp('settings-app')">
-                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
+                <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
             </div>
             <div style="flex:1;">设置</div>
         </div>
@@ -359,12 +360,12 @@
                     <textarea id="set-group-members" style="height:80px;"></textarea>
                 </div>
             </div>
+
             <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">外观与交互</h3>
             <div class="setting-item">
                 <label>时间显示位置</label>
                 <select id="set-time-display">
                     <option value="bottom">气泡下方</option>
-                    <option value="name">名字旁边</option>
                     <option value="avatar">头像下方</option>
                     <option value="hidden">不显示</option>
                 </select>
@@ -396,6 +397,12 @@
                 <label style="margin-top:10px;">聊天背景图</label>
                 <input type="file" id="set-bg" accept="image/*" onchange="uploadBg(event)" style="border:none; padding:5px 0;">
             </div>
+
+            <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">拍一拍词条管理</h3>
+            <div class="setting-item">
+                <button class="btn-tool" style="width:100%; padding:12px;" onclick="openPatModal()">管理拍一拍词条</button>
+            </div>
+
             <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">聊天逻辑</h3>
             <div class="setting-item">
                 <label>模拟真人延迟 (秒，最小-最大)</label>
@@ -419,6 +426,7 @@
                 <label style="margin-top:10px;">撤回消息概率 (%) <span id="val-recall">10%</span></label>
                 <input type="range" id="slider-recall" min="0" max="100" value="10" oninput="document.getElementById('val-recall').innerText=this.value+'%'">
             </div>
+
             <h3 style="margin:20px 0 10px; font-size:16px; color:var(--accent);">写信逻辑</h3>
             <div class="setting-item">
                 <label>主动写信间隔 (分钟，0关)</label>
@@ -437,9 +445,11 @@
                 <input type="file" id="import-all-file" style="display:none" accept=".json" onchange="importAllData(event)">
                 <button class="btn-tool btn-danger" style="width:100%; padding:12px;" onclick="resetAllData()">重置所有数据</button>
             </div>
+
             <button class="btn-confirm" style="width:100%; padding:15px; border-radius:10px; margin-bottom:50px;" onclick="saveSettings()">保存所有设置</button>
         </div>
     </div>
+
     <!-- 弹窗 -->
     <div id="batch-modal" class="modal">
         <div class="modal-content">
@@ -451,6 +461,19 @@
             </div>
         </div>
     </div>
+
+    <!-- 拍一拍词条管理弹窗 -->
+    <div id="pat-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="text-align:center;">批量添加拍一拍词条 (一行一个)</h3>
+            <textarea id="pat-text" placeholder="拍了拍你的脑袋&#10;抱了抱你&#10;亲了亲你"></textarea>
+            <div class="modal-btns">
+                <button class="btn-cancel" onclick="document.getElementById('pat-modal').style.display='none'">取消</button>
+                <button class="btn-confirm" onclick="savePatCards()">保存</button>
+            </div>
+        </div>
+    </div>
+
     <div id="edit-modal" class="modal">
         <div class="modal-content">
             <h3 style="text-align:center;">修改字卡</h3>
@@ -462,6 +485,7 @@
             </div>
         </div>
     </div>
+
     <div id="move-modal" class="modal">
         <div class="modal-content">
             <h3 style="text-align:center;">移动字卡至...</h3>
@@ -473,6 +497,7 @@
             </div>
         </div>
     </div>
+
     <div id="write-letter-modal" class="modal">
         <div class="modal-content">
             <h3 style="text-align:center;" id="letter-modal-title">写信</h3>
@@ -484,6 +509,7 @@
             </div>
         </div>
     </div>
+
     <div id="read-letter-modal" class="modal">
         <div class="modal-content">
             <h3 style="text-align:center;" id="read-letter-title"></h3>
@@ -494,43 +520,22 @@
             </div>
         </div>
     </div>
+
     <div id="action-sheet" onclick="closeActionSheet(event)">
         <div id="action-content" onclick="event.stopPropagation()"></div>
     </div>
 
-    <!--拍一拍选择弹窗-->
-    <div id="pat-modal" class="modal">
-        <div class="modal-content" style="max-height:70vh;overflow-y:auto;">
-            <h3 style="text-align:center;">选择拍一拍</h3>
-            <div id="pat-select-list"></div>
-            <div class="modal-btns">
-                <button class="btn-cancel" onclick="document.getElementById('pat-modal').style.display='none'">取消</button>
-            </div>
-        </div>
-    </div>
-    <div id="pat-batch-modal" class="modal">
-        <div class="modal-content">
-            <h3 style="text-align:center;">批量添加拍一拍</h3>
-            <textarea id="pat-batch-text" placeholder="抱了抱你&#10;拍了拍你&#10;捏了捏脸"></textarea>
-            <div class="modal-btns">
-                <button class="btn-cancel" onclick="document.getElementById('pat-batch-modal').style.display='none'">取消</button>
-                <button class="btn-confirm" onclick="saveBatchPat()">确认</button>
-            </div>
-        </div>
-    </div>
-
 <script>
     // --- 数据初始化 ---
-    const defaultAvatarUser = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23e0e0e0' /><circle cx='50' cy='35' r='18' fill='%23fff' /><path d='M25 85c0-15 12-25 25-25s25 10 25 25' fill='%23fff' /></svg>";
-    const defaultAvatarBot = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23dcdcdc' /><circle cx='50' cy='35' r='18' fill='%23f5f5f5' /><path d='M25 85c0-15 12-25 25-25s25 10 25 25' fill='%23f5f5f5' /></svg>";
+    const defaultAvatarUser = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23e0e0e0'/><circle cx='50' cy='35' r='18' fill='%23fff'/><path d='M25 85c0-15 12-25 25-25s25 10 25 25' fill='%23fff'/></svg>";
+    const defaultAvatarBot = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23dcdcdc'/><circle cx='50' cy='35' r='18' fill='%23f5f5f5'/><path d='M25 85c0-15 12-25 25-25s25 10 25 25' fill='%23f5f5f5'/></svg>";
+
     let cardLibrary = JSON.parse(localStorage.getItem('mirage_cards_v2')) || [{ id: '1', text: "早安", group: "默认", enabled: true }];
     let emojiLibrary = JSON.parse(localStorage.getItem('mirage_emojis')) || [];
     let letterBox = JSON.parse(localStorage.getItem('mirage_letters')) || [];
     let disabledGroups = JSON.parse(localStorage.getItem('mirage_disabled_groups')) || {};
-    //拍一拍词条
-    let patList = JSON.parse(localStorage.getItem('mirage_patlist')) || ["抱了抱你","拍了拍你","捏了捏脸"];
-    let patTargetName = "";
-
+    let patLibrary = JSON.parse(localStorage.getItem('mirage_pats')) || ["拍了拍你的脑袋", "抱了抱你", "亲了亲你"];
+    
     let config = JSON.parse(localStorage.getItem('mirage_config')) || {
         delayMin: 2, delayMax: 5,
         proactiveMin: 0, proactiveMax: 0,
@@ -544,8 +549,7 @@
         showAvatar: true, showName: true, showRead: false, 
         sendMulti: true, soundEnabled: false, typingText: '对方正在输入...',
         letterProactiveMin: 0, letterProactiveMax: 0, replyProb: 80,
-        emojiProb:10,
-        timeDisplay: 'bottom' // bottom, name, avatar, hidden
+        timeDisplay: 'bottom' // bottom, avatar, hidden
     };
     
     // 配置兼容
@@ -556,6 +560,7 @@
     if(config.replyProb === undefined) config.replyProb = 80;
     if(config.emojiProb === undefined) config.emojiProb = 10;
     if(config.timeDisplay === undefined) config.timeDisplay = 'bottom';
+
     let recentUserMsgs = [];
     let searchTimer, saveTimer;
     let currentQuote = null;
@@ -564,11 +569,7 @@
     let proactiveTimer, letterTimer;
     let editingId = null;
     let movingId = null;
-
-    //拍一拍存储
-    function savePatList(){
-        localStorage.setItem("mirage_patlist",JSON.stringify(patList));
-    }
+    let pattingTargetRole = null;
 
     // --- 核心：图片压缩引擎 ---
     function compressImage(file, maxWidth, maxHeight, quality) {
@@ -581,6 +582,7 @@
                 img.onload = () => {
                     let width = img.width;
                     let height = img.height;
+
                     if (width > maxWidth) {
                         height = Math.round((height * maxWidth) / width);
                         width = maxWidth;
@@ -589,6 +591,7 @@
                         width = Math.round((width * maxHeight) / height);
                         height = maxHeight;
                     }
+
                     const canvas = document.createElement('canvas');
                     canvas.width = width;
                     canvas.height = height;
@@ -600,6 +603,7 @@
             };
         });
     }
+
     // --- 初始化与渲染 ---
     window.onload = () => {
         setTimeout(() => { document.getElementById('splash-screen').style.display = 'none'; }, 2000);
@@ -612,6 +616,7 @@
         setupProactiveTimer();
         setupLetterTimer();
     };
+
     function saveData(key, data) { 
         clearTimeout(saveTimer);
         saveTimer = setTimeout(() => {
@@ -619,6 +624,7 @@
         }, 300);
     }
     function saveConfig() { localStorage.setItem('mirage_config', JSON.stringify(config)); }
+
     function applyAppearance() {
         if(config.theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
         else if(config.theme === 'light') document.documentElement.removeAttribute('data-theme');
@@ -626,7 +632,9 @@
             if(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.setAttribute('data-theme', 'dark');
             else document.documentElement.removeAttribute('data-theme');
         }
+
         document.documentElement.style.setProperty('--font-size-base', config.fontSize + 'px');
+
         if(config.bgImage) {
             document.getElementById('chat-area').style.backgroundImage = `url(${config.bgImage})`;
             document.getElementById('chat-area').style.backgroundColor = 'transparent';
@@ -634,6 +642,7 @@
             document.getElementById('chat-area').style.backgroundImage = 'none';
             document.getElementById('chat-area').style.backgroundColor = 'var(--chat-bg)';
         }
+
         let styleEl = document.getElementById('dynamic-style') || document.createElement('style');
         styleEl.id = 'dynamic-style';
         styleEl.innerHTML = `
@@ -646,6 +655,7 @@
         
         document.getElementById('typing-status').innerText = config.typingText;
     }
+
     function openApp(appId) {
         document.getElementById('home-screen').style.display = 'none';
         document.getElementById(appId).style.display = 'flex';
@@ -653,13 +663,13 @@
         if(appId === 'emoji-app') renderEmojiPanels();
         if(appId === 'letter-app') renderLetters();
         if(appId === 'settings-app') loadSettingsUI();
-        if(appId === 'pat-app') renderPatList();
     }
     function closeApp(appId) {
         document.getElementById(appId).style.display = 'none';
         document.getElementById('home-screen').style.display = 'grid';
         hidePanels();
     }
+
     // --- 消息渲染 ---
     function renderMsg(role, name, avatar, contentHTML, isEmoji = false) {
         const chatArea = document.getElementById('chat-area');
@@ -672,27 +682,880 @@
             chatArea.scrollTop = chatArea.scrollHeight;
             return row;
         }
+
         row.className = `msg-row ${role}`;
+        
         const now = new Date();
         const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        
+        // 构建时间和名字
+        let avatarHTML = '';
+        let nameHTML = '';
+        let timeBottomHTML = '';
 
-        let avatarWrapHtml = "";
-        if(config.showAvatar){
-            if(config.timeDisplay === "avatar"){
-                avatarWrapHtml = `<div class="avatar-wrap"><img class="avatar" onclick="openPatSelect('${name}')" src="${avatar}" onerror="this.src='${role==='user'?defaultAvatarUser:defaultAvatarBot}'"><div class="avatar-time-below">${timeStr}</div></div>`;
-            }else{
-                avatarWrapHtml = `<div class="avatar-wrap"><img class="avatar" onclick="openPatSelect('${name}')" src="${avatar}" onerror="this.src='${role==='user'?defaultAvatarUser:defaultAvatarBot}'"></div>`;
+        if (config.timeDisplay === 'avatar') {
+            avatarHTML = `
+                <div class="avatar-container">
+                    <img class="avatar" src="${avatar}" onerror="this.src='${role==='user'?defaultAvatarUser:defaultAvatarBot}'" onclick="handleAvatarClick('${role}')">
+                    <div class="msg-time-avatar">${timeStr}</div>
+                </div>
+            `;
+        } else {
+            avatarHTML = `<img class="avatar" src="${avatar}" onerror="this.src='${role==='user'?defaultAvatarUser:defaultAvatarBot}'" onclick="handleAvatarClick('${role}')">`;
+        }
+
+        if (config.timeDisplay === 'bottom') {
+            timeBottomHTML = `<div class="msg-time-bottom">${timeStr}</div>`;
+        }
+
+        if (config.showName) {
+            nameHTML = `<div class="msg-header"><span class="msg-name">${name}</span></div>`;
+        }
+
+        let finalContent = contentHTML;
+        if (contentHTML.startsWith('data:image/')) {
+            if (isEmoji) {
+                finalContent = `<img src="${contentHTML}" onclick="window.open(this.src)" class="emoji-img">`;
+            } else {
+                finalContent = `<img src="${contentHTML}" onclick="window.open(this.src)">`;
             }
         }
 
-        // 构建时间和名字
-        let nameHTML = '';
-        let timeHeaderHTML = '';
-        let timeBottomHTML = '';
-        if (config.timeDisplay === 'name') {
-            timeHeaderHTML = `<span class="msg-time-header">${timeStr}</span>`;
-        } else if (config.timeDisplay === 'bottom') {
-            timeBottomHTML = `<div class="msg-time-bottom">${timeStr}</div>`;
+        row.innerHTML = `
+            ${avatarHTML}
+            <div class="msg-content-wrapper">
+                ${nameHTML}
+                <div class="msg ${role}" onclick="showActionSheet(this, '${role}', '${name}')">
+                    ${finalContent}
+                </div>
+                ${timeBottomHTML}
+                ${role === 'user' ? '<div class="read-status">已读</div>' : ''}
+            </div>
+        `;
+        chatArea.appendChild(row);
+        chatArea.scrollTop = chatArea.scrollHeight;
+        return row;
+    }
+
+    // --- 拍一拍逻辑 ---
+    function handleAvatarClick(role) {
+        pattingTargetRole = role;
+        const contentDiv = document.getElementById('action-content');
+        
+        let html = `<div style="padding: 15px; text-align: center; border-bottom: 1px solid var(--border-color); font-weight: bold;">选择拍一拍词条</div>`;
+        html += `<div style="max-height: 300px; overflow-y: auto;">`;
+        
+        if (patLibrary.length === 0) {
+            html += `<div style="padding: 20px; text-align: center; color: #999;">暂无词条，请去设置中添加</div>`;
+        } else {
+            patLibrary.forEach(pat => {
+                html += `<div class="action-btn" onclick="triggerPat('${pat}')">${pat}</div>`;
+            });
         }
-        if (config.showName) {
-            nameHTML = `<div class="msg-header"><span class="msg
+        html += `</div>`;
+        html += `<div class="action-btn action-cancel" onclick="closeActionSheet()">取消</div>`;
+        
+        contentDiv.innerHTML = html;
+        document.getElementById('action-sheet').style.display = 'block';
+    }
+
+    function triggerPat(patText) {
+        closeActionSheet();
+        
+        let meName = config.userName;
+        let targetName = pattingTargetRole === 'user' ? config.userName : (config.isGroup ? "群友" : config.botName);
+        if (pattingTargetRole === 'user') targetName = "自己";
+        
+        const sysHTML = `<span>${meName}</span> ${patText} <span>${targetName}</span>`;
+        renderMsg('system', '', '', sysHTML);
+        
+        // 如果拍的是对方，对方有几率回应（可以选做，这里暂不实现，保持纯粹的系统提示）
+    }
+
+    function openPatModal() {
+        document.getElementById('pat-text').value = patLibrary.join('\n');
+        document.getElementById('pat-modal').style.display = 'flex';
+    }
+
+    function savePatCards() {
+        const text = document.getElementById('pat-text').value;
+        patLibrary = text.split('\n').map(t => t.trim()).filter(t => t);
+        saveData('mirage_pats', patLibrary);
+        document.getElementById('pat-modal').style.display = 'none';
+        alert('拍一拍词条已保存！');
+    }
+
+    function showActionSheet(msgElement, role, name) {
+        targetMsgElement = msgElement.closest('.msg-row');
+        const contentDiv = document.getElementById('action-content');
+        let html = '';
+        const hasImg = msgElement.querySelector('img');
+        
+        if (!hasImg) html += `<div class="action-btn" onclick="actionCopy()">复制</div>`;
+        
+        if(role === 'other') {
+            if (!hasImg) {
+                html += `<div class="action-btn" onclick="actionQuote()">引用</div>`;
+                html += `<div class="action-btn" onclick="actionAddCard(false)">加入字卡库</div>`;
+            }
+            html += `<div class="action-btn" onclick="actionRecall('other', '${name}')">撤回对方消息</div>`;
+        } else {
+            if (!hasImg) html += `<div class="action-btn" onclick="actionAddCard(true)">加入字卡库(可修改)</div>`;
+            html += `<div class="action-btn" onclick="actionRecall('user', '我')">撤回</div>`;
+        }
+        html += `<div class="action-btn danger" onclick="actionDelete()">删除记录</div>`;
+        html += `<div class="action-btn action-cancel" onclick="closeActionSheet()">取消</div>`;
+        
+        contentDiv.innerHTML = html;
+        document.getElementById('action-sheet').style.display = 'block';
+    }
+
+    function closeActionSheet(e) {
+        if(!e || e.target.id === 'action-sheet') document.getElementById('action-sheet').style.display = 'none';
+    }
+
+    function getTargetText() {
+        const msgDiv = targetMsgElement.querySelector('.msg');
+        if(!msgDiv) return "";
+        const clone = msgDiv.cloneNode(true);
+        const quote = clone.querySelector('.quote');
+        if (quote) quote.remove();
+        return clone.innerText.trim();
+    }
+
+    // --- 动作实现 ---
+    function actionCopy() {
+        const text = getTargetText();
+        navigator.clipboard.writeText(text).then(() => alert('已复制')).catch(() => {});
+        closeActionSheet();
+    }
+
+    function actionQuote() {
+        currentQuote = getTargetText();
+        document.getElementById('quote-preview').style.display = 'flex';
+        document.getElementById('quote-text').innerText = `正在回复: ${currentQuote}`;
+        document.getElementById('msg-input').focus();
+        closeActionSheet();
+    }
+
+    function actionAddCard(isUserMsg) {
+        let text = getTargetText();
+        if (isUserMsg) {
+            let newText = prompt('修改字卡内容后加入:', text);
+            if(newText === null) { closeActionSheet(); return; }
+            text = newText.trim();
+        }
+        if(!text) { closeActionSheet(); return; }
+        
+        if(cardLibrary.some(c => c.text === text)) alert('该字卡已存在');
+        else {
+            cardLibrary.push({ id: Date.now().toString(), text: text, group: isUserMsg ? "我的语录" : "聊天提取", enabled: true });
+            saveData('mirage_cards_v2', cardLibrary); alert('已加入字卡库！');
+        }
+        closeActionSheet();
+    }
+
+    function actionRecall(role, name) {
+        if(confirm('确定撤回这条消息吗？')) {
+            targetMsgElement.className = 'msg-row system';
+            targetMsgElement.innerHTML = `<div class="sys-msg">${name}撤回了一条消息</div>`;
+        }
+        closeActionSheet();
+    }
+
+    function actionDelete() {
+        if(confirm('彻底删除这条记录？')) targetMsgElement.remove();
+        closeActionSheet();
+    }
+
+    function clearAllMessages() {
+        if(confirm('⚠️ 确定清空所有聊天记录吗？')) document.getElementById('chat-area').innerHTML = '';
+    }
+
+    function cancelQuote() {
+        currentQuote = null;
+        document.getElementById('quote-preview').style.display = 'none';
+    }
+
+    function markUserMsgsAsRead() {
+        if(!config.showRead) return;
+        const userRows = document.querySelectorAll('.msg-row.user');
+        if(userRows.length > 0) {
+            const lastRow = userRows[userRows.length - 1];
+            const readStatus = lastRow.querySelector('.read-status');
+            if(readStatus) readStatus.classList.add('show');
+        }
+    }
+
+    function playSound() {
+        if(!config.soundEnabled) return;
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator(); const gain = ctx.createGain();
+            osc.type = 'sine'; osc.frequency.setValueAtTime(600, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.1, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(); osc.stop(ctx.currentTime + 0.2);
+        } catch(e) {}
+    }
+
+    // --- 发送逻辑 ---
+    function sendMessage() {
+        const input = document.getElementById('msg-input');
+        const text = input.value.trim();
+        if (!text) { toggleExtraPanel(); return; } 
+        
+        let finalHTML = "";
+        if(currentQuote) {
+            finalHTML += `<span class="quote">回复: ${currentQuote}</span>`;
+            cancelQuote();
+        }
+        finalHTML += text;
+
+        renderMsg('user', config.userName, config.userAvatar, finalHTML);
+        input.value = '';
+        
+        recentUserMsgs.push(text);
+        if(recentUserMsgs.length > 10) recentUserMsgs.shift();
+
+        triggerBotReply();
+    }
+
+    async function sendImage(event) {
+        const file = event.target.files[0];
+        if(!file) return;
+        try {
+            const compressedImg = await compressImage(file, 800, 800, 0.6);
+            renderMsg('user', config.userName, config.userAvatar, compressedImg);
+            triggerBotReply();
+        } catch(e) { alert('图片处理失败'); }
+        event.target.value = '';
+    }
+
+    function sendEmoji(imgData) {
+        renderMsg('user', config.userName, config.userAvatar, imgData, true);
+        hidePanels();
+        triggerBotReply();
+    }
+
+    // 点击三个点，强制触发对方回复
+    function triggerBotReplyOnly() {
+        hidePanels();
+        document.getElementById('typing-status').style.display = 'block';
+        document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
+        
+        const delay = (config.delayMin + Math.random() * (config.delayMax - config.delayMin)) * 1000;
+        setTimeout(() => {
+            document.getElementById('typing-status').style.display = 'none';
+            generateBotMessage();
+        }, delay);
+    }
+
+    // 发送消息后触发（带概率）
+    function triggerBotReply() {
+        hidePanels();
+        if (Math.random() * 100 < config.ignoreProb) return; // 已读不回
+
+        document.getElementById('typing-status').style.display = 'block';
+        document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
+
+        const delay = (config.delayMin + Math.random() * (config.delayMax - config.delayMin)) * 1000;
+        setTimeout(() => {
+            document.getElementById('typing-status').style.display = 'none'; 
+            markUserMsgsAsRead();
+            generateBotMessage();
+        }, delay);
+    }
+
+    // 生成对方消息
+    function generateBotMessage() {
+        let senderName = config.botName;
+        let senderAvatar = config.botAvatar;
+
+        if (config.isGroup && config.groupMembers.length > 0) {
+            const member = config.groupMembers[Math.floor(Math.random() * config.groupMembers.length)];
+            senderName = member.name;
+            senderAvatar = member.avatar || config.botAvatar;
+        }
+
+        // 判断是否发表情包
+        if (emojiLibrary.length > 0 && Math.random() * 100 < config.emojiProb) {
+            const randomEmoji = emojiLibrary[Math.floor(Math.random() * emojiLibrary.length)];
+            const newRow = renderMsg('other', senderName, senderAvatar, randomEmoji, true);
+            playSound();
+            if (Math.random() * 100 < config.recallProb) {
+                setTimeout(() => {
+                    if (newRow && newRow.parentNode) {
+                        newRow.className = 'msg-row system';
+                        newRow.innerHTML = `<div class="sys-msg">${senderName}撤回了一条消息</div>`;
+                    }
+                }, 2000 + Math.random() * 3000);
+            }
+            return;
+        }
+
+        // 文字回复
+        let replyHTML = "";
+        if (Math.random() * 100 < config.quoteProb && recentUserMsgs.length > 0) {
+            const quoteMsg = recentUserMsgs[Math.floor(Math.random() * recentUserMsgs.length)];
+            replyHTML += `<span class="quote">回复: ${quoteMsg}</span>`;
+        }
+        
+        const availableCards = cardLibrary.filter(c => c.enabled && !disabledGroups[c.group]);
+        
+        if(availableCards.length === 0) {
+            replyHTML += `(字卡库空了)`;
+        } else {
+            const count = Math.floor(Math.random() * 3) + 1;
+            let texts = [];
+            for(let i=0; i<count; i++) texts.push(availableCards[Math.floor(Math.random() * availableCards.length)].text);
+            
+            if (config.sendMulti) {
+                replyHTML += texts.join(["，", "。", "~", " "][Math.floor(Math.random() * 4)]);
+            } else {
+                replyHTML += texts[0];
+            }
+        }
+        
+        const newRow = renderMsg('other', senderName, senderAvatar, replyHTML);
+        playSound();
+        
+        if (Notification.permission === "granted" && document.getElementById('chat-app').style.display !== 'flex') {
+            new Notification(senderName, { body: newRow.querySelector('.msg').innerText, icon: senderAvatar });
+        }
+
+        if (Math.random() * 100 < config.recallProb) {
+            setTimeout(() => {
+                if (newRow && newRow.parentNode) {
+                    newRow.className = 'msg-row system';
+                    newRow.innerHTML = `<div class="sys-msg">${senderName}撤回了一条消息</div>`;
+                }
+            }, 2000 + Math.random() * 3000);
+        }
+    }
+
+    // --- UI面板控制 ---
+    function hidePanels() {
+        document.getElementById('extra-panel').style.display = 'none';
+        document.getElementById('emoji-panel').style.display = 'none';
+    }
+    function toggleExtraPanel() {
+        const p = document.getElementById('extra-panel');
+        const isHidden = p.style.display === 'none' || p.style.display === '';
+        hidePanels();
+        if (isHidden) {
+            p.style.display = 'flex';
+            document.getElementById('msg-input').blur();
+        }
+    }
+    function toggleEmojiPanel() {
+        const p = document.getElementById('emoji-panel');
+        const isHidden = p.style.display === 'none' || p.style.display === '';
+        hidePanels();
+        if (isHidden) {
+            p.style.display = 'block';
+            document.getElementById('msg-input').blur();
+        }
+    }
+
+    // --- 字卡库相关 ---
+    function debouncedRenderCards() { clearTimeout(searchTimer); searchTimer = setTimeout(() => { renderCards(); }, 300); }
+    function toggleGroup(groupName) { collapsedGroups[groupName] = !collapsedGroups[groupName]; renderCards(); }
+    function toggleGroupDisable(groupName, e) { 
+        e.stopPropagation(); 
+        disabledGroups[groupName] = !disabledGroups[groupName]; 
+        saveData('mirage_disabled_groups', disabledGroups); 
+        renderCards(); 
+    }
+
+    function renderCards() {
+        const list = document.getElementById('cards-list');
+        const keyword = document.getElementById('search-input').value.trim().toLowerCase();
+        const filteredCards = cardLibrary.filter(c => c.text.toLowerCase().includes(keyword));
+        
+        const groups = [...new Set(cardLibrary.map(c => c.group))];
+        document.getElementById('group-datalist').innerHTML = groups.map(g => `<option value="${g}">`).join('');
+
+        if(filteredCards.length === 0) { list.innerHTML = '<div style="text-align:center; color:#999; margin-top:50px;">没有找到字卡</div>'; return; }
+        
+        const displayCards = filteredCards.slice(0, 300);
+        const grouped = {};
+        displayCards.forEach((card) => { if(!grouped[card.group]) grouped[card.group] = []; grouped[card.group].push(card); });
+        
+        let htmlArr = [];
+        for (let groupName in grouped) {
+            const isCollapsed = keyword ? false : collapsedGroups[groupName];
+            const isDisabled = disabledGroups[groupName];
+            
+            htmlArr.push(`
+                <div class="group-title ${isCollapsed ? 'collapsed' : ''}" onclick="toggleGroup('${groupName}')">
+                    <div class="group-title-left">
+                        <span class="arrow">▼</span> ${groupName} (${grouped[groupName].length})
+                    </div>
+                    <div class="group-actions">
+                        <span onclick="toggleGroupDisable('${groupName}', event)">${isDisabled ? '启用组' : '屏蔽组'}</span>
+                        <span onclick="event.stopPropagation(); deleteGroup('${groupName}')" style="color:#aaa;">删除</span>
+                    </div>
+                </div>
+            `);
+            if(!isCollapsed) {
+                grouped[groupName].forEach(card => {
+                    htmlArr.push(`
+                        <div class="card-item ${card.enabled ? '' : 'disabled'}">
+                            <span>${card.text}</span>
+                            <div class="card-actions">
+                                <svg onclick="toggleEnableCard('${card.id}')" viewBox="0 0 24 24"><path d="${card.enabled ? 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z' : 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z'}"/></svg>
+                                <svg onclick="openMoveCard('${card.id}')" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
+                                <svg onclick="openEditCard('${card.id}')" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                                <svg onclick="deleteCard('${card.id}')" style="color:#888;" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                            </div>
+                        </div>
+                    `);
+                });
+            }
+        }
+        list.innerHTML = htmlArr.join('');
+    }
+
+    function toggleEnableCard(id) { const card = cardLibrary.find(c => c.id === id); if(card) { card.enabled = !card.enabled; saveData('mirage_cards_v2', cardLibrary); renderCards(); } }
+    function deleteGroup(groupName) { if(confirm(`确定删除【${groupName}】分组及组内所有字卡？`)) { cardLibrary = cardLibrary.filter(c => c.group !== groupName); saveData('mirage_cards_v2', cardLibrary); renderCards(); } }
+    function deleteCard(id) { if(confirm('确定删除此字卡？')) { cardLibrary = cardLibrary.filter(c => c.id !== id); saveData('mirage_cards_v2', cardLibrary); renderCards(); } }
+    
+    function openEditCard(id) {
+        editingId = id; const card = cardLibrary.find(c => c.id === id); if(!card) return;
+        document.getElementById('edit-card-text').value = card.text; document.getElementById('edit-card-group').value = card.group;
+        document.getElementById('edit-modal').style.display = 'flex';
+    }
+    function saveEditCard() {
+        const text = document.getElementById('edit-card-text').value.trim(); const group = document.getElementById('edit-card-group').value.trim() || "未分组";
+        if(!text) return alert('内容不能为空');
+        const card = cardLibrary.find(c => c.id === editingId); if(card) { card.text = text; card.group = group; }
+        saveData('mirage_cards_v2', cardLibrary); document.getElementById('edit-modal').style.display = 'none'; renderCards();
+    }
+
+    function openMoveCard(id) {
+        movingId = id;
+        document.getElementById('move-card-group').value = '';
+        document.getElementById('move-modal').style.display = 'flex';
+    }
+    function saveMoveCard() {
+        const group = document.getElementById('move-card-group').value.trim();
+        if(!group) return alert('请输入分组');
+        const card = cardLibrary.find(c => c.id === movingId);
+        if(card) { card.group = group; }
+        saveData('mirage_cards_v2', cardLibrary); document.getElementById('move-modal').style.display = 'none'; renderCards();
+    }
+
+    function addSingleCard() {
+        const input = document.getElementById('new-card-input'); const text = input.value.trim();
+        if(!text) return; if(cardLibrary.some(c => c.text === text)) return alert('字卡已存在');
+        cardLibrary.push({ id: Date.now().toString(), text: text, group: "默认", enabled: true }); saveData('mirage_cards_v2', cardLibrary); input.value = ''; renderCards();
+    }
+    
+    function openBatchModal() { document.getElementById('batch-modal').style.display = 'flex'; }
+    function closeBatchModal() { document.getElementById('batch-modal').style.display = 'none'; }
+    function saveBatchCards() {
+        const text = document.getElementById('batch-text').value; if(!text.trim()) return;
+        const btn = document.getElementById('btn-batch-confirm'); const originalText = btn.innerText;
+        btn.innerText = "处理中..."; btn.disabled = true;
+        setTimeout(() => {
+            let lines = text.split('\n'); let currentGroup = "未分组"; let added = 0;
+            const existingTexts = new Set(cardLibrary.map(c => c.text));
+            lines.forEach(line => {
+                line = line.trim(); if(!line) return;
+                const match = line.match(/^【(.+)】$/);
+                if (match) { currentGroup = match[1]; } 
+                else { if(!existingTexts.has(line)) { cardLibrary.push({ id: Date.now().toString() + Math.random(), text: line, group: currentGroup, enabled: true }); existingTexts.add(line); added++; } }
+            });
+            saveData('mirage_cards_v2', cardLibrary); closeBatchModal(); document.getElementById('batch-text').value = ''; btn.innerText = originalText; btn.disabled = false;
+            renderCards(); alert(`成功添加 ${added} 条字卡！`);
+        }, 50);
+    }
+
+    function exportCards() {
+        if(cardLibrary.length === 0) return alert('无数据');
+        let txt = ""; const grouped = {};
+        cardLibrary.forEach(c => { if(!grouped[c.group]) grouped[c.group] = []; grouped[c.group].push(c.text); });
+        for(let g in grouped) { txt += `【${g}】\n`; grouped[g].forEach(t => txt += t + "\n"); txt += "\n"; }
+        const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "字卡库导出.txt"; a.click();
+    }
+    function importCards(event) {
+        const file = event.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) { document.getElementById('batch-text').value = e.target.result; openBatchModal(); event.target.value = ''; };
+        reader.readAsText(file, 'UTF-8');
+    }
+
+    // --- 表情包相关 ---
+    async function uploadEmojis(event) {
+        const files = event.target.files;
+        if (!files.length) return;
+        
+        let loaded = 0;
+        for (const file of files) {
+            try {
+                const compressedEmoji = await compressImage(file, 200, 200, 0.6);
+                emojiLibrary.push(compressedEmoji);
+                loaded++;
+            } catch(e) {}
+        }
+        saveData('mirage_emojis', emojiLibrary);
+        renderEmojiPanels();
+        alert(`成功添加 ${loaded} 个表情包`);
+        event.target.value = '';
+    }
+
+    function renderEmojiPanels() {
+        const html = emojiLibrary.map((img, index) => `
+            <div style="position:relative;">
+                <img src="${img}" onclick="sendEmoji('${img}')" style="cursor:pointer; border-radius:8px; aspect-ratio:1; object-fit:contain; background:#fff;">
+                <div onclick="deleteEmoji(${index})" style="position:absolute; top:-5px; right:-5px; background:#333; color:#fff; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:12px; cursor:pointer; z-index:10;">×</div>
+            </div>
+        `).join('');
+        
+        document.getElementById('emoji-grid-inline').innerHTML = html;
+        document.getElementById('emoji-grid-full').innerHTML = html;
+    }
+
+    function deleteEmoji(index) {
+        if(confirm('删除这个表情包？')) {
+            emojiLibrary.splice(index, 1);
+            saveData('mirage_emojis', emojiLibrary);
+            renderEmojiPanels();
+        }
+    }
+    
+    function clearAllEmojis() {
+        if(confirm('确定清空所有表情包？')) {
+            emojiLibrary = [];
+            saveData('mirage_emojis', emojiLibrary);
+            renderEmojiPanels();
+        }
+    }
+
+    // --- 信箱相关 ---
+    function renderLetters() {
+        const list = document.getElementById('letters-list');
+        if(letterBox.length === 0) {
+            list.innerHTML = '<div style="text-align:center; color:#999; margin-top:50px;">信箱空空如也</div>';
+            return;
+        }
+        
+        const sortedLetters = [...letterBox].sort((a, b) => b.time - a.time);
+        list.innerHTML = sortedLetters.map(letter => `
+            <div class="list-item" onclick="readLetter('${letter.id}')">
+                <div class="list-item-info">
+                    <div class="list-item-title">
+                        ${letter.isRead ? '' : '<span style="color:red;">[新]</span>'} ${letter.title}
+                    </div>
+                    <div class="list-item-desc">${letter.content}</div>
+                    <div style="font-size:11px; color:#999; margin-top:5px;">发件人: ${letter.sender} | ${new Date(letter.time).toLocaleString()}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function openWriteLetter() {
+        document.getElementById('write-letter-title').value = '';
+        document.getElementById('write-letter-content').value = '';
+        document.getElementById('write-letter-modal').style.display = 'flex';
+    }
+
+    function sendLetter() {
+        const title = document.getElementById('write-letter-title').value.trim() || '无题';
+        const content = document.getElementById('write-letter-content').value.trim();
+        if(!content) return alert('信件内容不能为空');
+        
+        const newLetter = {
+            id: Date.now().toString(),
+            sender: config.userName,
+            title: title,
+            content: content,
+            time: Date.now(),
+            isRead: true,
+            direction: 'out'
+        };
+        
+        letterBox.push(newLetter);
+        saveData('mirage_letters', letterBox);
+        document.getElementById('write-letter-modal').style.display = 'none';
+        renderLetters();
+        
+        renderMsg('system', '', '', `你写了一封信《${title}》，等待对方回信中...`);
+        
+        if(Math.random() * 100 < config.replyProb) {
+            setTimeout(() => {
+                generateBotReplyLetter(title, content);
+            }, 5000 + Math.random() * 10000);
+        }
+    }
+
+    function readLetter(id) {
+        const letter = letterBox.find(l => l.id === id);
+        if(!letter) return;
+        
+        letter.isRead = true;
+        saveData('mirage_letters', letterBox);
+        
+        document.getElementById('read-letter-title').innerText = letter.title;
+        document.getElementById('read-letter-meta').innerText = `发件人: ${letter.sender} | ${new Date(letter.time).toLocaleString()}`;
+        document.getElementById('read-letter-content').innerText = letter.content;
+        document.getElementById('read-letter-modal').style.display = 'flex';
+        
+        renderLetters();
+    }
+
+    function generateBotReplyLetter(replyTitle, replyContent) {
+        let botReply = `我收到了你的信《${replyTitle}》。\n\n`;
+        botReply += `你说：“${replyContent.substring(0, 20)}...”\n\n`;
+        botReply += "我读完啦，最近过得还好吗？";
+        
+        if(cardLibrary.length > 0) {
+            const randomCard = cardLibrary[Math.floor(Math.random() * cardLibrary.length)].text;
+            botReply += `\n\n其实我想对你说：${randomCard}`;
+        }
+
+        const newLetter = {
+            id: Date.now().toString(),
+            sender: config.botName,
+            title: `回信: ${replyTitle}`,
+            content: botReply,
+            time: Date.now(),
+            isRead: false,
+            direction: 'in'
+        };
+        
+        letterBox.push(newLetter);
+        saveData('mirage_letters', letterBox);
+        
+        renderMsg('system', '', '', `${config.botName}给你回信了，快去信箱查看吧！`);
+        playSound();
+        if (Notification.permission === "granted" && document.getElementById('chat-app').style.display !== 'flex') {
+            new Notification(config.botName, { body: '给你写了一封信', icon: config.botAvatar });
+        }
+    }
+
+    function setupLetterTimer() {
+        if(letterTimer) clearTimeout(letterTimer);
+        if(config.letterProactiveMin > 0 && config.letterProactiveMax >= config.letterProactiveMin) {
+            const scheduleNext = () => {
+                const minMs = config.letterProactiveMin * 60000;
+                const maxMs = config.letterProactiveMax * 60000;
+                const randomMs = minMs + Math.random() * (maxMs - minMs);
+                
+                letterTimer = setTimeout(() => {
+                    const title = "一封来自远方的信";
+                    let content = "好久没联系了，最近怎么样？\n\n";
+                    if(cardLibrary.length > 0) content += cardLibrary[Math.floor(Math.random() * cardLibrary.length)].text;
+                    
+                    const newLetter = {
+                        id: Date.now().toString(),
+                        sender: config.botName,
+                        title: title,
+                        content: content,
+                        time: Date.now(),
+                        isRead: false,
+                        direction: 'in'
+                    };
+                    letterBox.push(newLetter);
+                    saveData('mirage_letters', letterBox);
+                    renderMsg('system', '', '', `${config.botName}给你写信了，快去信箱查看吧！`);
+                    scheduleNext();
+                }, randomMs);
+            };
+            scheduleNext();
+        }
+    }
+
+    // --- 设置相关 ---
+    function toggleGroupSettings() {
+        const isGroup = document.getElementById('set-is-group').checked;
+        document.getElementById('single-bot-settings').style.display = isGroup ? 'none' : 'block';
+        document.getElementById('group-settings').style.display = isGroup ? 'block' : 'none';
+    }
+
+    function loadSettingsUI() {
+        document.getElementById('set-my-name').value = config.userName;
+        document.getElementById('my-avatar-preview').src = config.userAvatar;
+        
+        document.getElementById('set-is-group').checked = config.isGroup;
+        toggleGroupSettings();
+        
+        document.getElementById('set-bot-name').value = config.botName;
+        document.getElementById('bot-avatar-preview').src = config.botAvatar;
+        document.getElementById('set-group-members').value = JSON.stringify(config.groupMembers, null, 2);
+        
+        document.getElementById('set-theme').value = config.theme; 
+        document.getElementById('slider-font-size').value = config.fontSize;
+        document.getElementById('val-font-size').innerText = config.fontSize;
+        document.getElementById('set-font-url').value = config.fontUrl;
+        document.getElementById('set-bubble-css').value = config.bubbleCss;
+        document.getElementById('set-time-display').value = config.timeDisplay;
+
+        document.getElementById('set-show-avatar').checked = config.showAvatar;
+        document.getElementById('set-show-name').checked = config.showName; 
+        document.getElementById('set-show-read').checked = config.showRead;
+        document.getElementById('set-send-multi').checked = config.sendMulti;
+        document.getElementById('set-sound-enabled').checked = config.soundEnabled;
+
+        document.getElementById('set-delay-min').value = config.delayMin;
+        document.getElementById('set-delay-max').value = config.delayMax;
+        document.getElementById('set-proactive-min').value = config.proactiveMin;
+        document.getElementById('set-proactive-max').value = config.proactiveMax;
+        document.getElementById('slider-emoji-prob').value = config.emojiProb;
+        document.getElementById('val-emoji-prob').innerText = config.emojiProb + '%';
+
+        document.getElementById('slider-ignore').value = config.ignoreProb; 
+        document.getElementById('val-ignore').innerText = config.ignoreProb + '%';
+        document.getElementById('slider-quote').value = config.quoteProb; 
+        document.getElementById('val-quote').innerText = config.quoteProb + '%';
+        document.getElementById('slider-recall').value = config.recallProb; 
+        document.getElementById('val-recall').innerText = config.recallProb + '%';
+
+        document.getElementById('set-letter-min').value = config.letterProactiveMin;
+        document.getElementById('set-letter-max').value = config.letterProactiveMax;
+        document.getElementById('slider-reply-prob').value = config.replyProb;
+        document.getElementById('val-reply-prob').innerText = config.replyProb + '%';
+    }
+
+    function uploadProfileImg(event, target) {
+        const file = event.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            if(target === 'user') {
+                config.userAvatar = e.target.result;
+                document.getElementById('my-avatar-preview').src = config.userAvatar;
+            } else {
+                config.botAvatar = e.target.result;
+                document.getElementById('bot-avatar-preview').src = config.botAvatar;
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+    function changeTheme(val) { config.theme = val; applyAppearance(); saveConfig(); }
+    function uploadBg(event) {
+        const file = event.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) { config.bgImage = e.target.result; applyAppearance(); saveConfig(); alert('背景已更新！'); };
+        reader.readAsDataURL(file);
+    }
+
+    function saveSettings() {
+        config.userName = document.getElementById('set-my-name').value.trim() || "我";
+        config.isGroup = document.getElementById('set-is-group').checked;
+        
+        if (config.isGroup) {
+            try {
+                config.groupMembers = JSON.parse(document.getElementById('set-group-members').value);
+                config.botName = "群聊";
+            } catch(e) { alert("群成员JSON格式错误！"); return; }
+        } else {
+            config.botName = document.getElementById('set-bot-name').value.trim() || "梦角";
+        }
+        document.getElementById('chat-title').innerText = config.botName;
+        
+        config.fontSize = document.getElementById('slider-font-size').value;
+        config.fontUrl = document.getElementById('set-font-url').value.trim();
+        config.bubbleCss = document.getElementById('set-bubble-css').value.trim();
+        config.timeDisplay = document.getElementById('set-time-display').value;
+
+        config.showAvatar = document.getElementById('set-show-avatar').checked;
+        config.showName = document.getElementById('set-show-name').checked; 
+        config.showRead = document.getElementById('set-show-read').checked;
+        config.sendMulti = document.getElementById('set-send-multi').checked;
+        config.soundEnabled = document.getElementById('set-sound-enabled').checked;
+
+        config.delayMin = parseInt(document.getElementById('set-delay-min').value) || 1;
+        config.delayMax = parseInt(document.getElementById('set-delay-max').value) || 3;
+        if (config.delayMin > config.delayMax) config.delayMin = config.delayMax;
+
+        config.proactiveMin = parseInt(document.getElementById('set-proactive-min').value) || 0;
+        config.proactiveMax = parseInt(document.getElementById('set-proactive-max').value) || 0;
+        if (config.proactiveMin > 0 && config.proactiveMax < config.proactiveMin) config.proactiveMax = config.proactiveMin;
+
+        config.emojiProb = parseInt(document.getElementById('slider-emoji-prob').value);
+        config.ignoreProb = parseInt(document.getElementById('slider-ignore').value);
+        config.quoteProb = parseInt(document.getElementById('slider-quote').value);
+        config.recallProb = parseInt(document.getElementById('slider-recall').value);
+
+        config.letterProactiveMin = parseInt(document.getElementById('set-letter-min').value) || 0;
+        config.letterProactiveMax = parseInt(document.getElementById('set-letter-max').value) || 0;
+        if (config.letterProactiveMin > 0 && config.letterProactiveMax < config.letterProactiveMin) config.letterProactiveMax = config.letterProactiveMin;
+        config.replyProb = parseInt(document.getElementById('slider-reply-prob').value);
+        
+        applyAppearance(); saveConfig(); setupProactiveTimer(); setupLetterTimer(); 
+        alert('设置已保存并生效！'); closeApp('settings-app');
+        
+        // 刷新一下现有聊天记录以应用时间显示位置
+        location.reload(); 
+    }
+
+    function exportAllData() {
+        const allData = { 
+            cards: cardLibrary, config: config, disabledGroups: disabledGroups, 
+            emojis: emojiLibrary, letters: letterBox, pats: patLibrary 
+        };
+        const blob = new Blob([JSON.stringify(allData, null, 2)], { type: "application/json;charset=utf-8" });
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "Mirage_全量备份.json"; a.click();
+    }
+    
+    function importAllData(event) {
+        const file = event.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if(data.cards && data.config) {
+                    cardLibrary = data.cards.map(c => ({ ...c, id: c.id || Date.now() + Math.random() }));
+                    config = { ...config, ...data.config };
+                    disabledGroups = data.disabledGroups || {};
+                    emojiLibrary = data.emojis || [];
+                    letterBox = data.letters || [];
+                    patLibrary = data.pats || ["拍了拍你的脑袋", "抱了抱你", "亲了亲你"];
+                    
+                    saveData('mirage_cards_v2', cardLibrary); 
+                    saveConfig(); 
+                    saveData('mirage_disabled_groups', disabledGroups);
+                    saveData('mirage_emojis', emojiLibrary);
+                    saveData('mirage_letters', letterBox);
+                    saveData('mirage_pats', patLibrary);
+                    location.reload();
+                } else { alert('文件格式错误'); }
+            } catch(err) { alert('解析失败'); }
+            event.target.value = '';
+        };
+        reader.readAsText(file, 'UTF-8');
+    }
+    
+    function resetAllData() {
+        if(confirm('⚠️ 警告：这将清空你的所有数据！确定吗？')) {
+            localStorage.clear(); location.reload();
+        }
+    }
+
+    function setupProactiveTimer() {
+        if(proactiveTimer) clearTimeout(proactiveTimer);
+        if(config.proactiveMin > 0 && config.proactiveMax >= config.proactiveMin) {
+            const scheduleNext = () => {
+                const minMs = config.proactiveMin * 60000;
+                const maxMs = config.proactiveMax * 60000;
+                const randomMs = minMs + Math.random() * (maxMs - minMs);
+                
+                proactiveTimer = setTimeout(() => {
+                    const availableCards = cardLibrary.filter(c => c.enabled && !disabledGroups[c.group]);
+                    const availableEmojis = emojiLibrary;
+                    if(availableCards.length > 0 || availableEmojis.length > 0) {
+                        generateBotMessage();
+                    }
+                    scheduleNext();
+                }, randomMs);
+            };
+            scheduleNext();
+        }
+    }
+</script>
+</body>
+</html>
