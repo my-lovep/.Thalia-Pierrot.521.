@@ -383,7 +383,7 @@
     <!-- 表情包页面 -->
     <div id="emoji-app" class="page"><div class="header"><div class="back-btn" data-close="emoji-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">表情包库</div></div><div class="cards-toolbar"><button class="btn-tool" id="btn-add-emoji-net">加网络图</button><button class="btn-tool" id="btn-add-emoji-local">加本地图</button><input type="file" id="batch-emoji-input" multiple accept="image/*" style="display:none"><button class="btn-tool" id="btn-clear-emoji" style="color: #666;">清空全部</button></div><div class="list-container"><div class="emoji-grid-full-container" id="emoji-grid-full"></div></div></div>
     <!-- 信箱页面 -->
-    <div id="letter-app" class="page"><div class="header"><div class="back-btn" data-close="letter-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">信箱</div><div class="header-right"><div class="header-btn" id="btn-write-letter" style="font-size:16px;">写信</div></div></div><div class="list-container" id="letters-list"></div></div>
+    <div id="letter-app" class="page"><div class="header"><div class="back-btn" data-close="letter-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg></div><div style="flex:1;">信箱</div><div class="header-right"><div class="header-btn" id="btn-write-letter" style="font-size:24px; font-weight:bold; padding:0 10px;">+</div></div></div><div class="list-container" id="letters-list"></div></div>
 
     <!-- 设置 -->
     <div id="settings-app" class="page">
@@ -551,7 +551,7 @@
 
 <script>
 // ================= 基础数据与保存 =================
-const DB_KEY = 'appData_v22_full';
+const DB_KEY = 'appData_v23_full';
 
 const App = {
     data: {
@@ -981,16 +981,21 @@ const Chat = {
         } catch(e) {}
     },
     
-    sendUserMsg: function() {
+    sendUserMsg: function(textOverride, isImgOverride) {
         const input = document.getElementById('msg-input');
-        let text = input.value.trim();
+        let text = textOverride || input.value.trim();
         if (!text) return;
-        const newMsg = { id: Date.now(), role: 'user', content: text, time: Date.now() };
+        
+        const newMsg = { id: Date.now(), role: 'user', content: text, time: Date.now(), isImg: isImgOverride };
         if (this.quoteMsg) { newMsg.quote = { id: this.quoteMsg.id, content: this.quoteMsg.isImg ? '[图片]' : this.quoteMsg.content }; }
+        
         App.data.messages.push(newMsg);
-        input.value = ''; this.quoteMsg = null; document.getElementById('quote-preview').style.display = 'none';
-        this.currentLimit = 50; this.render(); App.saveData(); this.playSound();
-        this.triggerReply(text);
+        if(!textOverride) { input.value = ''; }
+        this.quoteMsg = null; 
+        document.getElementById('quote-preview').style.display = 'none';
+        this.currentLimit = 50; 
+        this.render(); App.saveData(); this.playSound();
+        this.triggerReply(isImgOverride ? '[表情包]' : text);
     },
     
     triggerReply: function(userText, isProactive = false) {
@@ -1228,7 +1233,7 @@ const Emoji = {
             App.data.emojis.pic.forEach(url => {
                 const img = document.createElement('img');
                 img.src = url;
-                img.onclick = () => { Chat.sendUserMsg.call({ quoteMsg: null }, url, true); }; // 借用方法
+                img.onclick = () => { Chat.sendUserMsg(url, true); };
                 grid.appendChild(img);
             });
         }
@@ -1289,24 +1294,6 @@ const Emoji = {
         App.data.emojis.pic.splice(idx, 1);
         App.saveData(); this.renderFull(); this.renderPanel();
     }
-};
-
-// 修复发送自定义表情包的方法
-Chat.sendUserMsg = function(textOverride, isImgOverride) {
-    const input = document.getElementById('msg-input');
-    let text = textOverride || input.value.trim();
-    if (!text) return;
-    
-    const newMsg = { id: Date.now(), role: 'user', content: text, time: Date.now(), isImg: isImgOverride };
-    if (this.quoteMsg) { newMsg.quote = { id: this.quoteMsg.id, content: this.quoteMsg.isImg ? '[图片]' : this.quoteMsg.content }; }
-    
-    App.data.messages.push(newMsg);
-    if(!textOverride) { input.value = ''; }
-    this.quoteMsg = null; 
-    document.getElementById('quote-preview').style.display = 'none';
-    this.currentLimit = 50; 
-    this.render(); App.saveData(); this.playSound();
-    this.triggerReply(isImgOverride ? '[表情包]' : text);
 };
 
 // ================= 信箱模块 =================
@@ -1616,4 +1603,56 @@ const Settings = {
         document.getElementById('set-my-name').value = s.myName;
         document.getElementById('my-avatar-preview').src = s.myAvatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
         document.getElementById('set-bot-name').value = s.botName;
-        document.getElementById('bot-avatar-preview').src = s.botAvatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4
+        document.getElementById('bot-avatar-preview').src = s.botAvatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+        document.getElementById('set-desktop-notify').checked = s.desktopNotify;
+        document.getElementById('set-keep-alive').checked = s.keepAlive;
+        document.getElementById('set-time-display').value = s.timeDisplay;
+        document.getElementById('set-show-avatar').checked = s.showAvatar;
+        document.getElementById('set-show-name').checked = s.showName;
+        document.getElementById('set-show-read').checked = s.showRead;
+        document.getElementById('set-sound-enabled').checked = s.soundEnabled;
+        document.getElementById('set-theme').value = s.theme;
+        document.getElementById('slider-font-size').value = s.fontSize;
+        document.getElementById('val-font-size').innerText = s.fontSize;
+        document.getElementById('set-font-url').value = s.fontUrl;
+        document.getElementById('set-bubble-css').value = s.bubbleCss;
+        document.getElementById('set-delay-min').value = s.delayMin;
+        document.getElementById('set-delay-max').value = s.delayMax;
+        document.getElementById('set-proactive-min').value = s.proactiveMin;
+        document.getElementById('set-proactive-max').value = s.proactiveMax;
+        document.getElementById('set-letter-min').value = s.letterMin;
+        document.getElementById('set-letter-max').value = s.letterMax;
+    },
+    sliderChange: function(id) {
+        const el = document.getElementById('slider-' + id);
+        const valEl = document.getElementById('val-' + id);
+        if (el && valEl) valEl.innerText = el.value + (id === 'font' ? 'px' : '%');
+        if (id === 'font') {
+            App.data.settings.fontSize = parseInt(el.value);
+            this.applyStyles();
+        }
+    },
+    save: function() {
+        const s = App.data.settings, w = App.data.wallet;
+        w.my = parseFloat(document.getElementById('set-my-balance').value || 0).toFixed(2);
+        w.bot = parseFloat(document.getElementById('set-bot-balance').value || 0).toFixed(2);
+        
+        const sliders = ['give','receive','return','ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob'];
+        sliders.forEach(id => {
+            const el = document.getElementById('slider-' + id);
+            if(el) {
+                let propKey = id.replace('-prob', 'Prob').replace('-','');
+                if (id === 'pat-prob') propKey = 'patProb';
+                if (id === 'call-prob') propKey = 'callProb';
+                if (id === 'answer-prob') propKey = 'answerProb';
+                if (id === 'hangup-prob') propKey = 'hangupProb';
+                if (id === 'letter-prob') propKey = 'letterProb';
+                if (id === 'reply-prob') propKey = 'replyProb';
+                s[propKey] = parseInt(el.value);
+            }
+        });
+        
+        s.myName = document.getElementById('set-my-name').value;
+        s.botName = document.getElementById('set-bot-name').value;
+        s.desktopNotify = document.getElementById('set-desktop-notify').checked;
+        s.keepAlive = document.getElementById('set-keep-alive').checked
