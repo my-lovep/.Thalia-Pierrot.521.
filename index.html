@@ -570,3 +570,56 @@
                 <div style="display:flex; gap:10px;"><input type="number" id="set-letter-min" min="0" placeholder="最小"><input type="number" id="set-letter-max" min="0" placeholder="最大"></div>
                 <label style="margin-top:10px;">对方主动写信概率 (%) <span id="val-letter-prob">10%</span></label><input type="range" id="slider-letter-prob" min="0" max="100" value="10">
                 <label
+<script>
+// 移动端Safari全局事件委托，解决部署后点击失效
+document.body.addEventListener('click', function(e){
+    // 打开APP页面
+    const appIcon = e.target.closest('.app-icon');
+    if(appIcon){
+        const aid = appIcon.dataset.app;
+        document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+        document.getElementById(aid).style.display = 'flex';
+        return;
+    }
+    // 返回首页按钮 data-close
+    const backBtn = e.target.closest('[data-close]');
+    if(backBtn){
+        const cid = backBtn.dataset.close;
+        document.getElementById(cid).style.display = 'none';
+    }
+    // 弹窗关闭按钮 data-close-modal
+    const closeModalBtn = e.target.closest('[data-close-modal]');
+    if(closeModalBtn){
+        const mid = closeModalBtn.dataset.closeModal;
+        document.getElementById(mid).classList.remove('show');
+    }
+    // action‑sheet点击蒙层关闭
+    if(e.target.id === 'action-sheet'){
+        document.getElementById('action-sheet').classList.remove('show');
+    }
+});
+
+// 兼容Safari，页面就绪执行初始化
+function runAllInit(){
+    if(typeof App !== 'undefined') App.loadData?.();
+    if(typeof Chat !== 'undefined') Chat.init?.();
+    if(typeof Pat !== 'undefined') Pat.init?.();
+    if(typeof Cards !== 'undefined') Cards.init?.();
+    if(typeof Settings !== 'undefined') Settings.init?.();
+    if(typeof Letters !== 'undefined') Letters.init?.();
+    if(typeof Music !== 'undefined') Music.init?.();
+    if(typeof Emoji !== 'undefined') Emoji.init?.();
+    if(typeof Call !== 'undefined') Call.init?.();
+    if(typeof Settings !== 'undefined'){
+        Settings.applyTheme?.();
+        Settings.applyFont?.();
+        Settings.applyBubbleStyle?.();
+    }
+}
+
+if(document.readyState === 'complete' || document.readyState === 'interactive'){
+    runAllInit();
+}else{
+    document.addEventListener('DOMContentLoaded', runAllInit);
+}
+</script>
