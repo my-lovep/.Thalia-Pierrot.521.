@@ -156,6 +156,15 @@
 <style id="dynamic-bubble-style"></style>
 
 <script>
+// 如果遇到严重报错，直接弹窗显示，不藏在后台
+window.onerror = function(msg, url, line) {
+    console.warn('JS Error:', msg, 'Line:', line);
+};
+
+// 移除可能导致 iOS 降级的 manifest
+const manifestLink = document.querySelector('link[rel="manifest"]');
+if (manifestLink) manifestLink.remove();
+
 const DB_KEY='appData_v31_final', $=id=>document.getElementById(id);
 const compressImage=(file,cb)=>{const r=new FileReader();r.readAsDataURL(file);r.onload=(e)=>{const i=new Image();i.src=e.target.result;i.onload=()=>{let w=i.width,h=i.height,m=300;if(w>m){h=Math.round(h*m/w);w=m;}if(h>m){w=Math.round(w*m/h);h=m;}const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',.6));};};};
 
@@ -203,34 +212,41 @@ const App={
         settings:{myName:'我',myAvatar:'',botName:'对方',botAvatar:'',showAvatar:true,showName:true,showRead:true,soundEnabled:true,theme:'system',fontSize:16,bubbleCss:'',bgImage:'',timeDisplay:'bottom',fontUrl:'',typingText:'对方正在输入...',delayMin:2,delayMax:5,proactiveMin:0,proactiveMax:0,ignoreProb:20,quoteProb:30,patProb:10,callProb:5,answerProb:80,hangupProb:10,letterMin:0,letterMax:0,letterProb:10,replyProb:80,receiveProb:80,returnProb:10,desktopNotify:false,keepAlive:false}
     },
     audioCtx:null,
+    loadSource: '无',
     
     saveData(){
         try {
             const str = JSON.stringify(this.data);
             localStorage.setItem(DB_KEY, str);
             if(IDB.db) IDB.set(DB_KEY, this.data);
-        } catch(e) { console.warn('saveData error', e); }
+        } catch(e) { 
+            alert('【错误】保存数据失败！\n可能是图片太多超出了手机限制，或者开启了无痕模式。\n' + e.message); 
+        }
     },
     forceSave(){
         this.saveData();
-        // 诊断：切后台强制保存时提示
-        // alert('触发切后台强制保存！当前名字：' + this.data.settings.myName);
     },
+    
     async loadData(){
+        // 1. 读 LocalStorage
         try{
             const s = localStorage.getItem(DB_KEY);
             if(s){
                 const p = JSON.parse(s);
                 this.data = {...this.data, ...p, settings:{...this.data.settings, ...(p.settings||{})}, wallet:{...this.data.wallet, ...(p.wallet||{})}, emojis:{...this.data.emojis, ...(p.emojis||{})}};
                 if(this.data.letters) this.data.letters.forEach(l=>{if(!l.type)l.type='from_me';});
+                this.loadSource = 'LocalStorage';
             }
         }catch(e){}
 
+        // 2. 读 IndexedDB
         try {
             if(IDB.db) {
                 const idbData = await IDB.get(DB_KEY);
                 if (idbData) {
                     this.data = {...this.data, ...idbData, settings:{...this.data.settings, ...(idbData.settings||{})}, wallet:{...this.data.wallet, ...(idbData.wallet||{})}, emojis:{...this.data.emojis, ...(idbData.emojis||{})}};
+                    if(this.loadSource === '无') this.loadSource = 'IndexedDB';
+                    else this.loadSource = '本地+数据库';
                 }
             }
         } catch(e) {}
@@ -677,7 +693,10 @@ const Settings={
         s.myName=$('set-my-name').value;s.botName=$('set-bot-name').value;s.desktopNotify=$('set-desktop-notify').checked;s.keepAlive=$('set-keep-alive').checked;s.timeDisplay=$('set-time-display').value;s.showAvatar=$('set-show-avatar').checked;s.showName=$('set-show-name').checked;s.showRead=$('set-show-read').checked;s.soundEnabled=$('set-sound-enabled').checked;s.theme=$('set-theme').value;s.fontSize=parseInt($('slider-font-size').value);s.fontUrl=$('set-font-url').value;s.bubbleCss=$('set-bubble-css').value;s.delayMin=parseInt($('set-delay-min').value)||1;s.delayMax=parseInt($('set-delay-max').value)||5;s.proactiveMin=parseInt($('set-proactive-min').value)||0;s.proactiveMax=parseInt($('set-proactive-max').value)||0;s.letterMin=parseInt($('set-letter-min').value)||0;s.letterMax=parseInt($('set-letter-max').value)||0;
         const sliders=['give','receive','return','ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob'];
         sliders.forEach(id=>{const el=$('slider-'+id);if(el){let propKey=id.replace('-prob','Prob').replace('-','');if(id==='pat-prob')propKey='patProb';if(id==='call-prob')propKey='callProb';if(id==='answer-prob')propKey='answerProb';if(id==='hangup-prob')propKey='hangupProb';if(id==='letter-prob')propKey='letterProb';if(id==='reply-prob')propKey='replyProb';s[propKey]=parseInt(el.value);}});
-        App.saveData();this.applyStyles();App.toast('设置已保存');
+        App.saveData();this.applyStyles();
+        
+        // 测试专用弹窗
+        alert('设置已保存！\n\n当前名字: ' + s.myName + '\n\n请现在上划杀掉后台，重新点开图标，看看名字还在不在。');
     },
     applyStyles(){
         const s=App.data.settings;
@@ -690,7 +709,7 @@ const Settings={
     }
 };
 
-/* ===================== 启动 & 持久化（带诊断） ===================== */
+/* ===================== 启动 & 诊断 ===================== */
 document.addEventListener('visibilitychange', function(){
     if (document.visibilityState === 'hidden') { try{ App.forceSave(); }catch(e){} }
 });
@@ -699,10 +718,7 @@ window.addEventListener('beforeunload', function(){ try{ App.forceSave(); }catch
 
 (async function boot(){
     try {
-        if (navigator.storage && navigator.storage.persist) {
-            navigator.storage.persist();
-        }
-
+        if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
         await IDB.init();
         await App.loadData();
         
@@ -719,17 +735,15 @@ window.addEventListener('beforeunload', function(){ try{ App.forceSave(); }catch
         var modeBtn = $('btn-mode');
         if (modeBtn) modeBtn.innerText = (App.data.music && App.data.music.mode === 'random') ? '🔀' : '🔁';
 
-        // ====== 诊断面板 ======
+        // ====== 诊断大字报 ======
         const diagEl = document.createElement('div');
-        diagEl.style.cssText = 'position:fixed;top:0;left:0;background:rgba(255,0,0,0.8);color:white;font-size:12px;z-index:99999;padding:5px;pointer-events:none;';
-        diagEl.innerText = `启动OK. 名字:${App.data.settings.myName} 协议:${location.protocol}`;
+        diagEl.style.cssText = 'position:fixed;top:0;left:0;background:rgba(0,0,0,0.9);color:#fff;font-size:14px;z-index:99999;padding:10px;width:100%;pointer-events:none;line-height:1.5;';
+        diagEl.innerHTML = `
+            <div style="color:#ffcc00;">数据来源: ${App.loadSource}</div>
+            <div>读取到的名字: <span style="color:#00ffcc;font-weight:bold;">${App.data.settings.myName}</span></div>
+            <div>当前消息数: ${App.data.messages.length}</div>
+        `;
         document.body.appendChild(diagEl);
-
-        setTimeout(() => {
-            if (window.location.protocol === 'file:') {
-                alert('警告：您正在使用本地文件 (file://) 打开。\n\niOS 系统机制会导致每次切后台后，本地文件的数据 100% 被清空。\n\n请务必将文件上传到服务器，并获取 https:// 开头的网址！');
-            }
-        }, 1000);
         
     } catch (err) {
         alert('[boot] 初始化崩溃: ' + err.message);
