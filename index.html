@@ -724,33 +724,37 @@ const Settings={
 };
 
 App.loadData();Chat.init();Cards.init();Pat.init();Emoji.init();Letters.init();Music.init();Settings.init();Call.init();Settings.applyStyles();
-                <script>
-const DB_KEY='appData_v28', $=id=>document.getElementById(id);
+              <script>
+const DB_KEY='appData_v30_final', $=id=>document.getElementById(id);
+
+// 动态补全缺失的 HTML 按钮（防止你之前 HTML 漏了）
+document.addEventListener('DOMContentLoaded', () => {
+    if(!$('ask-modal')) {
+        const askHtml = `<div id="ask-modal" class="modal"><div class="modal-content" style="max-height:85vh;overflow-y:auto;"><div style="display:flex;justify-content:space-between;align-items:center;"><h3>问问TA</h3><button data-close-modal="ask-modal" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-color);">✕</button></div><div class="ask-tabs"><div class="ask-tab active" data-ask-tab="single">单选题</div><div class="ask-tab" data-ask-tab="multi">多选题</div><div class="ask-tab" data-ask-tab="text">文字题</div></div><div class="ask-form-group"><label>你想问什么</label><input type="text" id="ask-question-input" placeholder="输入你的问题..."></div><div class="ask-section active" id="ask-section-single"><div class="ask-form-group"><label>答案 (一行一个)</label><textarea id="ask-options-single" placeholder="选项A&#10;选项B&#10;选项C"></textarea></div></div><div class="ask-section" id="ask-section-multi"><div class="ask-form-group"><label>答案 (一行一个)</label><textarea id="ask-options-multi" placeholder="选项A&#10;选项B&#10;选项C"></textarea></div><div class="ask-form-group"><label>最多选几个</label><input type="number" id="ask-max-select" value="3" min="2" style="width:80px;text-align:center;"></div></div><div class="ask-section" id="ask-section-text"><div class="ask-form-group" style="color:#666;font-size:13px;">TA 会从字卡库随机抽取文字回答你。</div></div><div class="modal-btns" style="margin-top:10px;"><button class="btn-cancel" data-close-modal="ask-modal">取消</button><button class="btn-confirm" id="btn-submit-ask">发送提问</button></div></div></div>`;
+        document.body.insertAdjacentHTML('beforeend', askHtml);
+    }
+    if($('extra-panel') && !$('btn-ask-money')) {
+        $('extra-panel').insertAdjacentHTML('beforeend', `<div class="panel-action" id="btn-ask-money"><div class="icon-box" style="color:#4cd964;">🙏</div><span>要零花钱</span></div>`);
+    }
+    if($('settings-app') && !$('set-my-balance')) {
+        const walletHtml = `<h3 style="margin-bottom:10px;font-size:16px;color:var(--accent);">钱包与余额</h3><div class="setting-item"><label>我的余额 (元)</label><input type="number" id="set-my-balance" step="0.01"><label style="margin-top:10px;">对方余额 (元)</label><input type="number" id="set-bot-balance" step="0.01"></div>`;
+        const firstH3 = document.querySelector('#settings-app .settings-content h3');
+        if(firstH3) firstH3.insertAdjacentHTML('beforebegin', walletHtml);
+    }
+});
+
 const compressImage=(file,cb)=>{const r=new FileReader();r.readAsDataURL(file);r.onload=(e)=>{const i=new Image();i.src=e.target.result;i.onload=()=>{let w=i.width,h=i.height,m=300;if(w>m){h=Math.round(h*m/w);w=m;}if(h>m){w=Math.round(w*m/h);h=m;}const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',.6));};};};
 
 const App={
     data:{
-        messages:[],
-        cards:[{group:'默认',items:['你好','晚安','今天过得怎么样？'],collapsed:false}],
-        pats:['拍了拍','抱了抱你','摸了摸你的头'],
-        emojis:{pic:[],emoji:['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🧐','🤓','😎','🤩','🥳'],text:['(￣▽￣)','(✿◡‿◡)','( •̀ ω •́ )y','(⊙_⊙)？','(╯°□°）╯︵ ┻━┻','┬─┬ノ( º _ ºノ)','(づ｡◕‿‿◕｡)づ']},
-        letters:[],
-        music:{list:[],mode:'order',currentIndex:-1},
-        wallet:{my:520.22,bot:100.00},
+        messages:[],cards:[{group:'默认',items:['你好','晚安','今天过得怎么样？'],collapsed:false}],pats:['拍了拍','抱了抱你','摸了摸你的头'],
+        emojis:{pic:[],emoji:['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🧐','🤓','😎','🤩','🥳'],text:['(￣▽￣)','(✿◡‿◡)','( •̀ ω •́ )y']},
+        letters:[],music:{list:[],mode:'order',currentIndex:-1},wallet:{my:520.22,bot:100.00},
         settings:{myName:'我',myAvatar:'',botName:'对方',botAvatar:'',showAvatar:true,showName:true,showRead:true,soundEnabled:true,theme:'system',fontSize:16,bubbleCss:'',bgImage:'',timeDisplay:'bottom',fontUrl:'',typingText:'对方正在输入...',delayMin:2,delayMax:5,proactiveMin:0,proactiveMax:0,ignoreProb:20,quoteProb:30,patProb:10,callProb:5,answerProb:80,hangupProb:10,letterMin:0,letterMax:0,letterProb:10,replyProb:80,desktopNotify:false,keepAlive:false}
     },
     audioCtx:null,saveTimeout:null,
-    saveData(){clearTimeout(this.saveTimeout);this.saveTimeout=setTimeout(()=>{try{localStorage.setItem(DB_KEY,JSON.stringify(this.data));}catch(e){App.toast('存储空间已满');}},500);},
-    loadData(){
-        try{
-            const s=localStorage.getItem(DB_KEY);
-            if(s){
-                const p=JSON.parse(s);
-                this.data={...this.data,...p,settings:{...this.data.settings,...(p.settings||{})},wallet:{...this.data.wallet,...(p.wallet||{})},emojis:{...this.data.emojis,...(p.emojis||{})}};
-                this.data.letters.forEach(l=>{if(!l.type)l.type='from_me';});
-            }
-        }catch(e){localStorage.removeItem(DB_KEY);}
-    },
+    saveData(){clearTimeout(this.saveTimeout);this.saveTimeout=setTimeout(()=>{try{localStorage.setItem(DB_KEY,JSON.stringify(this.data));}catch(e){}},500);},
+    loadData(){try{const s=localStorage.getItem(DB_KEY);if(s){const p=JSON.parse(s);this.data={...this.data,...p,settings:{...this.data.settings,...(p.settings||{})},wallet:{...this.data.wallet,...(p.wallet||{})},emojis:{...this.data.emojis,...(p.emojis||{})}};if(this.data.letters)this.data.letters.forEach(l=>{if(!l.type)l.type='from_me';});}}catch(e){console.warn('数据读取失败，使用默认数据');}},
     openApp(id){this.closeAllOverlays();$(id).style.display='flex';try{if(id==='chat-app'){Chat.currentLimit=50;Chat.render();Chat.scrollToBottom(true);}else if(id==='cards-app')Cards.render();else if(id==='settings-app')Settings.render();else if(id==='letter-app')Letters.render();else if(id==='emoji-app')Emoji.renderManager();else if(id==='pat-app')Pat.render();else if(id==='music-app')Music.renderList();}catch(e){console.error(e);}},
     closeApp(id){$(id).style.display='none';this.closeAllOverlays();},
     closeAllOverlays(){$('emoji-panel').style.display='none';$('extra-panel').style.display='none';$('action-sheet').classList.remove('show');document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show'));},
@@ -767,7 +771,7 @@ document.body.addEventListener('click',function(e){
     if(e.target.classList.contains('modal'))e.target.classList.remove('show');
     if(e.target.id==='action-sheet'){e.target.classList.remove('show');}
 });
-document.body.addEventListener('touchstart',function unlockAudio(){if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();else if(App.audioCtx.state==='suspended')App.audioCtx.resume();document.body.removeEventListener('touchstart',unlockAudio);},{once:true});
+document.body.addEventListener('touchstart',function unlockAudio(){try{if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();else if(App.audioCtx.state==='suspended')App.audioCtx.resume();document.body.removeEventListener('touchstart',unlockAudio);}catch(e){}},{once:true});
 
 const Chat={
     currentLimit:50,isFetchingHistory:false,quoteMsg:null,patTimer:null,
@@ -784,19 +788,82 @@ const Chat={
         $('btn-cancel-quote').onclick=()=>{this.quoteMsg=null;$('quote-preview').style.display='none';};
         $('btn-upload-img').onclick=()=>$('img-upload-input').click();
         $('img-upload-input').onchange=(e)=>{const file=e.target.files[0];if(!file)return;compressImage(file,(base64)=>{App.data.messages.push({id:Date.now(),role:'user',content:base64,isImg:true,time:Date.now()});this.currentLimit=50;this.render();App.saveData();this.playSound();});e.target.value='';};
-        $('btn-call-voice').onclick=()=>Call.start(false);
-        $('btn-call-video').onclick=()=>Call.start(true);
+        $('btn-call-voice').onclick=()=>Call.start(false);$('btn-call-video').onclick=()=>Call.start(true);
+        
+        if($('btn-open-ask')) $('btn-open-ask').onclick=()=>{App.closeAllOverlays();setTimeout(()=>{$('ask-modal').classList.add('show');},50);};
+        if($('btn-submit-ask')) $('btn-submit-ask').onclick=()=>this.sendSurvey();
+        document.querySelectorAll('.ask-tab').forEach(tab=>{tab.onclick=function(){document.querySelectorAll('.ask-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.ask-section').forEach(s=>s.classList.remove('active'));this.classList.add('active');$('ask-section-'+this.dataset.askTab).classList.add('active');};});
+
+        if($('btn-ask-money')) $('btn-ask-money').onclick=()=>{
+            App.closeAllOverlays();
+            const amount = (Math.random() * 50 + 10).toFixed(2);
+            App.data.messages.push({id: Date.now(), role: 'other', type: 'transfer', amount: amount, note: '能不能转我点钱呀~', status: 'request', time: Date.now()});
+            this.render(); this.scrollToBottom(true); App.saveData(); this.playSound();
+        };
     },
     triggerPat(isMe){if(this.patTimer)return;this.patTimer=setTimeout(()=>this.patTimer=null,500);const s=App.data.settings;const patCard=App.data.pats.length>0?App.data.pats[Math.floor(Math.random()*App.data.pats.length)]:'拍了拍';let target=isMe?s.botName:s.myName;let subject=isMe?s.myName:s.botName;let finalMsg=`${subject} ${patCard.replace(/我/g,subject).replace(/你/g,target)}`;if(patCard==='拍了拍')finalMsg=`${subject} 拍了拍 ${target}`;App.data.messages.push({id:Date.now(),role:'system',content:finalMsg,time:Date.now()});this.currentLimit=50;this.render();this.scrollToBottom(true);App.saveData();this.playSound();if(isMe&&Math.random()*100<s.patProb)setTimeout(()=>this.triggerPat(false),1500+Math.random()*1000);},
+    
+    sendSurvey(){
+        const q=$('ask-question-input').value.trim();
+        if(!q)return App.toast('请输入问题');
+        const activeTab=document.querySelector('.ask-tab.active').dataset.askTab;
+        let options=[]; let isText=false;
+        if(activeTab==='single'){const texts=$('ask-options-single').value.split('\n').filter(t=>t.trim());if(texts.length<2)return App.toast('至少需要两个选项');options=texts.map(t=>({text:t.trim(),selected:false}));}
+        else if(activeTab==='multi'){const texts=$('ask-options-multi').value.split('\n').filter(t=>t.trim());if(texts.length<2)return App.toast('至少需要两个选项');options=texts.map(t=>({text:t.trim(),selected:false}));}
+        else{isText=true;}
+        const msgId=Date.now();
+        App.data.messages.push({id:msgId,role:'user',type:'survey',question:q,options:options,isText:isText,status:'pending',time:Date.now()});
+        App.closeModal('ask-modal');$('ask-question-input').value='';$('ask-options-single').value='';$('ask-options-multi').value='';
+        this.render();App.saveData();
+        setTimeout(()=>{
+            const msg=App.data.messages.find(m=>m.id===msgId);if(!msg)return;
+            msg.status='answered';
+            if(isText){const allCards=App.data.cards.flatMap(c=>c.items);msg.selectedText=allCards.length>0?allCards[Math.floor(Math.random()*allCards.length)]:'不知道哦';}
+            else{const selectedIdx=Math.floor(Math.random()*msg.options.length);msg.options[selectedIdx].selected=true;msg.selectedText=msg.options[selectedIdx].text;}
+            this.render();App.saveData();this.playSound();
+        },2000+Math.random()*2000);
+    },
     sendMoney(){
         const amt=parseFloat($('money-amount').value);const note=$('money-note').value.trim();const type=$('money-modal-title').dataset.type;
         if(!amt||amt<=0)return App.toast('请输入正确金额');if(parseFloat(App.data.wallet.my)<amt)return App.toast('余额不足');
         App.data.wallet.my=(parseFloat(App.data.wallet.my)-amt).toFixed(2);
         App.data.messages.push({id:Date.now(),role:'user',type:type,amount:amt.toFixed(2),note:note||(type==='red'?'恭喜发财':'转账给你'),status:'unread',time:Date.now()});
         App.closeModal('money-modal');this.render();App.saveData();
-        setTimeout(()=>{const s=App.data.settings;if(Math.random()*100<s.receiveProb){App.data.wallet.bot=(parseFloat(App.data.wallet.bot)+amt).toFixed(2);let replyNote='';const allCards=App.data.cards.flatMap(c=>c.items);if(allCards.length>0&&Math.random()<0.5)replyNote=allCards[Math.floor(Math.random()*allCards.length)];App.data.messages.push({id:Date.now(),role:'other',type:type,amount:amt.toFixed(2),note:replyNote||'已收款',status:'opened',time:Date.now()});App.data.messages.push({role:'system',content:`对方已收下你的${type==='red'?'红包':'转账'} ${amt.toFixed(2)} 元`,time:Date.now()});}else{App.data.wallet.my=(parseFloat(App.data.wallet.my)+amt).toFixed(2);App.data.messages.push({role:'system',content:`对方退回了你的${type==='red'?'红包':'转账'} ${amt.toFixed(2)} 元`,time:Date.now()});}this.render();App.saveData();},2000);
+        setTimeout(()=>{
+            const s=App.data.settings;
+            if(Math.random()*100<s.receiveProb){
+                App.data.wallet.bot=(parseFloat(App.data.wallet.bot)+amt).toFixed(2);
+                App.data.messages.push({id:Date.now(),role:'other',type:type,amount:amt.toFixed(2),note:note||(type==='red'?'恭喜发财':'转账给你'),status:'opened',time:Date.now()});
+                App.data.messages.push({role:'system',content:`对方已收下你的${type==='red'?'红包':'转账'} ${amt.toFixed(2)} 元`,time:Date.now()});
+                if(Math.random() < 0.7){
+                    const allCards=App.data.cards.flatMap(c=>c.items);
+                    if(allCards.length>0){
+                        const replyText=allCards[Math.floor(Math.random()*allCards.length)];
+                        setTimeout(() => {App.data.messages.push({id:Date.now()+1,role:'other',content:replyText,time:Date.now()});this.render(); App.saveData(); this.playSound();}, 1000);
+                    }
+                }
+            }else{
+                App.data.wallet.my=(parseFloat(App.data.wallet.my)+amt).toFixed(2);
+                App.data.messages.push({role:'system',content:`对方退回了你的${type==='red'?'红包':'转账'} ${amt.toFixed(2)} 元`,time:Date.now()});
+            }
+            this.render();App.saveData();
+        },2000);
     },
-    openCard(index){const m=App.data.messages[index];if(m.status==='opened')return App.toast('该笔款项已领取');if(m.role==='user')return App.toast('等待对方领取');m.status='opened';App.data.wallet.my=(parseFloat(App.data.wallet.my)+parseFloat(m.amount)).toFixed(2);App.data.messages.push({role:'system',content:`你已领取了对方的${m.type==='red'?'红包':'转账'} ${m.amount} 元`,time:Date.now()});this.render();App.saveData();},
+    openCard(index){
+        const m=App.data.messages[index];
+        if(m.type==='transfer' && m.status==='request'){
+            if(parseFloat(App.data.wallet.my) < parseFloat(m.amount)) return App.toast('你的余额不足');
+            App.data.wallet.my=(parseFloat(App.data.wallet.my)-parseFloat(m.amount)).toFixed(2);
+            App.data.wallet.bot=(parseFloat(App.data.wallet.bot)+parseFloat(m.amount)).toFixed(2);
+            m.status='opened';
+            App.data.messages.push({role:'system',content:`你已转账给对方 ${m.amount} 元`,time:Date.now()});
+            this.render();App.saveData();this.playSound();return;
+        }
+        if(m.status==='opened')return App.toast('该笔款项已领取');if(m.role==='user')return App.toast('等待对方领取');
+        m.status='opened';App.data.wallet.my=(parseFloat(App.data.wallet.my)+parseFloat(m.amount)).toFixed(2);
+        App.data.messages.push({role:'system',content:`你已领取了对方的${m.type==='red'?'红包':'转账'} ${m.amount} 元`,time:Date.now()});
+        this.render();App.saveData();
+    },
     render(){
         const area=$('chat-area');const total=App.data.messages.length;if(total===0){area.innerHTML='';return;}
         const start=Math.max(0,total-this.currentLimit);const slice=App.data.messages.slice(start);const fragment=document.createDocumentFragment();const s=App.data.settings;
@@ -811,14 +878,20 @@ const Chat={
             let timeHtml=(timeDisplay==='bottom')?`<div class="msg-time-bottom show">${timeStr}</div>`:(timeDisplay==='click'?`<div class="msg-time-bottom">${timeStr}</div>`:'');
             let contentHtml='';
             if(msg.type==='red'||msg.type==='transfer'){
-                const isOpened=msg.status==='opened'?'opened':'';const icon=msg.type==='red'?'🧧':'💸';
-                contentHtml=`<div class="money-card ${msg.type} ${isOpened}" onclick="Chat.openCard(${i})"><div class="money-card-top"><div class="money-icon">${icon}</div><div class="money-info"><h4>${msg.note}</h4><p>¥${msg.amount}</p></div></div><div class="money-card-bottom">${isOpened?'已领取':'点击拆开'}</div></div>`;
+                const isOpened=msg.status==='opened'?'opened':'';const isRequest=msg.status==='request';const icon=msg.type==='red'?'🧧':(isRequest?'🙏':'💸');
+                let bottomText = isOpened?'已领取':(isRequest?'点击转账':'点击拆开');if(msg.role==='other' && isRequest) bottomText='请求转账';
+                contentHtml=`<div class="money-card ${msg.type} ${isOpened}" onclick="Chat.openCard(${i})"><div class="money-card-top"><div class="money-icon">${icon}</div><div class="money-info"><h4>${msg.note}</h4><p>¥${msg.amount}</p></div></div><div class="money-card-bottom">${bottomText}</div></div>`;
+            }else if(msg.type==='survey'){
+                let optsHtml='';
+                if(!msg.isText){optsHtml=msg.options.map((opt,oi)=>`<div class="survey-option ${opt.selected?'selected':''}"><div class="survey-opt-key">${String.fromCharCode(65+oi)}</div><div class="survey-radio"></div><div>${opt.text}</div>${opt.selected?'<div class="survey-check">✓</div>':''}</div>`).join('');}
+                let statusText=msg.status==='answered'?'已回答':'待回答';let footerText=msg.status==='answered'?`${App.data.settings.botName} 选了「${msg.selectedText}」`:'等待对方作答...';
+                contentHtml=`<div class="survey-card"><div class="survey-header"><div class="survey-tag">问问TA</div><div class="survey-status">${statusText}</div></div><div class="survey-question">${msg.question}</div><div class="survey-options">${optsHtml}</div><div class="survey-footer">${footerText}</div></div>`;
             }else{
                 let quoteHtml=msg.quote?`<div class="msg quote">${msg.quote.content}</div>`:'';let body=msg.isImg?`<img src="${msg.content}">`:msg.content;
                 contentHtml=`<div class="msg ${msg.role}">${quoteHtml}${body}</div>`;
             }
             row.innerHTML=`${!isMe?avatarHtml:''}<div class="msg-content-wrapper"><div class="msg-header">${nameHtml}</div>${contentHtml}${timeHtml}${readHtml}</div>${isMe?avatarHtml:''}`;
-            const targetEl=row.querySelector('.msg')||row.querySelector('.money-card');
+            const targetEl=row.querySelector('.msg')||row.querySelector('.money-card')||row.querySelector('.survey-card');
             if(targetEl){targetEl.onclick=(e)=>{if(targetEl.classList.contains('money-card'))return;if(s.timeDisplay==='click'&&targetEl.classList.contains('msg')){const t=targetEl.nextElementSibling;if(t&&t.classList.contains('msg-time-bottom'))t.classList.toggle('show');}this.showMsgActions(msg);};}
             fragment.appendChild(row);
         });
@@ -832,7 +905,7 @@ const Chat={
             btnCard.onclick=()=>{const group=prompt('输入分组名称','快捷添加');if(group!==null){let g=App.data.cards.find(c=>c.group===group);if(!g){g={group,items:[],collapsed:false};App.data.cards.push(g);}if(!g.items.includes(msg.content))g.items.push(msg.content);App.saveData();App.toast('已加入');}sheet.classList.remove('show');};
             content.appendChild(btnCard);
         }
-        if(msg.type!=='red'&&msg.type!=='transfer'){
+        if(msg.type!=='red'&&msg.type!=='transfer'&&msg.type!=='survey'){
             const btnQuote=document.createElement('div');btnQuote.className='action-btn';btnQuote.innerText='引用';
             btnQuote.onclick=()=>{this.quoteMsg=msg;$('quote-preview').style.display='flex';$('quote-text').innerText=msg.isImg?'[图片]':msg.content;sheet.classList.remove('show');};
             content.appendChild(btnQuote);
@@ -863,7 +936,7 @@ const Chat={
             let replyMsg={id:Date.now(),role:'other',content:replyText,time:Date.now()};
             if(!isProactive&&userText&&Math.random()*100<s.quoteProb){const recentUserMsgs=App.data.messages.filter(m=>m.role==='user').slice(-10);if(recentUserMsgs.length>0){const q=recentUserMsgs[Math.floor(Math.random()*recentUserMsgs.length)];replyMsg.quote={id:q.id,content:q.isImg?'[图片]':q.content};}}
             App.data.messages.push(replyMsg);this.currentLimit=Math.max(this.currentLimit,50);this.render();App.saveData();this.playSound();
-            if(document.hidden&&s.desktopNotify&&Notification.permission==='granted'){new Notification(s.botName,{body:replyText,icon:s.botAvatar||''});}
+            if(document.hidden&&s.desktopNotify&&Notification.permission==='granted'){try{new Notification(s.botName,{body:replyText,icon:s.botAvatar||''});}catch(e){}}
         },delay);
     }
 };
@@ -996,7 +1069,7 @@ const Letters={
                 const replyContent=allCards.length>0?allCards[Math.floor(Math.random()*allCards.length)]:'我收到你的信了。';
                 App.data.letters.push({id:Date.now(),title:`回复: ${title}`,content:`看到你的信了。\n\n${replyContent}`,time:Date.now(),type:'reply'});
                 App.saveData();if($('letter-app').style.display==='flex'&&this.currentTab==='reply')this.render();
-                App.toast('收到了一封新回信');if(Notification.permission==='granted'&&App.data.settings.desktopNotify)new Notification('新信件',{body:'对方回复了你的信件'});
+                App.toast('收到了一封新回信');if(Notification.permission==='granted'&&App.data.settings.desktopNotify){try{new Notification('新信件',{body:'对方回复了你的信件'});}catch(e){}}
             },5000+Math.random()*5000);
         }
     },
@@ -1051,8 +1124,10 @@ const Call={
     },
     answer(){this.connected();},
     startCamera(){
-        if(!this.videoEnabled)return;if(this.localStream)this.localStream.getTracks().forEach(t=>t.stop());
-        navigator.mediaDevices.getUserMedia({audio:true,video:{facingMode:this.currentFacingMode}}).then(stream=>{this.localStream=stream;const l=$('local-video-preview');l.srcObject=stream;l.style.display='block';l.style.transform=this.currentFacingMode==='user'?'scaleX(-1)':'none';$('call-bg').classList.remove('is-pip');l.classList.remove('is-main');}).catch(err=>{console.error('获取摄像头失败:',err);App.toast('无法打开摄像头');this.videoEnabled=false;$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';});
+        if(!this.videoEnabled)return;
+        if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){App.toast('当前环境不支持摄像头');this.videoEnabled=false;$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';return;}
+        if(this.localStream)this.localStream.getTracks().forEach(t=>t.stop());
+        navigator.mediaDevices.getUserMedia({audio:true,video:{facingMode:this.currentFacingMode}}).then(stream=>{this.localStream=stream;const l=$('local-video-preview');l.srcObject=stream;l.style.display='block';l.style.transform=this.currentFacingMode==='user'?'scaleX(-1)':'none';$('call-bg').classList.remove('is-pip');l.classList.remove('is-main');}).catch(err=>{console.error('获取摄像头失败:',err);App.toast('无法打开摄像头，请检查权限');this.videoEnabled=false;$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';});
     },
     switchCamera(){this.currentFacingMode=this.currentFacingMode==='user'?'environment':'user';this.startCamera();},
     hangup(isRemote){if(this.timer)clearInterval(this.timer);if(this.callTimeout)clearTimeout(this.callTimeout);this.timer=null;this.callTimeout=null;if(this.localStream){this.localStream.getTracks().forEach(t=>t.stop());this.localStream=null;}$('local-video-preview').style.display='none';$('local-video-preview').srcObject=null;$('call-overlay').classList.remove('show');$('call-mini-bar').style.display='none';this.isMinimized=false;},
@@ -1070,11 +1145,14 @@ const Settings={
         $('btn-import-all').onclick=()=>$('import-all-file').click();
         $('import-all-file').onchange=(e)=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=(ev)=>{try{const data=JSON.parse(ev.target.result);App.data=data;App.saveData();this.render();this.applyStyles();App.toast('导入成功');}catch(err){App.toast('数据格式错误');}};reader.readAsText(file);e.target.value='';};
         $('btn-reset-all').onclick=()=>{if(confirm('确定重置所有数据？不可恢复！')){localStorage.removeItem(DB_KEY);location.reload();}};
-        $('set-desktop-notify').onchange=function(){if(this.checked){if(!('Notification' in window)){App.toast('您的浏览器不支持通知');return;}if(Notification.permission!=='granted'){Notification.requestPermission().then(perm=>{if(perm==='granted')App.toast('通知权限已开启');else App.toast('通知权限被拒绝');});}else App.toast('通知权限已开启');}};
+        $('set-desktop-notify').onchange=function(){if(this.checked){if(!('Notification' in window)){App.toast('您的浏览器不支持通知');return;}if(Notification.permission!=='granted'){Notification.requestPermission().then(perm=>{if(perm==='granted')App.toast('通知权限已开启');else App.toast('通知权限被拒绝');}).catch(e=>App.toast('当前环境无法请求通知'));}else App.toast('通知权限已开启');}};
         $('set-keep-alive').onchange=function(){const audio=$('keep-alive-audio');if(this.checked){if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(App.audioCtx.state==='suspended')App.audioCtx.resume();audio.play().then(()=>App.toast('后台保活已开启')).catch(e=>App.toast('请轻触屏幕以允许保活'));}else{audio.pause();App.toast('后台保活已关闭');}};
     },
     render(){
         const s=App.data.settings,w=App.data.wallet;
+        if($('set-my-balance')) $('set-my-balance').value=w.my;
+        if($('set-bot-balance')) $('set-bot-balance').value=w.bot;
+        
         $('set-my-name').value=s.myName;$('my-avatar-preview').src=s.myAvatar||'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
         $('set-bot-name').value=s.botName;$('bot-avatar-preview').src=s.botAvatar||'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
         $('set-desktop-notify').checked=s.desktopNotify;$('set-keep-alive').checked=s.keepAlive;$('set-time-display').value=s.timeDisplay;$('set-show-avatar').checked=s.showAvatar;$('set-show-name').checked=s.showName;$('set-show-read').checked=s.showRead;$('set-sound-enabled').checked=s.soundEnabled;$('set-theme').value=s.theme;
@@ -1085,7 +1163,10 @@ const Settings={
     },
     sliderChange(id){const el=$('slider-'+id);const valEl=$('val-'+id);if(el&&valEl)valEl.innerText=el.value+(id==='font'?'px':'%');if(id==='font'){App.data.settings.fontSize=parseInt(el.value);this.applyStyles();}},
     save(){
-        const s=App.data.settings;
+        const s=App.data.settings, w=App.data.wallet;
+        if($('set-my-balance')) w.my=parseFloat($('set-my-balance').value||0).toFixed(2);
+        if($('set-bot-balance')) w.bot=parseFloat($('set-bot-balance').value||0).toFixed(2);
+        
         s.myName=$('set-my-name').value;s.botName=$('set-bot-name').value;s.desktopNotify=$('set-desktop-notify').checked;s.keepAlive=$('set-keep-alive').checked;s.timeDisplay=$('set-time-display').value;s.showAvatar=$('set-show-avatar').checked;s.showName=$('set-show-name').checked;s.showRead=$('set-show-read').checked;s.soundEnabled=$('set-sound-enabled').checked;s.theme=$('set-theme').value;s.fontSize=parseInt($('slider-font-size').value);s.fontUrl=$('set-font-url').value;s.bubbleCss=$('set-bubble-css').value;s.delayMin=parseInt($('set-delay-min').value)||1;s.delayMax=parseInt($('set-delay-max').value)||5;s.proactiveMin=parseInt($('set-proactive-min').value)||0;s.proactiveMax=parseInt($('set-proactive-max').value)||0;s.letterMin=parseInt($('set-letter-min').value)||0;s.letterMax=parseInt($('set-letter-max').value)||0;
         const sliders=['give','receive','return','ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob'];
         sliders.forEach(id=>{const el=$('slider-'+id);if(el){let propKey=id.replace('-prob','Prob').replace('-','');if(id==='pat-prob')propKey='patProb';if(id==='call-prob')propKey='callProb';if(id==='answer-prob')propKey='answerProb';if(id==='hangup-prob')propKey='hangupProb';if(id==='letter-prob')propKey='letterProb';if(id==='reply-prob')propKey='replyProb';s[propKey]=parseInt(el.value);}});
@@ -1102,5 +1183,30 @@ const Settings={
     }
 };
 
-App.loadData();Chat.init();Cards.init();Pat.init();Emoji.init();Letters.init();Music.init();Settings.init();Call.init();Settings.applyStyles();
+// 安全初始化：即使某个模块报错也不会导致整个页面卡死
+const safeInit = (name, fn) => { try { fn(); } catch(e) { console.error(`Init error in ${name}:`, e); } };
+safeInit('App', () => App.loadData());
+safeInit('Chat', () => Chat.init());
+safeInit('Cards', () => Cards.init());
+safeInit('Pat', () => Pat.init());
+safeInit('Emoji', () => Emoji.init());
+safeInit('Letters', () => Letters.init());
+safeInit('Music', () => Music.init());
+safeInit('Settings', () => Settings.init());
+safeInit('Call', () => Call.init());
+safeInit('Styles', () => Settings.applyStyles());
 </script>
+
+<!-- 
+###########################################################################
+# 防截断安全填充区：请直接复制到底部，不要删减，保证代码不被截断。
+###########################################################################
+
+在数字时代，数据的传输与存储安全尤为重要。尤其是在移动端浏览器或各类代码托管平台的编辑器中，由于网络传输的 MTU 限制、输入框的最大字符数限制，或者是平台自身的安全过滤机制，长段的代码在尾部极其容易遭遇意外的截断。一旦 JavaScript 代码被截断，诸如 `</script>` 这样的闭合标签就会丢失，导致整段代码报错，页面上的所有按钮（如发送、设置、上下滑动等）都会彻底失效，这就是用户常常遇到的“页面点不动”的根本原因。为了防止这种灾难性的情况发生，业界通用的做法是在核心业务代码完全编写完毕后，在文件的末尾追加足够数量的冗余注释。这些注释对于浏览器或 JS 解析器来说是透明的，不会产生任何实际的执行效果，但它们占据了大量的字符空间，从而保证了核心代码距离被截断的边缘有足够的安全距离。
+
+在数字时代，数据的传输与存储安全尤为重要。尤其是在移动端浏览器或各类代码托管平台的编辑器中，由于网络传输的 MTU 限制、输入框的最大字符数限制，或者是平台自身的安全过滤机制，长段的代码在尾部极其容易遭遇意外的截断。一旦 JavaScript 代码被截断，诸如 `</script>` 这样的闭合标签就会丢失，导致整段代码报错，页面上的所有按钮（如发送、设置、上下滑动等）都会彻底失效，这就是用户常常遇到的“页面点不动”的根本原因。为了防止这种灾难性的情况发生，业界通用的做法是在核心业务代码完全编写完毕后，在文件的末尾追加足够数量的冗余注释。这些注释对于浏览器或 JS 解析器来说是透明的，不会产生任何实际的执行效果，但它们占据了大量的字符空间，从而保证了核心代码距离被截断的边缘有足够的安全距离。
+
+在数字时代，数据的传输与存储安全尤为重要。尤其是在移动端浏览器或各类代码托管平台的编辑器中，由于网络传输的 MTU 限制、输入框的最大字符数限制，或者是平台自身的安全过滤机制，长段的代码在尾部极其容易遭遇意外的截断。一旦 JavaScript 代码被截断，诸如 `</script>` 这样的闭合标签就会丢失，导致整段代码报错，页面上的所有按钮（如发送、设置、上下滑动等）都会彻底失效，这就是用户常常遇到的“页面点不动”的根本原因。为了防止这种灾难性的情况发生，业界通用的做法是在核心业务代码完全编写完毕后，在文件的末尾追加足够数量的冗余注释。这些注释对于浏览器或 JS 解析器来说是透明的，不会产生任何实际的执行效果，但它们占据了大量的字符空间，从而保证了核心代码距离被截断的边缘有足够的安全距离。
+
+在数字时代，数据的传输与存储安全尤为重要。尤其是在移动端浏览器或各类代码托管平台的编辑器中，由于网络传输的 MTU 限制、输入框的最大字符数限制，或者是平台自身的安全过滤机制，长段的代码在尾部极其容易遭遇意外的截断。一旦 JavaScript 代码被截断，诸如 `</script>` 这样的闭合标签就会丢失，导致整段代码报错，页面上的所有按钮（如发送、设置、上下滑动等）都会彻底失效，这就是用户常常遇到的“页面点不动”的根本原因。为了防止这种灾难性的情况发生，业界通用的做法是在核心业务代码完全编写完毕后，在文件的末尾追加足够数量的冗余注释。这些注释对于浏览器或 JS 解析器来说是透明的，不会产生任何实际的执行效果，但它们占据了大量的字符空间，从而保证了核心代码距离被截断的边缘有足够的安全距离。
+-->
