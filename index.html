@@ -164,10 +164,11 @@ const App={
         messages:[],cards:[{group:'默认',items:['你好','晚安','今天过得怎么样？'],collapsed:false}],pats:['拍了拍','抱了抱你','摸了摸你的头'],
         emojis:{pic:[],emoji:['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🧐','🤓','😎','🤩','🥳'],text:['(￣▽￣)','(✿◡‿◡)','( •̀ ω •́ )y']},
         letters:[],music:{list:[],mode:'order',currentIndex:-1},wallet:{my:520.22,bot:100.00},
-        settings:{myName:'我',myAvatar:'',botName:'对方',botAvatar:'',showAvatar:true,showName:true,showRead:true,soundEnabled:true,theme:'system',fontSize:16,bubbleCss:'',bgImage:'',timeDisplay:'bottom',fontUrl:'',typingText:'对方正在输入...',delayMin:2,delayMax:5,proactiveMin:0,proactiveMax:0,ignoreProb:20,quoteProb:30,patProb:10,callProb:5,answerProb:80,hangupProb:10,letterMin:0,letterMax:0,letterProb:10,replyProb:80,desktopNotify:false,keepAlive:false}
+        settings:{myName:'我',myAvatar:'',botName:'对方',botAvatar:'',showAvatar:true,showName:true,showRead:true,soundEnabled:true,theme:'system',fontSize:16,bubbleCss:'',bgImage:'',timeDisplay:'bottom',fontUrl:'',typingText:'对方正在输入...',delayMin:2,delayMax:5,proactiveMin:0,proactiveMax:0,ignoreProb:20,quoteProb:30,patProb:10,callProb:5,answerProb:80,hangupProb:10,letterMin:0,letterMax:0,letterProb:10,replyProb:80,receiveProb:80,returnProb:10,desktopNotify:false,keepAlive:false}
     },
     audioCtx:null,saveTimeout:null,
-    saveData(){clearTimeout(this.saveTimeout);this.saveTimeout=setTimeout(()=>{try{localStorage.setItem(DB_KEY,JSON.stringify(this.data));}catch(e){}},500);},
+    saveData(){clearTimeout(this.saveTimeout);this.saveTimeout=setTimeout(()=>{try{localStorage.setItem(DB_KEY,JSON.stringify(this.data));}catch(e){console.warn('saveData 失败：',e);}},200);},
+    forceSave(){clearTimeout(this.saveTimeout);try{localStorage.setItem(DB_KEY,JSON.stringify(this.data));}catch(e){console.warn('forceSave 失败：',e);}},
     loadData(){try{const s=localStorage.getItem(DB_KEY);if(s){const p=JSON.parse(s);this.data={...this.data,...p,settings:{...this.data.settings,...(p.settings||{})},wallet:{...this.data.wallet,...(p.wallet||{})},emojis:{...this.data.emojis,...(p.emojis||{})}};if(this.data.letters)this.data.letters.forEach(l=>{if(!l.type)l.type='from_me';});}}catch(e){console.warn('数据读取失败，使用默认数据');}},
     openApp(id){this.closeAllOverlays();$(id).style.display='flex';try{if(id==='chat-app'){Chat.currentLimit=50;Chat.render();Chat.scrollToBottom(true);}else if(id==='cards-app')Cards.render();else if(id==='settings-app')Settings.render();else if(id==='letter-app')Letters.render();else if(id==='emoji-app')Emoji.renderManager();else if(id==='pat-app')Pat.render();else if(id==='music-app')Music.renderList();}catch(e){console.error(e);}},
     closeApp(id){$(id).style.display='none';this.closeAllOverlays();},
@@ -186,8 +187,7 @@ document.body.addEventListener('click',function(e){
     if(e.target.id==='action-sheet'){e.target.classList.remove('show');}
 });
 document.body.addEventListener('touchstart',function unlockAudio(){try{if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();else if(App.audioCtx.state==='suspended')App.audioCtx.resume();document.body.removeEventListener('touchstart',unlockAudio);}catch(e){}},{once:true});
-
-const Chat={
+    const Chat={
     currentLimit:50,isFetchingHistory:false,quoteMsg:null,patTimer:null,
     init(){
         const area=$('chat-area');
@@ -203,29 +203,22 @@ const Chat={
         $('btn-upload-img').onclick=()=>$('img-upload-input').click();
         $('img-upload-input').onchange=(e)=>{const file=e.target.files[0];if(!file)return;compressImage(file,(base64)=>{App.data.messages.push({id:Date.now(),role:'user',content:base64,isImg:true,time:Date.now()});this.currentLimit=50;this.render();App.saveData();this.playSound();});e.target.value='';};
         $('btn-call-voice').onclick=()=>Call.start(false);$('btn-call-video').onclick=()=>Call.start(true);
-        
         $('btn-open-ask').onclick=()=>{App.closeAllOverlays();setTimeout(()=>{$('ask-modal').classList.add('show');},50);};
         $('btn-submit-ask').onclick=()=>this.sendSurvey();
         document.querySelectorAll('.ask-tab').forEach(tab=>{tab.onclick=function(){document.querySelectorAll('.ask-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.ask-section').forEach(s=>s.classList.remove('active'));this.classList.add('active');$('ask-section-'+this.dataset.askTab).classList.add('active');};});
-
         $('btn-ask-money').onclick=()=>{
             App.closeAllOverlays();
             const askAmt = (Math.random() * 50 + 10).toFixed(2);
             App.data.wallet.bot = (parseFloat(App.data.wallet.bot) + parseFloat(askAmt)).toFixed(2);
             App.data.messages.push({id: Date.now(), role: 'system', content: `对方给自己申请了 ¥${askAmt} 余额（当前对方余额：¥${App.data.wallet.bot}）`, time: Date.now()});
-            
             const sendAmt = (Math.random() * 20 + 5).toFixed(2);
             const type = Math.random() > 0.5 ? 'red' : 'transfer';
             const note = type === 'red' ? '给你发个红包~' : '拿去买好吃的';
-            App.data.messages.push({
-                id: Date.now() + 1, role: 'other', type: type, 
-                amount: sendAmt, note: note, status: 'unread', time: Date.now()
-            });
+            App.data.messages.push({id: Date.now() + 1, role: 'other', type: type, amount: sendAmt, note: note, status: 'unread', time: Date.now()});
             this.render(); this.scrollToBottom(true); App.saveData(); this.playSound();
         };
     },
     triggerPat(isMe){if(this.patTimer)return;this.patTimer=setTimeout(()=>this.patTimer=null,500);const s=App.data.settings;const patCard=App.data.pats.length>0?App.data.pats[Math.floor(Math.random()*App.data.pats.length)]:'拍了拍';let target=isMe?s.botName:s.myName;let subject=isMe?s.myName:s.botName;let finalMsg=`${subject} ${patCard.replace(/我/g,subject).replace(/你/g,target)}`;if(patCard==='拍了拍')finalMsg=`${subject} 拍了拍 ${target}`;App.data.messages.push({id:Date.now(),role:'system',content:finalMsg,time:Date.now()});this.currentLimit=50;this.render();this.scrollToBottom(true);App.saveData();this.playSound();if(isMe&&Math.random()*100<s.patProb)setTimeout(()=>this.triggerPat(false),1500+Math.random()*1000);},
-    
     sendSurvey(){
         const q=$('ask-question-input').value.trim();
         if(!q)return App.toast('请输入问题');
@@ -246,23 +239,21 @@ const Chat={
             this.render();App.saveData();this.playSound();
         },2000+Math.random()*2000);
     },
-    
     sendMoney(){
         const amt=parseFloat($('money-amount').value);const note=$('money-note').value.trim();const type=$('money-modal-title').dataset.type;
         if(!amt||amt<=0)return App.toast('请输入正确金额');if(parseFloat(App.data.wallet.my)<amt)return App.toast('余额不足');
-        
         App.data.wallet.my=(parseFloat(App.data.wallet.my)-amt).toFixed(2);
         const msgId = Date.now();
         App.data.messages.push({id:msgId, role:'user', type:type, amount:amt.toFixed(2), note:note||(type==='red'?'恭喜发财':'转账给你'), status:'unread', time:Date.now()});
         App.closeModal('money-modal');this.render();App.saveData();
-        
         setTimeout(()=>{
             const s=App.data.settings;
             const msg = App.data.messages.find(m=>m.id === msgId);
             if(!msg) return;
-            
+            const receiveProb = (typeof s.receiveProb === 'number') ? s.receiveProb : 80;
+            const returnProb  = (typeof s.returnProb  === 'number') ? s.returnProb  : 10;
             const rand = Math.random() * 100;
-            if(rand < s.receiveProb){
+            if(rand < receiveProb){
                 App.data.wallet.bot=(parseFloat(App.data.wallet.bot)+amt).toFixed(2);
                 msg.status='opened';
                 App.data.messages.push({role:'system',content:`对方已收下你的${type==='red'?'红包':'转账'} ${amt.toFixed(2)} 元`,time:Date.now()});
@@ -273,7 +264,7 @@ const Chat={
                         setTimeout(() => {App.data.messages.push({id:Date.now()+1,role:'other',content:replyText,time:Date.now()});this.render(); App.saveData(); this.playSound();}, 1000);
                     }
                 }
-            } else if(rand < (s.receiveProb + s.returnProb)){
+            } else if(rand < (receiveProb + returnProb)){
                 App.data.wallet.my=(parseFloat(App.data.wallet.my)+amt).toFixed(2);
                 msg.status='returned';
                 App.data.messages.push({role:'system',content:`对方退回了你的${type==='red'?'红包':'转账'} ${amt.toFixed(2)} 元`,time:Date.now()});
@@ -281,34 +272,20 @@ const Chat={
             this.render();App.saveData();
         },2000);
     },
-    
     openCard(index){
         const m=App.data.messages[index];
         if(m.status === 'opened') return App.toast('该笔款项已领取');
         if(m.status === 'returned') return App.toast('该笔款项已退回');
         if(m.role === 'user') return App.toast('等待对方处理');
-        
         const sheet=$('action-sheet'); const content=$('action-content'); content.innerHTML='';
         const btnReceive=document.createElement('div'); btnReceive.className='action-btn'; btnReceive.innerText='领取';
-        btnReceive.onclick=()=>{
-            App.data.wallet.my=(parseFloat(App.data.wallet.my)+parseFloat(m.amount)).toFixed(2);
-            m.status='opened';
-            App.data.messages.push({role:'system',content:`你已领取了对方的${m.type==='red'?'红包':'转账'} ${m.amount} 元`,time:Date.now()});
-            this.render(); App.saveData(); App.closeAllOverlays(); this.playSound();
-        };
+        btnReceive.onclick=()=>{App.data.wallet.my=(parseFloat(App.data.wallet.my)+parseFloat(m.amount)).toFixed(2);m.status='opened';App.data.messages.push({role:'system',content:`你已领取了对方的${m.type==='red'?'红包':'转账'} ${m.amount} 元`,time:Date.now()});this.render(); App.saveData(); App.closeAllOverlays(); this.playSound();};
         const btnReturn=document.createElement('div'); btnReturn.className='action-btn'; btnReturn.innerText='退回';
-        btnReturn.onclick=()=>{
-            App.data.wallet.bot=(parseFloat(App.data.wallet.bot)+parseFloat(m.amount)).toFixed(2);
-            m.status='returned';
-            App.data.messages.push({role:'system',content:`你退回了对方的${m.type==='red'?'红包':'转账'} ${m.amount} 元`,time:Date.now()});
-            this.render(); App.saveData(); App.closeAllOverlays();
-        };
+        btnReturn.onclick=()=>{App.data.wallet.bot=(parseFloat(App.data.wallet.bot)+parseFloat(m.amount)).toFixed(2);m.status='returned';App.data.messages.push({role:'system',content:`你退回了对方的${m.type==='red'?'红包':'转账'} ${m.amount} 元`,time:Date.now()});this.render(); App.saveData(); App.closeAllOverlays();};
         const btnCancel=document.createElement('div'); btnCancel.className='action-btn action-cancel'; btnCancel.innerText='取消';
         btnCancel.onclick=()=>App.closeAllOverlays();
-        
         content.appendChild(btnReceive); content.appendChild(btnReturn); content.appendChild(btnCancel); sheet.classList.add('show');
     },
-    
     render(){
         const area=$('chat-area');const total=App.data.messages.length;if(total===0){area.innerHTML='';return;}
         const start=Math.max(0,total-this.currentLimit);const slice=App.data.messages.slice(start);const fragment=document.createDocumentFragment();const s=App.data.settings;
@@ -322,19 +299,10 @@ const Chat={
             let nameHtml=s.showName?`<div class="msg-name">${name}</div>`:'';let readHtml=(isMe&&s.showRead)?`<div class="read-status show">已读</div>`:'';
             let timeHtml=(timeDisplay==='bottom')?`<div class="msg-time-bottom show">${timeStr}</div>`:(timeDisplay==='click'?`<div class="msg-time-bottom">${timeStr}</div>`:'');
             let contentHtml='';
-            
             if(msg.type==='red'||msg.type==='transfer'){
-                const isOpened=msg.status==='opened';
-                const isReturned=msg.status==='returned';
-                const icon=msg.type==='red'?'🧧':'💸';
+                const isOpened=msg.status==='opened';const isReturned=msg.status==='returned';const icon=msg.type==='red'?'🧧':'💸';
                 let bottomText = isOpened ? '已领取' : (isReturned ? '已退回' : '点击查看');
-                contentHtml=`<div class="money-card ${msg.type} ${isOpened||isReturned?'opened':''}" onclick="Chat.openCard(${i})">
-                    <div class="money-card-top">
-                        <div class="money-icon">${icon}</div>
-                        <div class="money-info"><h4>${msg.note}</h4><p>¥${msg.amount}</p></div>
-                    </div>
-                    <div class="money-card-bottom">${bottomText}</div>
-                </div>`;
+                contentHtml=`<div class="money-card ${msg.type} ${isOpened||isReturned?'opened':''}" onclick="Chat.openCard(${i})"><div class="money-card-top"><div class="money-icon">${icon}</div><div class="money-info"><h4>${msg.note}</h4><p>¥${msg.amount}</p></div></div><div class="money-card-bottom">${bottomText}</div></div>`;
             }else if(msg.type==='survey'){
                 let optsHtml='';
                 if(!msg.isText){optsHtml=msg.options.map((opt,oi)=>`<div class="survey-option ${opt.selected?'selected':''}"><div class="survey-opt-key">${String.fromCharCode(65+oi)}</div><div class="survey-radio"></div><div>${opt.text}</div>${opt.selected?'<div class="survey-check">✓</div>':''}</div>`).join('');}
@@ -394,8 +362,7 @@ const Chat={
         },delay);
     }
 };
-
-const Cards={
+    const Cards={
     isBatchMode:false,selectedItems:new Set(),editingIndex:{g:-1,i:-1},
     init(){
         $('btn-add-single').onclick=()=>this.addSingle();$('new-card-input').addEventListener('keypress',(e)=>{if(e.key==='Enter')this.addSingle();});
@@ -606,7 +573,6 @@ const Settings={
         const s=App.data.settings,w=App.data.wallet;
         if($('set-my-balance')) $('set-my-balance').value=w.my;
         if($('set-bot-balance')) $('set-bot-balance').value=w.bot;
-        
         $('set-my-name').value=s.myName;$('my-avatar-preview').src=s.myAvatar||'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
         $('set-bot-name').value=s.botName;$('bot-avatar-preview').src=s.botAvatar||'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
         $('set-desktop-notify').checked=s.desktopNotify;$('set-keep-alive').checked=s.keepAlive;$('set-time-display').value=s.timeDisplay;$('set-show-avatar').checked=s.showAvatar;$('set-show-name').checked=s.showName;$('set-show-read').checked=s.showRead;$('set-sound-enabled').checked=s.soundEnabled;$('set-theme').value=s.theme;
@@ -620,7 +586,6 @@ const Settings={
         const s=App.data.settings, w=App.data.wallet;
         if($('set-my-balance')) w.my=parseFloat($('set-my-balance').value||0).toFixed(2);
         if($('set-bot-balance')) w.bot=parseFloat($('set-bot-balance').value||0).toFixed(2);
-        
         s.myName=$('set-my-name').value;s.botName=$('set-bot-name').value;s.desktopNotify=$('set-desktop-notify').checked;s.keepAlive=$('set-keep-alive').checked;s.timeDisplay=$('set-time-display').value;s.showAvatar=$('set-show-avatar').checked;s.showName=$('set-show-name').checked;s.showRead=$('set-show-read').checked;s.soundEnabled=$('set-sound-enabled').checked;s.theme=$('set-theme').value;s.fontSize=parseInt($('slider-font-size').value);s.fontUrl=$('set-font-url').value;s.bubbleCss=$('set-bubble-css').value;s.delayMin=parseInt($('set-delay-min').value)||1;s.delayMax=parseInt($('set-delay-max').value)||5;s.proactiveMin=parseInt($('set-proactive-min').value)||0;s.proactiveMax=parseInt($('set-proactive-max').value)||0;s.letterMin=parseInt($('set-letter-min').value)||0;s.letterMax=parseInt($('set-letter-max').value)||0;
         const sliders=['give','receive','return','ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob'];
         sliders.forEach(id=>{const el=$('slider-'+id);if(el){let propKey=id.replace('-prob','Prob').replace('-','');if(id==='pat-prob')propKey='patProb';if(id==='call-prob')propKey='callProb';if(id==='answer-prob')propKey='answerProb';if(id==='hangup-prob')propKey='hangupProb';if(id==='letter-prob')propKey='letterProb';if(id==='reply-prob')propKey='replyProb';s[propKey]=parseInt(el.value);}});
@@ -637,4 +602,30 @@ const Settings={
     }
 };
 
+/* ===================== 启动 & 持久化（关键修复） ===================== */
+document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'hidden') { try{ App.forceSave(); }catch(e){} }
+});
+window.addEventListener('pagehide', function(){ try{ App.forceSave(); }catch(e){} });
+window.addEventListener('beforeunload', function(){ try{ App.forceSave(); }catch(e){} });
+
+(function boot(){
+    try {
+        App.loadData();
+        Chat.init();
+        Cards.init();
+        Pat.init();
+        Emoji.init();
+        Letters.init();
+        Music.init();
+        Call.init();
+        Settings.init();
+        Settings.applyStyles();
+        var modeBtn = $('btn-mode');
+        if (modeBtn) modeBtn.innerText = (App.data.music && App.data.music.mode === 'random') ? '🔀' : '🔁';
+        console.log('[boot] 数据已加载，消息数：', (App.data.messages||[]).length, '| 字卡分组：', (App.data.cards||[]).length);
+    } catch (err) {
+        console.error('[boot] 初始化失败：', err);
+    }
+})();
 </script>
