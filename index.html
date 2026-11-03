@@ -637,16 +637,4 @@ const Settings={
     }
 };
 
-// 安全初始化：即使某个模块报错也不会导致整个页面卡死
-const safeInit = (name, fn) => { try { fn(); } catch(e) { console.error(`Init error in ${name}:`, e); } };
-safeInit('App', () => App.loadData());
-safeInit('Chat', () => Chat.init());
-safeInit('Cards', () => Cards.init());
-safeInit('Pat', () => Pat.init());
-safeInit('Emoji', () => Emoji.init());
-safeInit('Letters', () => Letters.init());
-safeInit('Music', () => Music.init());
-safeInit('Settings', () => Settings.init());
-safeInit('Call', () => Call.init());
-safeInit('Styles', () => Settings.applyStyles());
 </script>
