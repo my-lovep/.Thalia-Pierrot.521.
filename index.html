@@ -156,14 +156,19 @@
 <style id="dynamic-bubble-style"></style>
 
 <script>
-// 如果遇到严重报错，直接弹窗显示，不藏在后台
-window.onerror = function(msg, url, line) {
-    console.warn('JS Error:', msg, 'Line:', line);
-};
+// ====== 1. 动态注入 Service Worker，欺骗 iOS 将其识别为真正的 PWA ======
+if ('serviceWorker' in navigator) {
+    try {
+        const swCode = `self.addEventListener('install', function(e) { self.skipWaiting(); });
+                        self.addEventListener('activate', function(e) { return self.clients.claim(); });
+                        self.addEventListener('fetch', function(e) { e.respondWith(fetch(e.request).catch(() => new Response(''))); });`;
+        const blob = new Blob([swCode], {type: 'application/javascript'});
+        const swUrl = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(swUrl).catch(err => console.log('SW注册失败', err));
+    } catch(e) {}
+}
 
-// 移除可能导致 iOS 降级的 manifest
-const manifestLink = document.querySelector('link[rel="manifest"]');
-if (manifestLink) manifestLink.remove();
+window.onerror = function(msg, url, line) { console.warn('JS Error:', msg, 'Line:', line); };
 
 const DB_KEY='appData_v31_final', $=id=>document.getElementById(id);
 const compressImage=(file,cb)=>{const r=new FileReader();r.readAsDataURL(file);r.onload=(e)=>{const i=new Image();i.src=e.target.result;i.onload=()=>{let w=i.width,h=i.height,m=300;if(w>m){h=Math.round(h*m/w);w=m;}if(h>m){w=Math.round(w*m/h);h=m;}const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',.6));};};};
@@ -219,16 +224,17 @@ const App={
             const str = JSON.stringify(this.data);
             localStorage.setItem(DB_KEY, str);
             if(IDB.db) IDB.set(DB_KEY, this.data);
-        } catch(e) { 
-            alert('【错误】保存数据失败！\n可能是图片太多超出了手机限制，或者开启了无痕模式。\n' + e.message); 
-        }
+            
+            // 【新增】Cookie 终极保底：将名字强行写入 Cookie，防 PWA 沙盒重置
+            document.cookie = "myName=" + encodeURIComponent(this.data.settings.myName) + "; max-age=31536000; path=/; SameSite=Lax";
+        } catch(e) { console.warn('保存数据失败：' + e.message); }
     },
     forceSave(){
         this.saveData();
     },
     
     async loadData(){
-        // 1. 读 LocalStorage
+        let hasData = false;
         try{
             const s = localStorage.getItem(DB_KEY);
             if(s){
@@ -236,20 +242,29 @@ const App={
                 this.data = {...this.data, ...p, settings:{...this.data.settings, ...(p.settings||{})}, wallet:{...this.data.wallet, ...(p.wallet||{})}, emojis:{...this.data.emojis, ...(p.emojis||{})}};
                 if(this.data.letters) this.data.letters.forEach(l=>{if(!l.type)l.type='from_me';});
                 this.loadSource = 'LocalStorage';
+                hasData = true;
             }
         }catch(e){}
 
-        // 2. 读 IndexedDB
         try {
             if(IDB.db) {
                 const idbData = await IDB.get(DB_KEY);
                 if (idbData) {
                     this.data = {...this.data, ...idbData, settings:{...this.data.settings, ...(idbData.settings||{})}, wallet:{...this.data.wallet, ...(idbData.wallet||{})}, emojis:{...this.data.emojis, ...(idbData.emojis||{})}};
-                    if(this.loadSource === '无') this.loadSource = 'IndexedDB';
-                    else this.loadSource = '本地+数据库';
+                    this.loadSource = hasData ? '本地+数据库' : 'IndexedDB';
+                    hasData = true;
                 }
             }
         } catch(e) {}
+
+        // 【新增】如果上面两个全被 iOS 清空了，尝试从 Cookie 恢复名字
+        if (!hasData) {
+            const cookieMatch = document.cookie.match(/(^| )myName=([^;]+)/);
+            if (cookieMatch) {
+                this.data.settings.myName = decodeURIComponent(cookieMatch[2]);
+                this.loadSource = 'Cookie(救回)';
+            }
+        }
     },
     
     openApp(id){this.closeAllOverlays();$(id).style.display='flex';try{if(id==='chat-app'){Chat.currentLimit=50;Chat.render();Chat.scrollToBottom(true);}else if(id==='cards-app')Cards.render();else if(id==='settings-app')Settings.render();else if(id==='letter-app')Letters.render();else if(id==='emoji-app')Emoji.renderManager();else if(id==='pat-app')Pat.render();else if(id==='music-app')Music.renderList();}catch(e){console.error(e);}},
@@ -649,7 +664,7 @@ const Settings={
         $('btn-export-all').onclick=()=>{App.downloadFile(JSON.stringify(App.data,null,2),'love_backup.json');};
         $('btn-import-all').onclick=()=>$('import-all-file').click();
         $('import-all-file').onchange=(e)=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=(ev)=>{try{const data=JSON.parse(ev.target.result);App.data=data;App.saveData();this.render();this.applyStyles();App.toast('导入成功');}catch(err){App.toast('数据格式错误');}};reader.readAsText(file);e.target.value='';};
-        $('btn-reset-all').onclick=()=>{if(confirm('确定重置所有数据？不可恢复！')){localStorage.removeItem(DB_KEY);location.reload();}};
+        $('btn-reset-all').onclick=()=>{if(confirm('确定重置所有数据？不可恢复！')){localStorage.removeItem(DB_KEY);document.cookie = "myName=; max-age=0; path=/";location.reload();}};
         $('set-desktop-notify').onchange=function(){if(this.checked){if(!('Notification' in window)){App.toast('您的浏览器不支持通知');return;}if(Notification.permission!=='granted'){Notification.requestPermission().then(perm=>{if(perm==='granted')App.toast('通知权限已开启');else App.toast('通知权限被拒绝');}).catch(e=>App.toast('当前环境无法请求通知'));}else App.toast('通知权限已开启');}};
         $('set-keep-alive').onchange=function(){const audio=$('keep-alive-audio');if(this.checked){if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(App.audioCtx.state==='suspended')App.audioCtx.resume();audio.play().then(()=>App.toast('后台保活已开启')).catch(e=>App.toast('请轻触屏幕以允许保活'));}else{audio.pause();App.toast('后台保活已关闭');}};
 
@@ -695,8 +710,7 @@ const Settings={
         sliders.forEach(id=>{const el=$('slider-'+id);if(el){let propKey=id.replace('-prob','Prob').replace('-','');if(id==='pat-prob')propKey='patProb';if(id==='call-prob')propKey='callProb';if(id==='answer-prob')propKey='answerProb';if(id==='hangup-prob')propKey='hangupProb';if(id==='letter-prob')propKey='letterProb';if(id==='reply-prob')propKey='replyProb';s[propKey]=parseInt(el.value);}});
         App.saveData();this.applyStyles();
         
-        // 测试专用弹窗
-        alert('设置已保存！\n\n当前名字: ' + s.myName + '\n\n请现在上划杀掉后台，重新点开图标，看看名字还在不在。');
+        alert('设置已保存！\n\n当前名字: ' + s.myName + '\n\n请上划杀掉桌面图标，重新打开测试。');
     },
     applyStyles(){
         const s=App.data.settings;
@@ -709,7 +723,7 @@ const Settings={
     }
 };
 
-/* ===================== 启动 & 诊断 ===================== */
+/* ===================== 启动 & 持久化 ===================== */
 document.addEventListener('visibilitychange', function(){
     if (document.visibilityState === 'hidden') { try{ App.forceSave(); }catch(e){} }
 });
@@ -741,10 +755,8 @@ window.addEventListener('beforeunload', function(){ try{ App.forceSave(); }catch
         diagEl.innerHTML = `
             <div style="color:#ffcc00;">数据来源: ${App.loadSource}</div>
             <div>读取到的名字: <span style="color:#00ffcc;font-weight:bold;">${App.data.settings.myName}</span></div>
-            <div>当前消息数: ${App.data.messages.length}</div>
         `;
         document.body.appendChild(diagEl);
-        
     } catch (err) {
         alert('[boot] 初始化崩溃: ' + err.message);
     }
