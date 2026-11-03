@@ -450,6 +450,70 @@ const Chat={
     }
 };
 
+/* ★新增：主动发消息定时器（真功能，纯字卡随机，不涉及任何 AI） */
+const Proactive = {
+    timer: null,
+    init() { this.schedule(); },
+    schedule() {
+        if (this.timer) { clearTimeout(this.timer); this.timer = null; }
+        const s = App.data.settings;
+        const min = parseInt(s.proactiveMin) || 0;
+        const max = parseInt(s.proactiveMax) || 0;
+        if (min <= 0 || max <= 0) return;
+        const lo = Math.min(min, max);
+        const hi = Math.max(min, max);
+        const delayMs = (Math.random() * (hi - lo) + lo) * 60 * 1000;
+        console.log(`[Proactive] 下次主动发消息: ${(delayMs / 60000).toFixed(2)} 分钟后`);
+        this.timer = setTimeout(() => {
+            try {
+                const allCards = App.data.cards.flatMap(c => c.items).filter(i => !i.startsWith('!'));
+                if (allCards.length > 0) Chat.triggerReply("", true);
+            } catch (e) { console.error('[Proactive] 异常', e); }
+            this.schedule();
+        }, delayMs);
+    }
+};
+
+/* ★新增：对方主动写信定时器（letterMin/Max 间隔 + letterProb 概率） */
+const LetterProactive = {
+    timer: null,
+    init() { this.schedule(); },
+    schedule() {
+        if (this.timer) { clearTimeout(this.timer); this.timer = null; }
+        const s = App.data.settings;
+        const min = parseInt(s.letterMin) || 0;
+        const max = parseInt(s.letterMax) || 0;
+        if (min <= 0 || max <= 0) return;
+        const lo = Math.min(min, max);
+        const hi = Math.max(min, max);
+        const delayMs = (Math.random() * (hi - lo) + lo) * 60 * 1000;
+        console.log(`[LetterProactive] 下次主动写信检查: ${(delayMs / 60000).toFixed(2)} 分钟后`);
+        this.timer = setTimeout(() => {
+            try {
+                const cur = App.data.settings;
+                if (Math.random() * 100 < (parseInt(cur.letterProb) || 0)) {
+                    const allCards = App.data.cards.flatMap(c => c.items).filter(i => !i.startsWith('!'));
+                    if (allCards.length > 0) {
+                        const content = allCards[Math.floor(Math.random() * allCards.length)];
+                        App.data.letters.push({
+                            id: Date.now(),
+                            title: '来自' + cur.botName + '的信',
+                            content: content,
+                            time: Date.now(),
+                            type: 'from_ta'
+                        });
+                        App.saveData();
+                        if (App.data.settings.desktopNotify && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+                            try { new Notification('新信件', { body: '收到一封来自' + cur.botName + '的信' }); } catch (e) {}
+                        }
+                    }
+                }
+            } catch (e) { console.error('[LetterProactive] 异常', e); }
+            this.schedule();
+        }, delayMs);
+    }
+};
+
 const Cards={
     isBatchMode:false,selectedItems:new Set(),editingIndex:{g:-1,i:-1},
     init(){
@@ -504,7 +568,7 @@ const Pat={
         $('btn-edit-pat-confirm').onclick=()=>{const val=$('edit-pat-text').value.trim();if(val&&this.editingIdx>-1){App.data.pats[this.editingIdx]=val;App.saveData();this.render();App.closeModal('edit-pat-modal');}};
     },
     render(){const list=$('pat-list');list.innerHTML='';if(App.data.pats.length===0){list.innerHTML='<div style="text-align:center;padding:20px;color:#999;">词库为空</div>';return;}App.data.pats.forEach((item,idx)=>{const div=document.createElement('div');div.className='card-item';div.innerHTML=`<span>${item}</span><div class="card-actions"><span onclick="Pat.edit(${idx})">修改</span><span onclick="Pat.del(${idx})">删除</span></div>`;list.appendChild(div);});},
-    addSingle(){const val=$('new-pat-input').value.trim();if(!val)return;App.data.pats.push(val);$('new-pat-input').value='';App.saveData();this.render();},
+    addSingle(){const val=$('new-pat-input').value.trim();if(!val)return;if(!App.data.pats.includes(val))App.data.pats.push(val);$('new-pat-input').value='';App.saveData();this.render();},
     batchAdd(){const text=$('pat-text').value;text.split('\n').forEach(line=>{line=line.trim();if(line&&!App.data.pats.includes(line))App.data.pats.push(line);});$('pat-text').value='';App.closeModal('pat-batch-modal');App.saveData();this.render();},
     edit(idx){this.editingIdx=idx;$('edit-pat-text').value=App.data.pats[idx];$('edit-pat-modal').classList.add('show');},
     del(idx){App.data.pats.splice(idx,1);App.saveData();this.render();},
@@ -530,12 +594,12 @@ const Emoji={
         $('btn-edit-card-confirm').onclick=()=>{const val=$('edit-card-text').value.trim();if(val&&this.editingType&&this.editingIdx>-1){if(this.editingType==='emoji') App.data.emojis.emoji[this.editingIdx]=val;if(this.editingType==='text') App.data.emojis.text[this.editingIdx]=val;App.saveData();this.renderManager();App.closeModal('edit-card-modal');}};
     },
     showAddPicMenu(){const sheet=$('action-sheet');const content=$('action-content');content.innerHTML=`<div class="action-btn" onclick="$('gallery-emoji-input').click();App.closeAllOverlays();">📁 照片图库</div><div class="action-btn" onclick="$('camera-emoji-input').click();App.closeAllOverlays();">📷 拍照</div><div class="action-btn" onclick="$('file-emoji-input').click();App.closeAllOverlays();">📂 选取文件</div><div class="action-btn action-cancel" onclick="App.closeAllOverlays()">取消</div>`;sheet.classList.add('show');},
-    handleLocalPic(e){const files=e.target.files;if(!files.length)return;let count=0;Array.from(files).forEach(file=>{compressImage(file,(base64)=>{App.data.emojis.pic.push(base64);count++;if(count===files.length){App.saveData();this.renderManager();}});});e.target.value='';App.closeAllOverlays();},
-    addNet(){const url=prompt('输入图片URL地址：');if(url){App.data.emojis.pic.push(url);App.saveData();this.renderManager();}},
-    addSingleEmoji(){const val=$('new-emoji-input').value.trim();if(!val)return;App.data.emojis.emoji.push(val);$('new-emoji-input').value='';App.saveData();this.renderManager();},
-    batchAddEmoji(){const text=$('emoji-batch-text').value;text.split('\n').forEach(line=>{line=line.trim();if(line)App.data.emojis.emoji.push(line);});$('emoji-batch-text').value='';App.closeModal('emoji-batch-modal');App.saveData();this.renderManager();},
-    addSingleText(){const val=$('new-text-input').value.trim();if(!val)return;App.data.emojis.text.push(val);$('new-text-input').value='';App.saveData();this.renderManager();},
-    batchAddText(){const text=$('text-batch-text').value;text.split('\n').forEach(line=>{line=line.trim();if(line)App.data.emojis.text.push(line);});$('text-batch-text').value='';App.closeModal('text-batch-modal');App.saveData();this.renderManager();},
+    handleLocalPic(e){const files=e.target.files;if(!files.length)return;let count=0;Array.from(files).forEach(file=>{compressImage(file,(base64)=>{if(!App.data.emojis.pic.includes(base64))App.data.emojis.pic.push(base64);count++;if(count===files.length){App.saveData();this.renderManager();}});});e.target.value='';App.closeAllOverlays();},
+    addNet(){const url=prompt('输入图片URL地址：');if(url&&!App.data.emojis.pic.includes(url)){App.data.emojis.pic.push(url);App.saveData();this.renderManager();}},
+    addSingleEmoji(){const val=$('new-emoji-input').value.trim();if(!val)return;if(!App.data.emojis.emoji.includes(val))App.data.emojis.emoji.push(val);$('new-emoji-input').value='';App.saveData();this.renderManager();},
+    batchAddEmoji(){const text=$('emoji-batch-text').value;text.split('\n').forEach(line=>{line=line.trim();if(line&&!App.data.emojis.emoji.includes(line))App.data.emojis.emoji.push(line);});$('emoji-batch-text').value='';App.closeModal('emoji-batch-modal');App.saveData();this.renderManager();},
+    addSingleText(){const val=$('new-text-input').value.trim();if(!val)return;if(!App.data.emojis.text.includes(val))App.data.emojis.text.push(val);$('new-text-input').value='';App.saveData();this.renderManager();},
+    batchAddText(){const text=$('text-batch-text').value;text.split('\n').forEach(line=>{line=line.trim();if(line&&!App.data.emojis.text.includes(line))App.data.emojis.text.push(line);});$('text-batch-text').value='';App.closeModal('text-batch-modal');App.saveData();this.renderManager();},
     editEmoji(idx){this.editingType='emoji';this.editingIdx=idx;$('edit-card-text').value=App.data.emojis.emoji[idx];$('edit-card-modal').classList.add('show');},
     editText(idx){this.editingType='text';this.editingIdx=idx;$('edit-card-text').value=App.data.emojis.text[idx];$('edit-card-modal').classList.add('show');},
     renderManager(){
@@ -623,8 +687,32 @@ const Call={
         if(this.callTimeout)clearTimeout(this.callTimeout);
         this.callTimeout=setTimeout(()=>{if(Math.random()*100<App.data.settings.answerProb){this.connected();}else{this.hangup(true);App.toast('对方拒绝了通话');}},3000);
     },
+    /* ★新增：对方主动来电 */
+    startIncoming(isVideo){
+        if($('call-overlay').classList.contains('show'))return;
+        if(this.timer||this.callTimeout)return;
+        this.isVideo=isVideo;this.isMinimized=false;this.videoEnabled=false;
+        $('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');
+        const avatar=App.data.settings.botAvatar||'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+        $('call-avatar-img').src=avatar;$('mini-avatar').src=avatar;
+        $('call-name-text').innerText=App.data.settings.botName;
+        $('call-status-text').innerText=isVideo?'邀请你视频通话...':'邀请你语音通话...';
+        $('call-actions-incoming').style.display='flex';$('call-actions-ongoing').style.display='none';
+        const b=$('call-bg');b.classList.remove('is-pip');b.style.display='flex';
+        const l=$('local-video-preview');l.style.display='none';l.classList.remove('is-main');
+        $('btn-toggle-camera').style.display='none';$('btn-switch-camera').style.display='none';
+        if(this.callTimeout)clearTimeout(this.callTimeout);
+        // 30 秒未接听自动挂断
+        this.callTimeout=setTimeout(()=>{
+            if($('call-actions-incoming').style.display!=='none'){
+                App.toast('未接听，通话已取消');
+                this.hangup(true);
+            }
+        },30000);
+    },
     connected(){
         if(this.callTimeout)clearTimeout(this.callTimeout);$('call-status-text').innerText='00:00';$('mini-status').innerText='通话中';$('call-actions-incoming').style.display='none';$('call-actions-ongoing').style.display='flex';$('btn-hangup-action').innerText='挂断';
+        $('btn-toggle-camera').style.display=this.isVideo?'flex':'none';
         this.seconds=0;this.timer=setInterval(()=>{this.seconds++;const m=Math.floor(this.seconds/60).toString().padStart(2,'0');const s=(this.seconds%60).toString().padStart(2,'0');$('call-status-text').innerText=`${m}:${s}`;if(Math.random()*100<(App.data.settings.hangupProb/60)){this.hangup(true);App.toast('对方挂断了通话');}},1000);
         if(this.isVideo){this.toggleCamera();}
     },
@@ -644,7 +732,51 @@ const Call={
     expand(){this.isMinimized=false;$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');}
 };
 
+/* ★新增：对方主动来电定时器（每 3~4 分钟按 callProb 判定一次） */
+const CallProactive = {
+    timer: null,
+    init() { this.schedule(); },
+    schedule() {
+        if (this.timer) { clearTimeout(this.timer); this.timer = null; }
+        const prob = parseInt(App.data.settings.callProb) || 0;
+        if (prob <= 0) return;
+        const delayMs = (3 * 60 * 1000) + Math.random() * 60 * 1000;
+        this.timer = setTimeout(() => {
+            try {
+                const p = parseInt(App.data.settings.callProb) || 0;
+                if (p > 0 && Math.random() * 100 < p) {
+                    Call.startIncoming(Math.random() < 0.5);
+                }
+            } catch (e) { console.error('[CallProactive] 异常', e); }
+            this.schedule();
+        }, delayMs);
+    }
+};
+
+/* ★新增：对方主动拍一拍定时器（每 5~6 分钟按 patProb 判定一次） */
+const PatProactive = {
+    timer: null,
+    init() { this.schedule(); },
+    schedule() {
+        if (this.timer) { clearTimeout(this.timer); this.timer = null; }
+        const prob = parseInt(App.data.settings.patProb) || 0;
+        if (prob <= 0) return;
+        const delayMs = (5 * 60 * 1000) + Math.random() * 60 * 1000;
+        this.timer = setTimeout(() => {
+            try {
+                const p = parseInt(App.data.settings.patProb) || 0;
+                if (p > 0 && Math.random() * 100 < p) {
+                    Chat.triggerPat(false);
+                }
+            } catch (e) { console.error('[PatProactive] 异常', e); }
+            this.schedule();
+        }, delayMs);
+    }
+};
+
 const Settings={
+    /* ★修复：显式映射，避免 ignore/quote 被错误写成 s.ignore / s.quote */
+    sliderKeyMap:{'ignore':'ignoreProb','quote':'quoteProb','pat-prob':'patProb','call-prob':'callProb','answer-prob':'answerProb','hangup-prob':'hangupProb','letter-prob':'letterProb','reply-prob':'replyProb'},
     init(){
         $('btn-save-settings').onclick=()=>this.save();
         $('set-my-avatar-file').onchange=(e)=>{const file=e.target.files[0];if(!file)return;compressImage(file,(base64)=>{App.data.settings.myAvatar=base64;$('my-avatar-preview').src=base64;App.saveData();});e.target.value='';};
@@ -688,7 +820,14 @@ const Settings={
         $('slider-font-size').value=s.fontSize;$('val-font-size').innerText=s.fontSize;$('set-font-url').value=s.fontUrl;$('set-bubble-css').value=s.bubbleCss;
         $('set-delay-min').value=s.delayMin;$('set-delay-max').value=s.delayMax;$('set-proactive-min').value=s.proactiveMin;$('set-proactive-max').value=s.proactiveMax;$('set-letter-min').value=s.letterMin;$('set-letter-max').value=s.letterMax;
         const sliders=['give','receive','return','ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob'];
-        sliders.forEach(id=>{const el=$('slider-'+id);const valEl=$('val-'+id);if(el&&valEl){let propKey=id.replace('-prob','Prob').replace('-','');if(id==='pat-prob')propKey='patProb';if(id==='call-prob')propKey='callProb';if(id==='answer-prob')propKey='answerProb';if(id==='hangup-prob')propKey='hangupProb';if(id==='letter-prob')propKey='letterProb';if(id==='reply-prob')propKey='replyProb';el.value=s[propKey]!==undefined?s[propKey]:10;valEl.innerText=el.value+'%';}});
+        sliders.forEach(id=>{
+            const el=$('slider-'+id);const valEl=$('val-'+id);
+            if(el&&valEl){
+                const key=this.sliderKeyMap[id];
+                const v=(key&&s[key]!==undefined)?s[key]:10;
+                el.value=v;valEl.innerText=v+'%';
+            }
+        });
     },
     sliderChange(id){const el=$('slider-'+id);const valEl=$('val-'+id);if(el&&valEl)valEl.innerText=el.value+(id==='font'?'px':'%');if(id==='font'){App.data.settings.fontSize=parseInt(el.value);this.applyStyles();}},
     save(){
@@ -697,8 +836,19 @@ const Settings={
         if($('set-bot-balance')) w.bot=parseFloat($('set-bot-balance').value||0).toFixed(2);
         s.myName=$('set-my-name').value;s.botName=$('set-bot-name').value;s.desktopNotify=$('set-desktop-notify').checked;s.keepAlive=$('set-keep-alive').checked;s.timeDisplay=$('set-time-display').value;s.showAvatar=$('set-show-avatar').checked;s.showName=$('set-show-name').checked;s.showRead=$('set-show-read').checked;s.soundEnabled=$('set-sound-enabled').checked;s.theme=$('set-theme').value;s.fontSize=parseInt($('slider-font-size').value);s.fontUrl=$('set-font-url').value;s.bubbleCss=$('set-bubble-css').value;s.delayMin=parseInt($('set-delay-min').value)||1;s.delayMax=parseInt($('set-delay-max').value)||5;s.proactiveMin=parseInt($('set-proactive-min').value)||0;s.proactiveMax=parseInt($('set-proactive-max').value)||0;s.letterMin=parseInt($('set-letter-min').value)||0;s.letterMax=parseInt($('set-letter-max').value)||0;
         const sliders=['give','receive','return','ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob'];
-        sliders.forEach(id=>{const el=$('slider-'+id);if(el){let propKey=id.replace('-prob','Prob').replace('-','');if(id==='pat-prob')propKey='patProb';if(id==='call-prob')propKey='callProb';if(id==='answer-prob')propKey='answerProb';if(id==='hangup-prob')propKey='hangupProb';if(id==='letter-prob')propKey='letterProb';if(id==='reply-prob')propKey='replyProb';s[propKey]=parseInt(el.value);}});
+        sliders.forEach(id=>{
+            const el=$('slider-'+id);
+            if(el){
+                const key=this.sliderKeyMap[id];
+                if(key) s[key]=parseInt(el.value)||0;
+            }
+        });
         App.saveData();this.applyStyles();App.toast('设置已保存');
+        // ★新增：保存后立即按新参数重排所有定时器
+        if (typeof Proactive !== 'undefined') Proactive.schedule();
+        if (typeof LetterProactive !== 'undefined') LetterProactive.schedule();
+        if (typeof CallProactive !== 'undefined') CallProactive.schedule();
+        if (typeof PatProactive !== 'undefined') PatProactive.schedule();
     },
     applyStyles(){
         const s=App.data.settings;
@@ -736,6 +886,12 @@ window.addEventListener('beforeunload', function(){ try{ App.forceSave(); }catch
         
         var modeBtn = $('btn-mode');
         if (modeBtn) modeBtn.innerText = (App.data.music && App.data.music.mode === 'random') ? '🔀' : '🔁';
+
+        /* ★新增：启动所有主动定时器（只按你设置里的参数跑，纯字卡随机，不涉及 AI） */
+        Proactive.init();
+        LetterProactive.init();
+        CallProactive.init();
+        PatProactive.init();
     } catch (err) {
         console.error('[boot] 初始化崩溃: ', err);
     }
