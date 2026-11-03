@@ -450,7 +450,7 @@ const Chat={
     }
 };
 
-/* ★新增：主动发消息定时器（真功能，纯字卡随机，不涉及任何 AI） */
+/* 主动发消息定时器（真功能，纯字卡随机，不涉及任何 AI） */
 const Proactive = {
     timer: null,
     init() { this.schedule(); },
@@ -474,7 +474,7 @@ const Proactive = {
     }
 };
 
-/* ★新增：对方主动写信定时器（letterMin/Max 间隔 + letterProb 概率） */
+/* 对方主动写信定时器（letterMin/Max 间隔 + letterProb 概率） */
 const LetterProactive = {
     timer: null,
     init() { this.schedule(); },
@@ -687,7 +687,6 @@ const Call={
         if(this.callTimeout)clearTimeout(this.callTimeout);
         this.callTimeout=setTimeout(()=>{if(Math.random()*100<App.data.settings.answerProb){this.connected();}else{this.hangup(true);App.toast('对方拒绝了通话');}},3000);
     },
-    /* ★新增：对方主动来电 */
     startIncoming(isVideo){
         if($('call-overlay').classList.contains('show'))return;
         if(this.timer||this.callTimeout)return;
@@ -702,7 +701,6 @@ const Call={
         const l=$('local-video-preview');l.style.display='none';l.classList.remove('is-main');
         $('btn-toggle-camera').style.display='none';$('btn-switch-camera').style.display='none';
         if(this.callTimeout)clearTimeout(this.callTimeout);
-        // 30 秒未接听自动挂断
         this.callTimeout=setTimeout(()=>{
             if($('call-actions-incoming').style.display!=='none'){
                 App.toast('未接听，通话已取消');
@@ -732,7 +730,7 @@ const Call={
     expand(){this.isMinimized=false;$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');}
 };
 
-/* ★新增：对方主动来电定时器（每 3~4 分钟按 callProb 判定一次） */
+/* 对方主动来电定时器（每 3~4 分钟按 callProb 判定一次） */
 const CallProactive = {
     timer: null,
     init() { this.schedule(); },
@@ -753,7 +751,7 @@ const CallProactive = {
     }
 };
 
-/* ★新增：对方主动拍一拍定时器（每 5~6 分钟按 patProb 判定一次） */
+/* 对方主动拍一拍定时器（每 5~6 分钟按 patProb 判定一次） */
 const PatProactive = {
     timer: null,
     init() { this.schedule(); },
@@ -775,9 +773,13 @@ const PatProactive = {
 };
 
 const Settings={
-    /* ★修复：显式映射，避免 ignore/quote 被错误写成 s.ignore / s.quote */
+    /* 显式映射，避免 ignore/quote 被错误写成 s.ignore / s.quote */
     sliderKeyMap:{'ignore':'ignoreProb','quote':'quoteProb','pat-prob':'patProb','call-prob':'callProb','answer-prob':'answerProb','hangup-prob':'hangupProb','letter-prob':'letterProb','reply-prob':'replyProb'},
+    _fontCache:'',_bubbleCache:'',
     init(){
+        // ★启动时把气泡 CSS 输入框升级为 textarea（多行更方便）
+        this.upgradeBubbleCssInput();
+
         $('btn-save-settings').onclick=()=>this.save();
         $('set-my-avatar-file').onchange=(e)=>{const file=e.target.files[0];if(!file)return;compressImage(file,(base64)=>{App.data.settings.myAvatar=base64;$('my-avatar-preview').src=base64;App.saveData();});e.target.value='';};
         $('set-bot-avatar-file').onchange=(e)=>{const file=e.target.files[0];if(!file)return;compressImage(file,(base64)=>{App.data.settings.botAvatar=base64;$('bot-avatar-preview').src=base64;App.saveData();});e.target.value='';};
@@ -789,7 +791,6 @@ const Settings={
         $('set-desktop-notify').onchange=function(){if(this.checked){if(!('Notification' in window)){App.toast('您的浏览器不支持通知');return;}if(Notification.permission!=='granted'){Notification.requestPermission().then(perm=>{if(perm==='granted')App.toast('通知权限已开启');else App.toast('通知权限被拒绝');}).catch(e=>App.toast('当前环境无法请求通知'));}else App.toast('通知权限已开启');}};
         $('set-keep-alive').onchange=function(){const audio=$('keep-alive-audio');if(this.checked){if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(App.audioCtx.state==='suspended')App.audioCtx.resume();audio.play().then(()=>App.toast('后台保活已开启')).catch(e=>App.toast('请轻触屏幕以允许保活'));}else{audio.pause();App.toast('后台保活已关闭');}};
 
-        // 自动保存：输入框、下拉菜单、滑块改变时瞬间保存
         const autoSaveIds = [
             'set-my-balance','set-bot-balance','set-my-name','set-bot-name',
             'set-time-display','set-show-avatar','set-show-name','set-show-read','set-sound-enabled',
@@ -800,7 +801,7 @@ const Settings={
             let el = $(id);
             if(el) {
                 el.addEventListener('change', () => this.save());
-                if(el.type === 'text' || el.type === 'number') {
+                if(el.type === 'text' || el.type === 'number' || el.tagName==='TEXTAREA') {
                     el.addEventListener('blur', () => this.save());
                 }
             }
@@ -809,6 +810,17 @@ const Settings={
             let el = $('slider-'+id);
             if(el) el.addEventListener('change', () => this.save());
         });
+    },
+    /* ★把 <input id="set-bubble-css"> 换成 <textarea> 同 id，保留原值与绑定 */
+    upgradeBubbleCssInput(){
+        const old = $('set-bubble-css');
+        if (!old || old.tagName === 'TEXTAREA') return;
+        const ta = document.createElement('textarea');
+        ta.id = 'set-bubble-css';
+        ta.placeholder = '支持完整 CSS 规则（可多行）。\n可用类名：.msg / .msg.user / .msg.other\n也兼容：.message / .message-sent / .message-received';
+        ta.value = old.value || '';
+        ta.style.cssText = 'width:100%;padding:10px;border:1px solid var(--border-color);border-radius:8px;margin-top:5px;background:var(--bg-color);color:var(--text-color);font-size:13px;outline:none;resize:vertical;min-height:140px;font-family:monospace;line-height:1.5;';
+        old.parentNode.replaceChild(ta, old);
     },
     render(){
         const s=App.data.settings,w=App.data.wallet;
@@ -844,7 +856,7 @@ const Settings={
             }
         });
         App.saveData();this.applyStyles();App.toast('设置已保存');
-        // ★新增：保存后立即按新参数重排所有定时器
+        // 保存后立即按新参数重排所有定时器
         if (typeof Proactive !== 'undefined') Proactive.schedule();
         if (typeof LetterProactive !== 'undefined') LetterProactive.schedule();
         if (typeof CallProactive !== 'undefined') CallProactive.schedule();
@@ -853,11 +865,91 @@ const Settings={
     applyStyles(){
         const s=App.data.settings;
         document.documentElement.style.setProperty('--font-size-base',s.fontSize+'px');
-        if(s.theme==='dark')document.documentElement.setAttribute('data-theme','dark');else if(s.theme==='light')document.documentElement.removeAttribute('data-theme');else{if(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)document.documentElement.setAttribute('data-theme','dark');else document.documentElement.removeAttribute('data-theme');}
-        const fontStyle=$('dynamic-font-style');
-        if(s.fontUrl){if(s.fontUrl.startsWith('http')||s.fontUrl.startsWith('@import')){fontStyle.innerHTML=s.fontUrl.startsWith('@')?s.fontUrl:`@import url('${s.fontUrl}');`;}else{document.documentElement.style.setProperty('--custom-font',s.fontUrl);}}else{fontStyle.innerHTML='';document.documentElement.style.setProperty('--custom-font','"SimSun", "Songti SC", serif');}
-        const bubbleStyle=$('dynamic-bubble-style');bubbleStyle.innerHTML=s.bubbleCss?`.msg.user { ${s.bubbleCss} }`:'';
-        const chatArea=$('chat-area');if(s.bgImage)chatArea.style.backgroundImage=`url(${s.bgImage})`;else chatArea.style.backgroundImage='none';
+        if(s.theme==='dark')document.documentElement.setAttribute('data-theme','dark');
+        else if(s.theme==='light')document.documentElement.removeAttribute('data-theme');
+        else{if(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)document.documentElement.setAttribute('data-theme','dark');else document.documentElement.removeAttribute('data-theme');}
+        this.applyFont(s);
+        this.applyBubble(s);
+        const chatArea=$('chat-area');
+        if(s.bgImage)chatArea.style.backgroundImage=`url(${s.bgImage})`;else chatArea.style.backgroundImage='none';
+    },
+    /* ★字体：智能识别 4 种写法
+       1) 完整 @font-face{...} 或 @import ... 或含 { 的 CSS
+       2) 字体名|URL       → 手动指定字体名
+       3) xxx.woff2/woff/ttf/otf/eot  → 自动生成 @font-face，字体名默认取文件名
+       4) 其它 → 当 CSS 文件 @import
+    */
+    applyFont(s) {
+        const styleEl = $('dynamic-font-style');
+        const raw = (s.fontUrl || '').trim();
+        const DEFAULT = '"SimSun", "Songti SC", serif';
+        const root = document.documentElement;
+        let css = '';
+        let family = '';
+
+        if (!raw) {
+            css = '';
+            family = '';
+        } else if (raw.startsWith('@') || raw.includes('{')) {
+            css = raw;
+            const m = raw.match(/font-family\s*:\s*['"]?([^;'"}\n]+)/i);
+            if (m) family = m[1].trim().replace(/^['"]|['"]$/g, '');
+        } else {
+            let src = raw;
+            if (raw.includes('|')) {
+                const p = raw.split('|');
+                family = (p[0]||'').trim();
+                src = (p[1]||'').trim();
+            }
+            const isFontFile = /\.(woff2?|ttf|otf|eot)([?#].*)?$/i.test(src);
+            if (isFontFile) {
+                if (!family) {
+                    const mm = src.match(/([^\/\\?#]+?)\.(woff2?|ttf|otf|eot)([?#]|$)/i);
+                    family = mm ? mm[1] : 'CustomFont';
+                }
+                const ext = (src.match(/\.(woff2?|ttf|otf|eot)/i) || [,'woff2'])[1].toLowerCase();
+                const fmtMap = {woff2:'woff2', woff:'woff', ttf:'truetype', otf:'opentype', eot:'embedded-opentype'};
+                css = `@font-face{font-family:'${family}';src:url('${src}') format('${fmtMap[ext]||ext}');font-weight:normal;font-style:normal;font-display:swap;}`;
+            } else {
+                css = `@import url('${src}');`;
+            }
+        }
+
+        // 缓存避免重复刷新造成字体闪烁
+        if (this._fontCache !== css) {
+            this._fontCache = css;
+            styleEl.innerHTML = css;
+        }
+        root.style.setProperty('--custom-font', family ? `'${family}', ${DEFAULT}` : DEFAULT);
+    },
+    /* ★气泡 CSS：
+       - 含 { → 视为完整规则，原样注入（并做类名兼容替换）
+       - 不含 { → 视为声明片段，塞进 .msg.user
+       兼容 .message / .message-sent / .message-received → .msg / .msg.user / .msg.other
+    */
+    applyBubble(s) {
+        const el = $('dynamic-bubble-style');
+        const raw = (s.bubbleCss || '').trim();
+        let css = '';
+        if (raw) {
+            const norm = this.normalizeBubbleCss(raw);
+            if (norm.includes('{')) {
+                css = norm;
+            } else {
+                css = `.msg.user { ${norm} }`;
+            }
+        }
+        if (this._bubbleCache !== css) {
+            this._bubbleCache = css;
+            el.innerHTML = css;
+        }
+    },
+    normalizeBubbleCss(css) {
+        // 先处理具体类，再处理 .message 整体，避免 .message 吞掉 .message-sent
+        return css
+            .replace(/\.message-sent\b/g, '.msg.user')
+            .replace(/\.message-received\b/g, '.msg.other')
+            .replace(/\.message\b/g, '.msg');
     }
 };
 
@@ -887,7 +979,6 @@ window.addEventListener('beforeunload', function(){ try{ App.forceSave(); }catch
         var modeBtn = $('btn-mode');
         if (modeBtn) modeBtn.innerText = (App.data.music && App.data.music.mode === 'random') ? '🔀' : '🔁';
 
-        /* ★新增：启动所有主动定时器（只按你设置里的参数跑，纯字卡随机，不涉及 AI） */
         Proactive.init();
         LetterProactive.init();
         CallProactive.init();
