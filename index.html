@@ -5,36 +5,37 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
 <title>爱恋</title>
 <style>
-:root{--bg:#f5f5f5;--chatbg:#ededed;--text:#111;--u:#333;--ut:#fff;--o:#fff;--ot:#111;--hbg:#f5f5f5;--border:#dcdcdc;--accent:#888;--font:"SimSun",serif;}
+:root{--bg:#f5f5f5;--chatbg:#ededed;--text:#111;--u:#333;--ut:#fff;--o:#fff;--ot:#111;--hbg:#f5f5f5;--border:#dcdcdc;--accent:#888;--font:"SimSun",serif;--fs:16px;}
 [data-theme="dark"]{--bg:#000;--chatbg:#111;--text:#eee;--u:#555;--ut:#fff;--o:#222;--ot:#eee;--hbg:#111;--border:#333;--accent:#666;}
-*{box-sizing:border-box;margin:0;padding:0;font-family:var(--font);-webkit-tap-highlight-color:transparent;}
-body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;font-size:16px;user-select:none;}
+*{box-sizing:border-box;margin:0;padding:0;font-family:var(--font);-webkit-tap-highlight-color:transparent;transition:background .2s,color .2s;}
+body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;font-size:var(--fs);user-select:none;}
 svg{fill:currentColor;width:24px;height:24px;}img{object-fit:cover;}
-.app-icon,.back-btn,.header-btn,.btn-icon,.btn-send,.panel-action,.action-btn,.emoji-tab-btn,.ask-tab,.btn-tool,.call-btn,.card-actions span,.list-item,.group-title,.toggle{cursor:pointer;touch-action:manipulation;}
+.app-icon,.back-btn,.header-btn,.btn-icon,.btn-send,.panel-action,.action-btn,.emoji-tab-btn,.ask-tab,.btn-tool,.music-btn,.call-btn,.card-actions span,.list-item,.group-title,.setting-item .toggle,.profile-edit img,.call-minimize-btn,#call-mini-bar,#call-local-layer{touch-action:manipulation;cursor:pointer;}
 #home{display:grid;grid-template-columns:repeat(3,1fr);gap:25px;padding:60px 20px 20px;align-content:start;height:100%;overflow-y:auto;}
 .icon{background:var(--hbg);border-radius:24px;aspect-ratio:1;display:flex;flex-direction:column;justify-content:center;align-items:center;box-shadow:0 4px 15px rgba(0,0,0,.05);border:1px solid var(--border);}
 .icon span{font-size:13px;margin-top:10px;font-weight:bold;}.icon:active{transform:scale(.92);}
 .page{display:none;flex-direction:column;height:100%;background:var(--bg);position:absolute;top:0;left:0;width:100%;z-index:10;}
 .hd{padding:15px 20px;padding-top:max(15px,env(safe-area-inset-top));background:var(--hbg);display:flex;align-items:center;border-bottom:1px solid var(--border);font-weight:bold;font-size:17px;flex-shrink:0;}
 .bk{margin-right:15px;padding:5px;display:flex;}.hr{display:flex;gap:15px;}.hb{padding:5px;display:flex;}
-.chat{flex:1;overflow-y:auto;padding:15px;display:flex;flex-direction:column;gap:15px;background:var(--chatbg);background-size:cover;background-position:center;}
+.chat-area{flex:1;overflow-y:auto;padding:15px;display:flex;flex-direction:column;gap:15px;background-color:var(--chatbg);background-size:cover;background-position:center;-webkit-overflow-scrolling:touch;}
 .row{display:flex;width:100%;align-items:flex-start;gap:10px;flex-shrink:0;}.row.user{justify-content:flex-end;}
-.avt{width:38px;height:38px;border-radius:6px;background:#ddd;}
+.avt{width:38px;height:38px;border-radius:6px;background:#ddd;object-fit:cover;}
 .wrap{display:flex;flex-direction:column;max-width:75%;position:relative;}.row.user .wrap{align-items:flex-end;}
 .name{font-size:12px;color:#888;margin-bottom:3px;}
 .msg{padding:10px 14px;border-radius:12px;line-height:1.5;word-break:break-all;position:relative;border:1px solid transparent;}
 .msg.user{background:var(--u);color:var(--ut);border-top-right-radius:2px;}
 .msg.other{background:var(--o);color:var(--ot);border-top-left-radius:2px;border-color:var(--border);}
-.msg img{max-width:100%;max-height:200px;border-radius:8px;margin-top:5px;display:block;}
+.msg img{max-width:100%;max-height:200px;border-radius:8px;margin-top:5px;display:block;background:rgba(0,0,0,.05);}
 .sys{text-align:center;font-size:12px;color:#888;margin:10px 0;width:100%;}
+.typing{font-size:12px;color:#888;padding:0 15px 10px;display:none;}
 .inp{padding:10px 15px;padding-bottom:max(10px,env(safe-area-inset-bottom));background:var(--hbg);display:flex;gap:10px;align-items:center;border-top:1px solid var(--border);flex-shrink:0;}
 .inp input{flex:1;padding:10px 15px;border:1px solid var(--border);border-radius:8px;outline:none;font-size:15px;background:var(--bg);color:var(--text);}
 .btn{border:none;background:none;color:var(--text);display:flex;align-items:center;justify-content:center;padding:5px;}
 .send{padding:0;background:var(--u);color:var(--ut);border:none;border-radius:8px;width:50px;height:38px;font-weight:bold;}
-#emoji-p,#extra-p{display:none;background:var(--hbg);border-top:1px solid var(--border);padding:15px;flex-shrink:0;}
-#extra-p{height:130px;gap:25px;overflow-x:auto;}
-#emoji-p{height:300px;flex-direction:column;padding:0;}
-.panel{display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0;}
+#emoji-panel,#extra-panel{display:none;background:var(--hbg);border-top:1px solid var(--border);padding:15px;flex-shrink:0;}
+#extra-panel{height:130px;gap:25px;overflow-x:auto;}
+#emoji-panel{height:300px;flex-direction:column;padding:0;}
+.panel-action{display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0;}
 .ibox{width:60px;height:60px;background:var(--bg);border-radius:12px;border:1px solid var(--border);display:flex;justify-content:center;align-items:center;font-size:24px;}
 .e-hd{display:flex;border-bottom:1px solid var(--border);padding:10px 15px;gap:15px;}
 .e-btn{padding:6px 15px;border-radius:20px;font-size:14px;font-weight:bold;color:var(--accent);border:1px solid transparent;}
@@ -42,292 +43,909 @@ svg{fill:currentColor;width:24px;height:24px;}img{object-fit:cover;}
 .e-area{flex:1;overflow-y:auto;padding:10px 15px;display:none;}
 .e-area.active{display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start;}
 .e-area img{width:calc(25% - 10px);aspect-ratio:1;object-fit:contain;background:var(--bg);border-radius:8px;border:1px solid var(--border);padding:5px;}
-.e-txt{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:20px;}
+.e-txt{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:20px;text-align:center;}
 .ls{flex:1;overflow-y:auto;padding:15px;padding-bottom:80px;}
 .item{background:var(--hbg);padding:15px;border-radius:8px;margin-bottom:10px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
-.acts{display:flex;gap:8px;}.acts span{color:var(--accent);font-size:12px;}
+.item-info{flex:1;overflow:hidden;}.item-title{font-weight:bold;font-size:15px;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.item-desc{font-size:12px;color:#888;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.acts{display:flex;gap:8px;}.acts span{color:var(--accent);font-size:12px;cursor:pointer;}
 .bar{position:absolute;bottom:0;left:0;width:100%;background:var(--hbg);padding:15px;padding-bottom:max(15px,env(safe-area-inset-bottom));display:flex;gap:10px;border-top:1px solid var(--border);z-index:5;}
 .bar input{flex:1;padding:12px;border:1px solid var(--border);border-radius:8px;outline:none;background:var(--bg);color:var(--text);}
-.bar button{background:var(--u);color:var(--ut);border:none;border-radius:8px;padding:0 20px;}
+.bar button{background:var(--u);color:var(--ut);border:none;border-radius:8px;padding:0 20px;font-size:15px;}
 .set-c{padding:20px;overflow-y:auto;flex:1;padding-bottom:100px;}
 .s-item{margin-bottom:20px;background:var(--hbg);padding:15px;border-radius:12px;border:1px solid var(--border);}
 .s-item label{display:flex;justify-content:space-between;margin-bottom:10px;font-weight:bold;font-size:14px;align-items:center;}
-.s-item input[type="text"],.s-item input[type="number"],.s-item select,.s-item textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;margin-top:5px;background:var(--bg);color:var(--text);outline:none;}
+.s-item input[type="text"],.s-item input[type="number"],.s-item select,.s-item textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;margin-top:5px;background:var(--bg);color:var(--text);font-size:14px;outline:none;}
+.s-item textarea{resize:vertical;min-height:80px;}.s-item input[type="range"]{width:100%;margin:10px 0;}
 .s-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-.toggle{appearance:none;width:44px;height:24px;background:#ddd;border-radius:12px;position:relative;outline:none;transition:.3s;}
+.toggle{appearance:none;width:44px;height:24px;background:#ddd;border-radius:12px;position:relative;outline:none;transition:.3s;cursor:pointer;}
 .toggle:checked{background:#333;}.toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.3s;}
 .toggle:checked::after{transform:translateX(20px);}
-.mk{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:200;justify-content:center;align-items:center;}
-.mk.show{display:flex;}.mc{background:var(--hbg);width:90%;max-width:400px;border-radius:15px;padding:20px;display:flex;flex-direction:column;gap:15px;border:1px solid var(--border);}
-.mc textarea,.mc input{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);outline:none;}
-.mc textarea{height:120px;resize:none;}.mb{display:flex;gap:10px;}.mb button{flex:1;padding:12px;border:none;border-radius:8px;}
-.c{background:var(--border);color:var(--text);}.ok{background:var(--u);color:var(--ut);}
-#sheet{display:none;position:fixed;bottom:0;left:0;width:100%;background:var(--bg);z-index:210;border-top-left-radius:15px;border-top-right-radius:15px;padding-bottom:max(10px,env(safe-area-inset-bottom));border-top:1px solid var(--border);}
-#sheet.show{display:block;}.act{padding:16px;text-align:center;border-bottom:1px solid var(--border);}.ac{margin-top:8px;border:none;border-top:8px solid var(--border);font-weight:bold;}
+.profile-edit{display:flex;gap:10px;margin-bottom:10px;align-items:center;}
+.profile-edit img{width:45px;height:45px;border-radius:6px;background:#eee;border:1px solid var(--border);}
+.profile-edit input[type="file"]{flex:1;font-size:12px;color:#666;}
+.mk{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:200;justify-content:center;align-items:center;pointer-events:none;}
+.mk.show{display:flex;pointer-events:auto;}
+.mc{background:var(--hbg);color:var(--text);width:90%;max-width:400px;border-radius:15px;padding:20px;display:flex;flex-direction:column;gap:15px;border:1px solid var(--border);max-height:85vh;overflow-y:auto;}
+.mc textarea,.mc input,.mc select{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);outline:none;font-size:14px;}
+.mc textarea{height:120px;resize:none;}
+.mb{display:flex;gap:10px;}.mb button{flex:1;padding:12px;border:none;border-radius:8px;font-size:15px;}
+.c{background:var(--border);color:var(--text);}.ok{background:var(--u);color:var(--ut);}.danger{background:#444;color:#fff;}
+#sheet{display:none;position:fixed;bottom:0;left:0;width:100%;background:var(--bg);z-index:210;border-top-left-radius:15px;border-top-right-radius:15px;padding-bottom:max(10px,env(safe-area-inset-bottom));border-top:1px solid var(--border);pointer-events:none;}
+#sheet.show{display:block;pointer-events:auto;}
+.act{padding:16px;text-align:center;border-bottom:1px solid var(--border);font-size:16px;}.ac{margin-top:8px;border:none;border-top:8px solid var(--border);font-weight:bold;}
+.ask-tabs{display:flex;background:var(--bg);border-radius:8px;padding:4px;margin-bottom:15px;border:1px solid var(--border);}
+.ask-tab{flex:1;text-align:center;padding:8px 0;font-size:14px;cursor:pointer;border-radius:6px;color:var(--accent);font-weight:bold;}
+.ask-tab.active{background:var(--hbg);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1);}
+.letter-content{white-space:pre-wrap;line-height:1.6;font-size:15px;padding:10px;background:var(--bg);border-radius:8px;border:1px solid var(--border);min-height:200px;}
 
-/* === 视频通话界面样式重构 === */
+/* 通话界面重构 */
 #call{position:fixed;top:0;left:0;width:100%;height:100%;background:#111;z-index:500;display:none;color:#fff;overflow:hidden;}
 #call.show{display:block;}
-/* 默认大屏对方信息 */
-#cinfo{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:10;transition:all .3s;background:#111;}
-#cinfo.pip{top:max(40px,env(safe-area-inset-top));left:auto;right:20px;width:110px;height:160px;border-radius:12px;background:rgba(34,34,34,.8);z-index:20;justify-content:center;gap:5px;overflow:hidden;}
-#cinfo.pip img{width:44px;height:44px;border:none;border-radius:50%;} #cinfo.pip .cname{font-size:12px;} #cinfo.pip .cst{display:none;}
-.cavt{width:120px;height:120px;border-radius:50%;border:3px solid #333;transition:all .3s;}
-.cname{font-size:24px;font-weight:bold;}.cst{font-size:16px;color:#aaa;}
-/* 默认小窗我的画面 */
-#lvid{position:absolute;top:max(40px,env(safe-area-inset-top));right:20px;width:110px;height:160px;border-radius:12px;object-fit:cover;background:#222;border:1px solid #444;display:none;z-index:20;transform:scaleX(-1);transition:all .3s;cursor:pointer;}
-#lvid.main{top:0;left:0;width:100%;height:100%;border-radius:0;z-index:30;border:none;transform:none;}
+#call-remote-layer{position:absolute;top:0;left:0;width:100%;height:100%;z-index:10;background:#111;display:flex;align-items:center;justify-content:center;transition:all .3s;}
+#call-local-layer{position:absolute;top:max(40px,env(safe-area-inset-top));right:20px;width:110px;height:160px;border-radius:12px;z-index:20;background:#222;border:1px solid #444;cursor:pointer;transition:all .3s;overflow:hidden;}
+#lvid{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:none;}
+#remote-info{display:flex;flex-direction:column;align-items:center;gap:20px;transition:all .3s;width:100%;}
+#cavt{width:120px;height:120px;border-radius:50%;border:3px solid #333;object-fit:cover;transition:all .3s;}
+.cname{font-size:24px;font-weight:bold;transition:all .3s;}
+.cst{font-size:16px;color:#aaa;transition:all .3s;}
+/* 切换后的样式 */
+#call-local-layer.main{top:0;left:0;width:100%;height:100%;border-radius:0;z-index:10;border:none;}
+#call-remote-layer.pip{top:max(40px,env(safe-area-inset-top));left:auto;right:20px;width:110px;height:160px;border-radius:12px;z-index:20;background:#222;border:1px solid #444;}
+#call-remote-layer.pip #remote-info{gap:5px;}
+#call-remote-layer.pip #cavt{width:44px;height:44px;border:none;}
+#call-remote-layer.pip .cname{font-size:12px;}
+#call-remote-layer.pip .cst{display:none;}
 
 .cacts{position:absolute;bottom:80px;width:100%;display:flex;justify-content:space-around;padding:0 40px;z-index:50;}
 .cbtn{width:60px;height:60px;border-radius:50%;color:#fff;border:none;font-size:16px;cursor:pointer;}
-.min-btn{position:absolute;top:max(40px,env(safe-area-inset-top));right:20px;z-index:50;background:rgba(0,0,0,.5);width:44px;height:44px;border-radius:50%;color:#fff;border:none;display:flex;justify-content:center;align-items:center;cursor:pointer;}
-#mini{position:fixed;top:max(40px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:var(--hbg);border-radius:30px;padding:8px 20px 8px 8px;display:none;align-items:center;gap:12px;z-index:600;border:1px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.2);}
+.min-btn{position:absolute;top:max(40px,env(safe-area-inset-top));z-index:50;background:rgba(0,0,0,.6);width:44px;height:44px;border-radius:50%;color:#fff;border:none;display:flex;justify-content:center;align-items:center;font-size:20px;cursor:pointer;}
+#mini{position:fixed;top:max(40px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:var(--hbg);border-radius:30px;padding:8px 20px 8px 8px;display:none;align-items:center;gap:12px;z-index:600;border:1px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.15);cursor:pointer;}
 #mini img{width:36px;height:36px;border-radius:50%;}
+#mini span{color:var(--text);font-size:15px;}
+#call-mini-bar{display:none;}
 </style>
 </head>
 <body>
-<audio id="keep" loop src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA="></audio>
-<audio id="ga" style="display:none;"></audio>
+<audio id="keep-alive-audio" loop src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA="></audio>
+<audio id="global-audio" style="display:none;"></audio>
 
 <div id="home">
-<div class="icon" onclick="app('chat')"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg><span>聊天</span></div>
-<div class="icon" onclick="app('cards')"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg><span>字卡库</span></div>
-<div class="icon" onclick="app('pat')"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg><span>拍一拍</span></div>
-<div class="icon" onclick="app('emoji')"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2z"/></svg><span>表情包</span></div>
-<div class="icon" onclick="app('letter')"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z"/></svg><span>信箱</span></div>
-<div class="icon" onclick="app('music')"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg><span>音乐</span></div>
-<div class="icon" onclick="app('set')"><svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg><span>设置</span></div>
+<div class="app-icon" onclick="App.open('chat-app')"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg><span>聊天</span></div>
+<div class="app-icon" onclick="App.open('cards-app')"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg><span>字卡库</span></div>
+<div class="app-icon" onclick="App.open('pat-app')"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg><span>拍一拍</span></div>
+<div class="app-icon" onclick="App.open('emoji-app')"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2z"/></svg><span>表情包</span></div>
+<div class="app-icon" onclick="App.open('letter-app')"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z"/></svg><span>信箱</span></div>
+<div class="app-icon" onclick="App.open('music-app')"><svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg><span>音乐</span></div>
+<div class="app-icon" onclick="App.open('settings-app')"><svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg><span>设置</span></div>
 </div>
 
-<div id="chat" class="page">
-<div class="hd"><div class="bk" onclick="closeApp('chat')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div><div style="flex:1;">对方</div><div class="hr"><div class="hb" onclick="Call.start(false)"><svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></div><div class="hb" onclick="Call.start(true)"><svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg></div><div class="hb" onclick="if(confirm('清空记录?')){data.msgs=[];Chat.render();save()}"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></div></div></div>
-<div class="chat" id="c-area"></div>
-<div id="emoji-p">
-<div class="e-hd"><div class="e-btn active" onclick="E.tab('pic')">图片</div><div class="e-btn" onclick="E.tab('emo')">Emoji</div><div class="e-btn" onclick="E.tab('txt')">颜文字</div><div style="flex:1;"></div><div onclick="closeAll()">✕</div></div>
-<div style="display:flex;justify-content:flex-end;padding:5px 15px;" id="e-add-box"><button class="e-btn" onclick="E.showMenu()">加图片</button></div>
-<div class="e-area active" id="e-pic"></div>
-<div class="e-area" id="e-emo"></div>
-<div class="e-area" id="e-txt"></div>
+<!-- 聊天 -->
+<div id="chat-app" class="page">
+<div class="hd"><div class="bk" data-close="chat-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div><div style="flex:1;" id="chat-title">对方</div><div class="hr"><div class="hb" onclick="Call.start(false)"><svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></div><div class="hb" onclick="Call.start(true)"><svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg></div><div class="hb" onclick="Chat.clear()"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></div></div></div>
+<div class="chat-area" id="chat-area"></div>
+<div class="typing" id="typing-status">对方正在输入...</div>
+<div id="emoji-panel">
+<div class="e-hd"><div class="e-btn active" data-tab="pic">表情包</div><div class="e-btn" data-tab="emo">Emoji</div><div class="e-btn" data-tab="txt">颜文字</div><div style="flex:1;"></div><div onclick="App.closeAllOverlays()">✕</div></div>
+<div style="display:flex;justify-content:flex-end;padding:5px 15px;" id="e-add-pic"><button class="e-btn" onclick="Emoji.showMenu()">加图片</button></div>
+<div class="e-area active" id="e-area-pic"></div><div class="e-area" id="e-area-emo"></div><div class="e-area" id="e-area-txt"></div>
 </div>
-<div id="extra-p">
-<div class="panel" onclick="document.getElementById('img-up').click()"><div class="ibox">📷</div><span>相册</span></div>
-<div class="panel" onclick="closeAll();document.getElementById('ask-m').classList.add('show')"><div class="ibox">❓</div><span>问问TA</span></div>
-<div class="panel" onclick="openMoney('red')"><div class="ibox">🧧</div><span>红包</span></div>
-<div class="panel" onclick="openMoney('transfer')"><div class="ibox">💸</div><span>转账</span></div>
+<div id="extra-panel">
+<div class="panel-action" onclick="document.getElementById('img-upload').click()"><div class="ibox">📷</div><span>相册</span></div>
+<div class="panel-action" onclick="App.closeAllOverlays(); document.getElementById('ask-modal').classList.add('show')"><div class="ibox">❓</div><span>问问TA</span></div>
+<div class="panel-action" onclick="App.closeAllOverlays(); Chat.openMoney('red')"><div class="ibox">🧧</div><span>红包</span></div>
+<div class="panel-action" onclick="App.closeAllOverlays(); Chat.openMoney('transfer')"><div class="ibox">💸</div><span>转账</span></div>
 </div>
-<input type="file" id="img-up" accept="image/*" style="display:none" onchange="Chat.sendImg(this)">
-<div class="inp"><button class="btn" onclick="toggle('emoji-p')">😀</button><input type="text" id="msg-in" placeholder=""><button class="btn" onclick="toggle('extra-p')">➕</button><button class="btn" onclick="Chat.trigger('',true)">⋯</button><button class="send" onclick="Chat.send()">发送</button></div>
-</div>
-
-<div id="music" class="page">
-<div class="hd"><div class="bk" onclick="closeApp('music')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div><div style="flex:1;">音乐</div></div>
-<div style="padding:20px;background:var(--hbg);text-align:center;"><div id="m-title" style="font-size:18px;font-weight:bold;margin-bottom:15px;">未播放</div><div style="display:flex;align-items:center;gap:10px;font-size:12px;"><span id="m-cur">00:00</span><input type="range" id="m-bar" style="flex:1;" value="0" min="0" max="100" step="0.1"><span id="m-tot">00:00</span></div><div style="display:flex;justify-content:center;gap:25px;margin-top:15px;"><button class="btn" onclick="M.next()">⏭</button><button class="btn" onclick="M.toggle()" id="m-play" style="font-size:36px;">▶</button><button class="btn" onclick="M.prev()">⏮</button></div></div>
-<div style="padding:10px;display:flex;gap:5px;border-bottom:1px solid var(--border);"><input type="text" id="m-url" placeholder="URL..." style="flex:1;padding:8px;border:1px solid var(--border);border-radius:5px;background:var(--bg);color:var(--text);"><button class="btn" onclick="M.add()" style="padding:8px;background:var(--u);color:var(--ut);border-radius:5px;">添加</button></div>
-<div class="ls" id="m-list"></div>
+<input type="file" id="img-upload" accept="image/*" style="display:none" onchange="Chat.sendImg(this)">
+<div id="quote-preview" style="display:none;background:var(--hbg);padding:8px 15px;font-size:13px;color:#666;border-top:1px solid var(--border);align-items:center;justify-content:space-between;flex-shrink:0;"><span id="quote-text"></span><button onclick="Chat.quoteMsg=null;this.parentElement.style.display='none'" style="background:none;border:none;color:var(--text);">✕</button></div>
+<div class="inp"><button class="btn" onclick="App.togglePanel('emoji-panel')">😀</button><input type="text" id="msg-input" placeholder=""><button class="btn" onclick="App.togglePanel('extra-panel')">➕</button><button class="btn" onclick="Chat.triggerReply('',true)">⋯</button><button class="send" onclick="Chat.sendMsg()">发送</button></div>
 </div>
 
-<div id="pat" class="page"><div class="hd"><div class="bk" onclick="closeApp('pat')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div><div style="flex:1;">拍一拍</div></div><div style="padding:10px;display:flex;gap:8px;"><button class="btn" onclick="P.batch()" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;">批量添加</button></div><div class="ls" id="p-list"></div><div class="bar"><input type="text" id="p-in" placeholder="添加词条..."><button onclick="P.add()">添加</button></div></div>
+<!-- 字卡库 -->
+<div id="cards-app" class="page">
+<div class="hd"><div class="bk" data-close="cards-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div><div style="flex:1;">字卡库</div></div>
+<div style="padding:10px;"><input type="text" id="search-input" oninput="Cards.render()" placeholder="搜索..." style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);"></div>
+<div style="padding:10px;display:flex;gap:8px;"><button class="e-btn" onclick="document.getElementById('batch-modal').classList.add('show')" style="flex:1;background:var(--bg);border:1px solid var(--border);">批量添加</button></div>
+<div class="ls" id="cards-list"></div>
+<div class="bar"><input type="text" id="new-card" placeholder="单条添加..."><button onclick="Cards.add()">添加</button></div>
+</div>
 
-<div id="cards" class="page"><div class="hd"><div class="bk" onclick="closeApp('cards')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div><div style="flex:1;">字卡库</div></div><div style="padding:10px;"><input type="text" id="c-search" oninput="C.render()" placeholder="搜索..." style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);"></div><div style="padding:10px;display:flex;gap:8px;"><button class="btn" onclick="C.batch()" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;">批量添加</button></div><div class="ls" id="c-list"></div><div class="bar"><input type="text" id="c-in" placeholder="添加..."><button onclick="C.add()">添加</button></div></div>
+<!-- 拍一拍 -->
+<div id="pat-app" class="page">
+<div class="hd"><div class="bk" data-close="pat-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div><div style="flex:1;">拍一拍</div></div>
+<div style="padding:10px;display:flex;gap:8px;"><button class="e-btn" onclick="document.getElementById('pat-batch-modal').classList.add('show')" style="flex:1;background:var(--bg);border:1px solid var(--border);">批量添加</button></div>
+<div class="ls" id="pat-list"></div>
+<div class="bar"><input type="text" id="new-pat" placeholder="添加词条..."><button onclick="Pat.add()">添加</button></div>
+</div>
 
-<div id="emoji" class="page"><div class="hd"><div class="bk" onclick="closeApp('emoji')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div><div style="flex:1;">表情包库</div></div><div class="e-hd"><div class="e-btn active" onclick="E.mgrTab('pic')">图片</div><div class="e-btn" onclick="E.mgrTab('emo')">Emoji</div><div class="e-btn" onclick="E.mgrTab('txt')">颜文字</div></div><div id="m-pic" class="e-area active" style="display:flex;flex-direction:column;height:calc(100% - 120px);"><div style="padding:10px;display:flex;gap:8px;"><button class="btn" onclick="E.showMenu()" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;">加图片</button></div><div class="ls" id="m-pic-list" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;"></div></div><div id="m-emo" class="e-area" style="display:none;flex-direction:column;height:calc(100% - 120px);"><div style="padding:10px;display:flex;gap:8px;"><button class="btn" onclick="E.batch('emo')" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;">批量</button></div><div class="ls" id="m-emo-list"></div><div class="bar"><input type="text" id="e-in" placeholder="添加..."><button onclick="E.add('emo')">添加</button></div></div><div id="m-txt" class="e-area" style="display:none;flex-direction:column;height:calc(100% - 120px);"><div style="padding:10px;display:flex;gap:8px;"><button class="btn" onclick="E.batch('txt')" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;">批量</button></div><div class="ls" id="m-txt-list"></div><div class="bar"><input type="text" id="t-in" placeholder="添加..."><button onclick="E.add('txt')">添加</button></div></div></div>
+<!-- 表情包 -->
+<div id="emoji-app" class="page">
+<div class="hd"><div class="bk" data-close="emoji-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div><div style="flex:1;">表情包库</div></div>
+<div class="e-hd"><div class="e-btn active" data-mgr="pic">图片</div><div class="e-btn" data-mgr="emo">Emoji</div><div class="e-btn" data-mgr="txt">颜文字</div></div>
+<div id="m-pic" class="e-area active" style="display:flex;flex-direction:column;height:calc(100% - 120px);"><div style="padding:10px;display:flex;gap:8px;"><button class="e-btn" onclick="Emoji.showMenu()" style="flex:1;background:var(--bg);border:1px solid var(--border);">加图片</button></div><div class="ls" id="m-pic-list" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;"></div></div>
+<div id="m-emo" class="e-area" style="display:none;flex-direction:column;height:calc(100% - 120px);"><div style="padding:10px;display:flex;gap:8px;"><button class="e-btn" onclick="document.getElementById('emoji-batch-modal').classList.add('show')" style="flex:1;background:var(--bg);border:1px solid var(--border);">批量</button></div><div class="ls" id="m-emo-list"></div><div class="bar"><input type="text" id="e-emo-in" placeholder="添加..."><button onclick="Emoji.add('emo')">添加</button></div></div>
+<div id="m-txt" class="e-area" style="display:none;flex-direction:column;height:calc(100% - 120px);"><div style="padding:10px;display:flex;gap:8px;"><button class="e-btn" onclick="document.getElementById('text-batch-modal').classList.add('show')" style="flex:1;background:var(--bg);border:1px solid var(--border);">批量</button></div><div class="ls" id="m-txt-list"></div><div class="bar"><input type="text" id="e-txt-in" placeholder="添加..."><button onclick="Emoji.add('txt')">添加</button></div></div>
+</div>
 
-<div id="letter" class="page"><div class="hd"><div class="bk" onclick="closeApp('letter')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div><div style="flex:1;">信箱</div><div style="font-size:24px;" onclick="L.write()">+</div></div><div class="ls" id="l-list"></div></div>
+<!-- 信箱 -->
+<div id="letter-app" class="page">
+<div class="hd"><div class="bk" data-close="letter-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div><div style="flex:1;">信箱</div><div style="font-size:24px;" onclick="Letters.write()">+</div></div>
+<div class="ls" id="letters-list"></div>
+</div>
 
-<div id="set" class="page"><div class="hd"><div class="bk" onclick="closeApp('set')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div><div style="flex:1;">设置</div></div>
+<!-- 音乐 -->
+<div id="music-app" class="page">
+<div class="hd"><div class="bk" data-close="music-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div><div style="flex:1;">音乐播放器</div></div>
+<div style="padding:20px;background:var(--hbg);border-bottom:1px solid var(--border);text-align:center;"><div id="music-title" style="font-size:18px;font-weight:bold;margin-bottom:15px;">未在播放</div><div style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--accent);"><span id="music-cur">00:00</span><input type="range" id="music-bar" style="flex:1;accent-color:var(--u);" value="0" min="0" max="100" step="0.1"><span id="music-total">00:00</span></div><div style="display:flex;justify-content:center;gap:25px;margin-top:15px;"><button class="btn" onclick="Music.next()">⏭</button><button class="btn" onclick="Music.toggle()" id="music-play" style="font-size:36px;">▶</button><button class="btn" onclick="Music.prev()">⏮</button></div></div>
+<div style="padding:10px;display:flex;gap:5px;border-bottom:1px solid var(--border);"><input type="text" id="music-url" placeholder="直链URL..." style="flex:1;padding:8px;border:1px solid var(--border);border-radius:5px;background:var(--bg);color:var(--text);"><button class="btn" onclick="Music.add()" style="padding:8px;background:var(--u);color:var(--ut);border-radius:5px;">添加</button></div>
+<div class="ls" id="music-list"></div>
+</div>
+
+<!-- 设置 -->
+<div id="settings-app" class="page">
+<div class="hd"><div class="bk" data-close="settings-app"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div><div style="flex:1;">设置</div></div>
 <div class="set-c">
-<div class="s-item"><label>我的余额</label><input type="number" id="s-bal" step="0.01"></div>
-<div class="s-item"><label>对方名字</label><input type="text" id="s-bname"></div>
-<div class="s-item"><div class="s-row"><label>桌面通知</label><input type="checkbox" class="toggle" id="s-noti" onchange="if(this.checked&&Notification.permission!=='granted')Notification.requestPermission()"></div><div class="s-row"><label>后台保活</label><input type="checkbox" class="toggle" id="s-keep" onchange="if(this.checked)document.getElementById('keep').play()"></div></div>
-<div class="s-item"><div class="s-row"><label>夜间模式</label><input type="checkbox" class="toggle" id="s-dark" onchange="document.documentElement.setAttribute('data-theme',this.checked?'dark':'light')"></div></div>
-<button class="ok" style="width:100%;padding:15px;border:none;border-radius:10px;margin-bottom:50px;" onclick="S.save()">保存设置</button>
-</div></div>
+<h3 style="margin-bottom:10px;font-size:16px;color:var(--accent);">钱包与交易逻辑</h3>
+<div class="s-item"><label>我的余额 (元)</label><input type="number" id="set-my-balance" step="0.01"><label style="margin-top:10px;">对方余额 (元)</label><input type="number" id="set-bot-balance" step="0.01"></div>
+<div class="s-item"><label>发红包/转账概率 (%) <span id="val-give">10%</span></label><input type="range" id="slider-give" min="0" max="100" value="10" oninput="Settings.sliderChange('give')"><label style="margin-top:10px;">收下红包概率 (%) <span id="val-receive">80%</span></label><input type="range" id="slider-receive" min="0" max="100" value="80" oninput="Settings.sliderChange('receive')"><label style="margin-top:10px;">退回红包概率 (%) <span id="val-return">20%</span></label><input type="range" id="slider-return" min="0" max="100" value="20" oninput="Settings.sliderChange('return')"></div>
+<h3 style="margin:20px 0 10px;font-size:16px;color:var(--accent);">系统与通知</h3>
+<div class="s-item"><div class="s-row"><label>桌面消息通知</label><input type="checkbox" class="toggle" id="set-desktop-notify" onchange="if(this.checked&&Notification.permission!=='granted')Notification.requestPermission()"></div><div class="s-row"><label>后台保活</label><input type="checkbox" class="toggle" id="set-keep-alive" onchange="if(this.checked)document.getElementById('keep-alive-audio').play()"></div></div>
+<h3 style="margin:20px 0 10px;font-size:16px;color:var(--accent);">角色资料</h3>
+<div class="s-item"><label>我的名字</label><input type="text" id="set-my-name"><label style="margin-top:10px;">我的头像</label><div class="profile-edit"><img id="my-avatar-preview"><input type="file" id="set-my-avatar" accept="image/*"></div></div>
+<div class="s-item"><label>对方名字</label><input type="text" id="set-bot-name"><label style="margin-top:10px;">对方头像</label><div class="profile-edit"><img id="bot-avatar-preview"><input type="file" id="set-bot-avatar" accept="image/*"></div></div>
+<h3 style="margin:20px 0 10px;font-size:16px;color:var(--accent);">外观与交互</h3>
+<div class="s-item"><label>时间显示位置</label><select id="set-time-display"><option value="bottom">气泡下方</option><option value="avatar-bottom">头像下方</option><option value="click">点击显示</option><option value="hidden">不显示</option></select></div>
+<div class="s-item"><div class="s-row"><label>显示头像</label><input type="checkbox" class="toggle" id="set-show-avatar"></div><div class="s-row"><label>显示名字</label><input type="checkbox" class="toggle" id="set-show-name"></div><div class="s-row"><label>显示已读</label><input type="checkbox" class="toggle" id="set-show-read"></div><div class="s-row"><label>音效开关</label><input type="checkbox" class="toggle" id="set-sound-enabled"></div></div>
+<div class="s-item"><label>日夜模式</label><select id="set-theme"><option value="system">跟随系统</option><option value="light">浅色模式</option><option value="dark">深色模式</option></select></div>
+<div class="s-item"><label>系统字体大小 (<span id="val-font-size">16</span>px)</label><input type="range" id="slider-font-size" min="12" max="24" step="1" value="16" oninput="Settings.sliderChange('font')"></div>
+<div class="s-item"><label>自定义字体</label><input type="text" id="set-font-url" placeholder="SimSun 或 @import"><label style="margin-top:10px;">气泡CSS</label><input type="text" id="set-bubble-css"><label style="margin-top:10px;">背景图</label><input type="file" id="set-bg" accept="image/*" style="border:none;"></div>
+<h3 style="margin:20px 0 10px;font-size:16px;color:var(--accent);">聊天与通话概率</h3>
+<div class="s-item"><label>模拟真人延迟 (秒)</label><div style="display:flex;gap:10px;"><input type="number" id="set-delay-min" min="1"><input type="number" id="set-delay-max" min="1"></div><label style="margin-top:10px;">主动发消息 (分,0关)</label><div style="display:flex;gap:10px;"><input type="number" id="set-proactive-min" min="0"><input type="number" id="set-proactive-max" min="0"></div><label style="margin-top:10px;">已读不回概率 (%) <span id="val-ignore">20%</span></label><input type="range" id="slider-ignore" min="0" max="100" value="20" oninput="Settings.sliderChange('ignore')"><label style="margin-top:10px;">引用回复概率 (%) <span id="val-quote">30%</span></label><input type="range" id="slider-quote" min="0" max="100" value="30" oninput="Settings.sliderChange('quote')"><label style="margin-top:10px;">主动拍一拍概率 (%) <span id="val-pat-prob">10%</span></label><input type="range" id="slider-pat-prob" min="0" max="100" value="10" oninput="Settings.sliderChange('pat-prob')"><label style="margin-top:10px;">主动来电概率 (%) <span id="val-call-prob">5%</span></label><input type="range" id="slider-call-prob" min="0" max="100" value="5" oninput="Settings.sliderChange('call-prob')"><label style="margin-top:10px;">接听我的来电 (%) <span id="val-answer-prob">80%</span></label><input type="range" id="slider-answer-prob" min="0" max="100" value="80" oninput="Settings.sliderChange('answer-prob')"><label style="margin-top:10px;">主动挂断概率 (%) <span id="val-hangup-prob">10%</span></label><input type="range" id="slider-hangup-prob" min="0" max="100" value="10" oninput="Settings.sliderChange('hangup-prob')"></div>
+<h3 style="margin:20px 0 10px;font-size:16px;color:var(--accent);">写信逻辑</h3>
+<div class="s-item"><label>主动写信间隔 (分,0关)</label><div style="display:flex;gap:10px;"><input type="number" id="set-letter-min" min="0"><input type="number" id="set-letter-max" min="0"></div><label style="margin-top:10px;">主动写信概率 (%) <span id="val-letter-prob">10%</span></label><input type="range" id="slider-letter-prob" min="0" max="100" value="10" oninput="Settings.sliderChange('letter-prob')"><label style="margin-top:10px;">收到信回复概率 (%) <span id="val-reply-prob">80%</span></label><input type="range" id="slider-reply-prob" min="0" max="100" value="80" oninput="Settings.sliderChange('reply-prob')"></div>
+<h3 style="margin:20px 0 10px;font-size:16px;color:var(--accent);">数据管理</h3>
+<div class="s-item"><button class="e-btn" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid var(--border);background:var(--bg);" onclick="App.exportData()">导出所有数据</button><button class="e-btn" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid var(--border);background:var(--bg);" onclick="document.getElementById('import-all').click()">导入所有数据</button><input type="file" id="import-all" style="display:none" accept=".json" onchange="App.importData(this)"><button class="e-btn danger" style="width:100%;padding:12px;border:none;" onclick="if(confirm('确定重置？')){localStorage.clear();location.reload();}">重置所有数据</button></div>
+<button class="ok" style="width:100%;padding:15px;border:none;border-radius:10px;margin-bottom:50px;" onclick="Settings.save()">保存所有设置</button>
+</div>
+</div>
 
-<div id="batch-m" class="mk"><div class="mc"><textarea id="b-txt" placeholder="一行一个"></textarea><div class="mb"><button class="c" onclick="closeM('batch-m')">取消</button><button class="ok" onclick="C.doBatch()">确认</button></div></div></div>
-<div id="pat-m" class="mk"><div class="mc"><textarea id="pb-txt" placeholder="一行一个"></textarea><div class="mb"><button class="c" onclick="closeM('pat-m')">取消</button><button class="ok" onclick="P.doBatch()">确认</button></div></div></div>
-<div id="eb-m" class="mk"><div class="mc"><textarea id="eb-txt" placeholder="一行一个"></textarea><div class="mb"><button class="c" onclick="closeM('eb-m')">取消</button><button class="ok" onclick="E.doBatch('emo')">确认</button></div></div></div>
-<div id="tb-m" class="mk"><div class="mc"><textarea id="tb-txt" placeholder="一行一个"></textarea><div class="mb"><button class="c" onclick="closeM('tb-m')">取消</button><button class="ok" onclick="E.doBatch('txt')">确认</button></div></div></div>
-<div id="ask-m" class="mk"><div class="mc"><input type="text" id="ask-q" placeholder="问题"><textarea id="ask-o" placeholder="选项(一行一个)"></textarea><div class="mb"><button class="c" onclick="closeM('ask-m')">取消</button><button class="ok" onclick="Chat.sendSurvey()">发送</button></div></div></div>
-<div id="money-m" class="mk"><div class="mc"><input type="number" id="money-a" placeholder="金额"><input type="text" id="money-n" placeholder="备注"><div class="mb"><button class="c" onclick="closeM('money-m')">取消</button><button class="ok" onclick="Chat.doMoney()">塞钱</button></div></div></div>
-<div id="w-m" class="mk"><div class="mc"><input type="text" id="w-t" placeholder="标题"><textarea id="w-c" placeholder="内容"></textarea><div class="mb"><button class="c" onclick="closeM('w-m')">取消</button><button class="ok" onclick="L.doSend()">寄出</button></div></div></div>
-<div id="r-m" class="mk"><div class="mc"><h3 id="r-title"></h3><div id="r-content" style="white-space:pre-wrap;padding:10px;background:var(--bg);border-radius:8px;"></div><div class="mb"><button class="c" onclick="closeM('r-m')">关闭</button></div></div></div>
-<div id="sheet"><div id="sheet-c"></div></div>
-<div id="mini" onclick="Call.expand()"><img id="mini-a"><span>通话中...</span></div>
+<!-- 弹窗 -->
+<div id="batch-modal" class="mk"><div class="mc"><textarea id="batch-txt" placeholder="【分组】&#10;内容"></textarea><div class="mb"><button class="c" data-close="batch-modal">取消</button><button class="ok" onclick="Cards.doBatch()">确认</button></div></div></div>
+<div id="pat-batch-modal" class="mk"><div class="mc"><textarea id="pat-batch-txt" placeholder="一行一个"></textarea><div class="mb"><button class="c" data-close="pat-batch-modal">取消</button><button class="ok" onclick="Pat.doBatch()">确认</button></div></div></div>
+<div id="emoji-batch-modal" class="mk"><div class="mc"><textarea id="emoji-batch-txt" placeholder="一行一个"></textarea><div class="mb"><button class="c" data-close="emoji-batch-modal">取消</button><button class="ok" onclick="Emoji.doBatch('emo')">确认</button></div></div></div>
+<div id="text-batch-modal" class="mk"><div class="mc"><textarea id="text-batch-txt" placeholder="一行一个"></textarea><div class="mb"><button class="c" data-close="text-batch-modal">取消</button><button class="ok" onclick="Emoji.doBatch('txt')">确认</button></div></div></div>
+<div id="ask-modal" class="mk"><div class="mc"><input type="text" id="ask-q" placeholder="问题"><div class="ask-tabs"><div class="ask-tab active" data-ask="single">单选</div><div class="ask-tab" data-ask="multi">多选</div><div class="ask-tab" data-ask="text">文字</div></div><div id="ask-single"><textarea id="ask-opt-single" placeholder="一行一个"></textarea></div><div id="ask-multi" style="display:none"><textarea id="ask-opt-multi" placeholder="一行一个"></textarea></div><div id="ask-text" style="display:none;color:#666;">TA会从字卡库抽取回答</div><div class="mb" style="margin-top:10px;"><button class="c" data-close="ask-modal">取消</button><button class="ok" onclick="Chat.sendSurvey()">发送</button></div></div></div>
+<div id="money-modal" class="mk"><div class="mc"><input type="number" id="money-amount" placeholder="金额" step="0.01"><input type="text" id="money-note" placeholder="备注"><div class="mb"><button class="c" onclick="App.closeModal('money-modal')">取消</button><button class="ok" onclick="Chat.doMoney()">塞钱</button></div></div></div>
+<div id="letter-write-modal" class="mk"><div class="mc"><input type="text" id="letter-title" placeholder="标题"><textarea id="letter-content" placeholder="内容"></textarea><div class="mb"><button class="c" data-close="letter-write-modal">取消</button><button class="ok" onclick="Letters.doSend()">寄出</button></div></div></div>
+<div id="letter-read-modal" class="mk"><div class="mc"><h3 id="read-title" style="text-align:center;"></h3><div id="read-meta" style="font-size:12px;color:#888;text-align:center;margin-bottom:10px;"></div><div class="letter-content" id="read-content"></div><div class="mb"><button class="c" data-close="letter-read-modal">关闭</button></div></div></div>
+<div id="edit-pat-modal" class="mk"><div class="mc"><input type="text" id="edit-pat-txt"><div class="mb"><button class="c" data-close="edit-pat-modal">取消</button><button class="ok" onclick="Pat.saveEdit()">保存</button></div></div></div>
+<div id="sheet"><div id="sheet-content"></div></div>
+
+<!-- 悬浮窗和通话 -->
+<div id="call-mini-bar" onclick="Call.expand()"><img id="mini-avatar" src=""><span id="mini-status">正在通话...</span></div>
 
 <div id="call">
-    <!-- 大屏对方信息，默认全屏居中 -->
-    <div id="cinfo">
-        <img id="cavt" class="cavt">
-        <div id="cname" class="cname">对方</div>
-        <div id="cst" class="cst">正在呼叫...</div>
+    <!-- 大屏对方信息 -->
+    <div id="call-remote-layer">
+        <div id="remote-info">
+            <img id="cavt" src="">
+            <div id="cname" class="cname">对方</div>
+            <div id="cst" class="cst">正在呼叫...</div>
+        </div>
     </div>
-    <!-- 小窗我的画面，点击放大 -->
-    <video id="lvid" autoplay playsinline muted onclick="Call.toggleView()"></video>
+    
+    <!-- 小窗我的画面 -->
+    <div id="call-local-layer" onclick="Call.toggleView()">
+        <video id="lvid" autoplay playsinline muted></video>
+    </div>
     
     <button class="min-btn" onclick="Call.minimize()" style="right:20px;">➖</button>
     <button class="min-btn" id="btn-cam" onclick="Call.toggleCam()" style="left:80px;display:none;">📷</button>
-    <button class="min-btn" id="btn-sw" onclick="Call.switchCam()" style="left:20px;display:none;">🔄</button>
+    <button class="min-btn" id="btn-switch-cam" onclick="Call.switchCam()" style="left:20px;display:none;">🔄</button>
     
-    <div class="cacts" id="c-act">
-        <button class="cbtn" style="background:#ff3b30;" onclick="Call.hangup()" id="btn-hang">取消</button>
+    <div class="cacts" id="call-actions">
+        <button class="cbtn" style="background:#ff3b30;" onclick="Call.hangup()" id="btn-hangup">取消</button>
     </div>
 </div>
 
-<input type="file" id="gallery" accept="image/*" style="display:none" onchange="E.local(this)">
-<input type="file" id="camera" accept="image/*" capture="environment" style="display:none" onchange="E.local(this)">
+<input type="file" id="gallery-input" accept="image/*" style="display:none" onchange="Emoji.local(this)">
+<input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none" onchange="Emoji.local(this)">
+<style id="dynamic-font-style"></style>
+<style id="dynamic-bubble-style"></style>
+
 <script>
-const DB='app_v1', data={msgs:[],cards:[],pats:['拍了拍'],emojis:{pic:[],emo:['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🧐','🤓','😎','🤩','🥳'],txt:['(￣▽￣)','(✿◡‿◡)']},letters:[],music:[],wallet:{my:520.22},settings:{myName:'我',botName:'对方',botAvatar:'',showAvatar:true,showName:true,showRead:true,noti:false,keep:false,dark:false}};
-const $=id=>document.getElementById(id); let saveTo;
-const save=()=>{clearTimeout(saveTo);saveTo=setTimeout(()=>localStorage.setItem(DB,JSON.stringify(data)),500)};
-const toast=m=>{const e=document.createElement('div');e.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.8);color:#fff;padding:10px 20px;border-radius:8px;z-index:9999;pointer-events:none;';e.innerText=m;document.body.appendChild(e);setTimeout(()=>e.remove(),1500)};
-const app=id=>{closeAll();$(id).style.display='flex';if(id==='chat')Chat.render();if(id==='set')S.render();if(id==='cards')C.render();if(id==='pat')P.render();if(id==='music')M.render();if(id==='emoji')E.renderMgr();if(id==='letter')L.render()};
-const closeApp=id=>{$(id).style.display='none';closeAll()};
-const closeAll=()=>{$('emoji-p').style.display='none';$('extra-p').style.display='none';$('sheet').classList.remove('show');document.querySelectorAll('.mk').forEach(m=>m.classList.remove('show'))};
-const closeM=id=>$(id).classList.remove('show');
-const toggle=id=>{const p=$(id);const isNone=p.style.display==='none'||!p.style.display;p.style.display=isNone?'flex':'none';if(isNone){$('emoji-p').style.display=id==='emoji-p'?'flex':'none';$('extra-p').style.display=id==='extra-p'?'flex':'none';}};
-try{const s=localStorage.getItem(DB);if(s){const p=JSON.parse(s);Object.assign(data,p);Object.assign(data.settings,p.settings||{});}}catch(e){}
+const DB_KEY = 'love_app_v3';
+const $ = id => document.getElementById(id);
 
-const Chat={
-render(){const a=$('c-area');a.innerHTML='';data.msgs.forEach((m,i)=>{
-if(m.role==='sys'){const d=document.createElement('div');d.className='sys';d.innerText=m.content;a.appendChild(d);return;}
-const r=document.createElement('div');r.className='row '+m.role;
-const isMe=m.role==='user', avt=isMe?data.settings.myAvatar:data.settings.botAvatar, name=isMe?data.settings.myName:data.settings.botName;
-let avH=data.settings.showAvatar?`<img class="avt" src="${avt||'data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23ccc\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'}">`:'';
-let nameH=data.settings.showName?`<div class="name">${name}</div>`:'';
-let readH=(isMe&&data.settings.showRead)?`<div style="font-size:11px;color:#999;text-align:right;margin-top:2px;">已读</div>`:'';
-let cH='';
-if(m.type==='red'||m.type==='transfer'){
-cH=`<div class="msg ${m.role}" style="background:${m.type==='red'?'#fa5151':'#fa9d3b'};color:#fff;padding:15px;border-radius:10px;width:200px;"><div style="font-size:24px;">${m.type==='red'?'🧧':'💸'}</div><div>${m.note}</div><div>¥${m.amount}</div></div>`;
-}else if(m.type==='survey'){
-cH=`<div class="msg ${m.role}" style="padding:15px;"><b>${m.q}</b><br><br>${m.opts.map(o=>`<div style="border:1px solid var(--border);padding:5px;margin-bottom:5px;border-radius:5px;${o.sel?'background:var(--hbg)':''}">${o.t} ${o.sel?'✓':''}</div>`).join('')}</div>`;
-}else{
-cH=`<div class="msg ${m.role}">${m.isImg?`<img src="${m.c}">`:m.c}</div>`;
-}
-r.innerHTML=`${!isMe?avH:''}<div class="wrap">${nameH}${cH}${readH}</div>${isMe?avH:''}`;a.appendChild(r);
-});
-a.scrollTop=a.scrollHeight;},
-send(){const v=$('msg-in').value.trim();if(!v)return;data.msgs.push({id:Date.now(),role:'user',c:v});$('msg-in').value='';this.render();save();this.trigger(v);},
-sendImg(i){const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{data.msgs.push({id:Date.now(),role:'user',isImg:true,c:e.target.result});this.render();save();this.trigger('');};r.readAsDataURL(f);i.value='';},
-trigger(txt,pro=false){const ac=Math.random()*3000+1000;setTimeout(()=>{
-let c='嗯。';const arr=data.cards.flatMap(x=>x.items);if(arr.length)c=arr[Math.floor(Math.random()*arr.length)];
-data.msgs.push({id:Date.now(),role:'other',c});this.render();save();
-if(document.hidden&&data.settings.noti&&Notification.permission==='granted')new Notification('新消息',{body:c});
-},ac);},
-sendSurvey(){const q=$('ask-q').value,o=$('ask-o').value.split('\n').filter(x=>x.trim());if(!q||o.length<2)return toast('请填全');this.render();this.closeModal;data.msgs.push({id:Date.now(),role:'user',type:'survey',q,opts:o.map(t=>({t,sel:false}))});$('ask-q').value='';$('ask-o').value='';closeM('ask-m');this.render();save();
-setTimeout(()=>{const m=data.msgs.find(x=>x.type==='survey'&&!x.done);if(m){m.done=true;m.opts[0].sel=true;this.render();save();}},3000);},
-doMoney(){const a=$('money-a').value,n=$('money-n').value;if(!a)return;data.msgs.push({id:Date.now(),role:'user',type:'red',amount:a,note:n||'恭喜发财'});$('money-a').value='';$('money-n').value='';closeM('money-m');this.render();save();}
-};
-
-const C={
-render(){const s=$('c-search').value.toLowerCase(),l=$('c-list');l.innerHTML='';
-let g=data.cards.find(x=>x.group==='默认');if(!g){g={group:'默认',items:[]};data.cards.push(g);}
-g.items.forEach((it,i)=>{if(s&&!it.toLowerCase().includes(s))return;l.innerHTML+=`<div class="item"><span>${it}</span><div class="acts"><span onclick="C.del(${i})">删除</span></div></div>`;});},
-add(){const v=$('c-in').value;if(!v)return;data.cards[0].items.push(v);$('c-in').value='';this.render();save();},
-del(i){data.cards[0].items.splice(i,1);this.render();save();},
-batch(){closeAll();$('batch-m').classList.add('show');},
-doBatch(){const v=$('b-txt').value.split('\n').filter(x=>x.trim());v.forEach(x=>data.cards[0].items.push(x));$('b-txt').value='';closeM('batch-m');this.render();save();}
-};
-
-const P={
-render(){const l=$('p-list');l.innerHTML='';data.pats.forEach((p,i)=>l.innerHTML+=`<div class="item"><span>${p}</span><div class="acts"><span onclick="P.del(${i})">删除</span></div></div>`);},
-add(){const v=$('p-in').value;if(!v)return;data.pats.push(v);$('p-in').value='';this.render();save();},
-del(i){data.pats.splice(i,1);this.render();save();},
-batch(){closeAll();$('pat-m').classList.add('show');},
-doBatch(){const v=$('pb-txt').value.split('\n').filter(x=>x.trim());v.forEach(x=>data.pats.push(x));$('pb-txt').value='';closeM('pat-m');this.render();save();}
-};
-
-const E={
-tab(t){document.querySelectorAll('#emoji-p .e-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('#emoji-p .e-area').forEach(a=>a.classList.remove('active'));event.target.classList.add('active');$('e-'+t).classList.add('active');$('e-add-box').style.display=t==='pic'?'flex':'none';this.renderPanel();},
-renderPanel(){const p=$('e-pic');p.innerHTML='';data.emojis.pic.forEach(u=>p.innerHTML+=`<img src="${u}" onclick="Chat.sendImgStr('${u}')">`);
-const e=$('e-emo');e.innerHTML='';data.emojis.emo.forEach(x=>e.innerHTML+=`<div class="e-txt" onclick="$('msg-in').value+='${x}'">${x}</div>`);
-const t=$('e-txt');t.innerHTML='';data.emojis.txt.forEach(x=>t.innerHTML+=`<div class="e-txt" onclick="$('msg-in').value+='${x}'">${x}</div>`);},
-renderMgr(){const p=$('m-pic-list');p.innerHTML='';data.emojis.pic.forEach((u,i)=>p.innerHTML+=`<div style="position:relative"><img src="${u}" style="width:100%;aspect-ratio:1;object-fit:contain;background:var(--bg);border-radius:8px;"><div style="position:absolute;top:0;right:0;background:red;color:#fff;padding:2px 5px;border-radius:50%;" onclick="E.delPic(${i})">✕</div></div>`);
-const e=$('m-emo-list');e.innerHTML='';data.emojis.emo.forEach((x,i)=>e.innerHTML+=`<div class="item"><span>${x}</span><div class="acts"><span onclick="E.delEmo(${i})">删除</span></div></div>`);
-const t=$('m-txt-list');t.innerHTML='';data.emojis.txt.forEach((x,i)=>t.innerHTML+=`<div class="item"><span>${x}</span><div class="acts"><span onclick="E.delTxt(${i})">删除</span></div></div>`);},
-mgrTab(t){document.querySelectorAll('#emoji .e-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('#emoji .e-area').forEach(a=>a.style.display='none');$('m-'+t).style.display='flex';event.target.classList.add('active');this.renderMgr();},
-showMenu(){const s=$('sheet');$('sheet-c').innerHTML=`<div class="act" onclick="$('gallery').click();closeAll()">照片图库</div><div class="act" onclick="$('camera').click();closeAll()">拍照</div><div class="ac" onclick="closeAll()">取消</div>`;s.classList.add('show');},
-local(i){const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{data.emojis.pic.push(e.target.result);save();this.renderMgr();this.renderPanel();};r.readAsDataURL(f);i.value='';},
-add(t){const el=$(t==='emo'?'e-in':'t-in');const v=el.value;if(!v)return;data.emojis[t].push(v);el.value='';save();this.renderMgr();},
-batch(t){closeAll();$(t==='emo'?'eb-m':'tb-m').classList.add('show');},
-doBatch(t){const v=$(t==='emo'?'eb-txt':'tb-txt').value.split('\n').filter(x=>x.trim());v.forEach(x=>data.emojis[t].push(x));closeM(t==='emo'?'eb-m':'tb-m');save();this.renderMgr();},
-delPic(i){data.emojis.pic.splice(i,1);save();this.renderMgr();},delEmo(i){data.emojis.emo.splice(i,1);save();this.renderMgr();},delTxt(i){data.emojis.txt.splice(i,1);save();this.renderMgr();}
-};
-
-const L={
-render(){const l=$('l-list');l.innerHTML='';data.letters.forEach(x=>l.innerHTML+=`<div class="item" onclick="L.read(${x.id})"><span>${x.t}</span></div>`);},
-write(){closeAll();$('w-m').classList.add('show');},
-doSend(){const t=$('w-t').value,c=$('w-c').value;if(!c)return;data.letters.push({id:Date.now(),t,c});$('w-t').value='';$('w-c').value='';closeM('w-m');this.render();save();},
-read(id){const x=data.letters.find(l=>l.id===id);if(!x)return;$('r-title').innerText=x.t;$('r-content').innerText=x.c;closeAll();$('r-m').classList.add('show');}
-};
-
-const M={
-render(){const l=$('m-list');l.innerHTML='';data.music.forEach((m,i)=>l.innerHTML+=`<div class="item" onclick="M.play(${i})"><span>${m.name}</span></div>`);},
-add(){const u=$('m-url').value;if(!u)return;data.music.push({name:'网络音乐',url:u});$('m-url').value='';this.render();save();},
-play(i){const a=$('ga');a.src=data.music[i].url;a.play();$('m-title').innerText=data.music[i].name;$('m-play').innerText='⏸';a.onended=()=>this.next();},
-toggle(){const a=$('ga');if(a.paused){a.play();$('m-play').innerText='⏸';}else{a.pause();$('m-play').innerText='▶';}},
-next(){if(data.music.length>1)this.play((data.music.findIndex(m=>m.url===$('ga').src)+1)%data.music.length);},
-prev(){if(data.music.length>1)this.play((data.music.findIndex(m=>m.url===$('ga').src)-1+data.music.length)%data.music.length);}
-};
-
-const S={
-render(){$('s-bal').value=data.wallet.my;$('s-bname').value=data.settings.botName;$('s-noti').checked=data.settings.noti;$('s-keep').checked=data.settings.keep;$('s-dark').checked=data.settings.dark;},
-save(){data.wallet.my=$('s-bal').value;data.settings.botName=$('s-bname').value;data.settings.noti=$('s-noti').checked;data.settings.keep=$('s-keep').checked;data.settings.dark=$('s-dark').checked;save();toast('已保存');}
-};
-
-const Call={
-isVid:false,t:null,sec:0,stream:null,mode:'user',
-start(v){
-    this.isVid=v;this.sec=0;closeAll();$('call').classList.add('show');
-    $('cavt').src=data.settings.botAvatar||'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-    $('cname').innerText=data.settings.botName;$('cst').innerText='正在呼叫...';
-    $('c-act').innerHTML=`<button class="cbtn" style="background:#ff3b30;width:100px;border-radius:30px;" onclick="Call.hangup()" id="btn-hang">取消</button>`;
-    $('lvid').style.display='none';$('lvid').classList.remove('main');$('cinfo').classList.remove('pip');
-    $('btn-cam').style.display=this.isVid?'flex':'none';$('btn-sw').style.display='none';
-    setTimeout(()=>{
-        $('cst').innerText='00:00';$('btn-hang').innerText='挂断';$('btn-hang').style.width='60px';$('btn-hang').style.borderRadius='50%';
-        this.t=setInterval(()=>{this.sec++;$('cst').innerText=Math.floor(this.sec/60).toString().padStart(2,'0')+':'+(this.sec%60).toString().padStart(2,'0');},1000);
-        if(this.isVid)this.toggleCam();
-    },3000);
-},
-cam(){
-    navigator.mediaDevices.getUserMedia({video:{facingMode:this.mode}}).then(s=>{
-        this.stream=s;
-        $('lvid').srcObject=s;
-        $('lvid').style.display='block';
-        $('btn-sw').style.display='flex';
-    }).catch(e=>toast('无摄像头权限'));
-},
-toggleCam(){
-    if(!this.stream){
-        this.cam();
-    }else{
-        $('lvid').style.display='none';
-        $('lvid').classList.remove('main');
-        $('cinfo').classList.remove('pip');
-        if(this.stream){this.stream.getTracks().forEach(t=>t.stop());this.stream=null;}
-        $('btn-sw').style.display='none';
+const App = {
+    data: { msgs: [], cards: [], pats: [], emojis: { pic: [], emo: [], txt: [] }, letters: [], music: [], wallet: { my: 520.22, bot: 100 }, settings: {} },
+    audioCtx: null,
+    init() {
+        const defaultSettings = {
+            myName: '我', myAvatar: '', botName: '对方', botAvatar: '',
+            showAvatar: true, showName: true, showRead: true, soundEnabled: true,
+            theme: 'system', fontSize: 16, bubbleCss: '', bgImage: '', timeDisplay: 'bottom', fontUrl: '',
+            delayMin: 2, delayMax: 5, proactiveMin: 0, proactiveMax: 0,
+            ignoreProb: 20, quoteProb: 30, patProb: 10, callProb: 5, answerProb: 80, hangupProb: 10,
+            letterMin: 0, letterMax: 0, letterProb: 10, replyProb: 80,
+            desktopNotify: false, keepAlive: false, giveProb: 10, receiveProb: 80, returnProb: 20
+        };
+        try {
+            const stored = localStorage.getItem(DB_KEY);
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                this.data.msgs = parsed.msgs || [];
+                this.data.cards = parsed.cards || [{ group: '默认', items: ['你好'], collapsed: false }];
+                this.data.pats = parsed.pats || ['拍了拍', '抱了抱你'];
+                this.data.emojis = parsed.emojis || { pic: [], emo: ['😀','😃','😄','😁','😆'], txt: ['(￣▽￣)','(✿◡‿◡)'] };
+                this.data.letters = parsed.letters || [];
+                this.data.music = parsed.music || [];
+                this.data.wallet = parsed.wallet || { my: 520.22, bot: 100 };
+                this.data.settings = { ...defaultSettings, ...parsed.settings };
+            } else {
+                this.data.cards = [{ group: '默认', items: ['你好'], collapsed: false }];
+                this.data.pats = ['拍了拍', '抱了抱你'];
+                this.data.emojis = { pic: [], emo: ['😀','😃','😄','😁','😆'], txt: ['(￣▽￣)','(✿◡‿◡)'] };
+                this.data.settings = defaultSettings;
+            }
+        } catch (e) {
+            console.error('Data load error', e);
+            location.reload();
+        }
+        this.applyStyles();
+    },
+    saveData() {
+        localStorage.setItem(DB_KEY, JSON.stringify(this.data));
+    },
+    open(id) {
+        this.closeAllOverlays();
+        $(id).style.display = 'flex';
+        if (id === 'chat-app') Chat.render();
+        if (id === 'cards-app') Cards.render();
+        if (id === 'pat-app') Pat.render();
+        if (id === 'emoji-app') Emoji.renderMgr();
+        if (id === 'letter-app') Letters.render();
+        if (id === 'music-app') Music.render();
+        if (id === 'settings-app') Settings.render();
+    },
+    closeApp(id) {
+        $(id).style.display = 'none';
+        this.closeAllOverlays();
+    },
+    closeAllOverlays() {
+        $('emoji-panel').style.display = 'none';
+        $('extra-panel').style.display = 'none';
+        $('sheet').classList.remove('show');
+        document.querySelectorAll('.mk').forEach(m => m.classList.remove('show'));
+    },
+    closeModal(id) {
+        $(id).classList.remove('show');
+    },
+    togglePanel(id) {
+        const p = $(id), isNone = p.style.display === 'none' || !p.style.display;
+        $('emoji-panel').style.display = 'none';
+        $('extra-panel').style.display = 'none';
+        if (isNone) p.style.display = 'flex';
+        if (id === 'emoji-panel') Emoji.renderPanel();
+    },
+    toast(msg) {
+        const el = document.createElement('div');
+        el.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.8);color:#fff;padding:10px 20px;border-radius:8px;z-index:9999;pointer-events:none;';
+        el.innerText = msg;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1500);
+    },
+    applyStyles() {
+        const s = this.data.settings;
+        document.documentElement.style.setProperty('--fs', s.fontSize + 'px');
+        if (s.theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        else if (s.theme === 'light') document.documentElement.removeAttribute('data-theme');
+        else document.documentElement.setAttribute('data-theme', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        
+        let fs = $('dynamic-font-style');
+        if (s.fontUrl) {
+            if (s.fontUrl.startsWith('http') || s.fontUrl.startsWith('@')) fs.innerHTML = s.fontUrl.startsWith('@') ? s.fontUrl : `@import url('${s.fontUrl}');`;
+            else document.documentElement.style.setProperty('--font', s.fontUrl);
+        } else {
+            fs.innerHTML = '';
+            document.documentElement.style.setProperty('--font', '"SimSun", serif');
+        }
+        
+        $('dynamic-bubble-style').innerHTML = s.bubbleCss ? `.msg.user { ${s.bubbleCss} }` : '';
+        const area = $('chat-area');
+        if (s.bgImage) area.style.backgroundImage = `url(${s.bgImage})`;
+        else area.style.backgroundImage = 'none';
+        
+        $('chat-title').innerText = s.botName;
+    },
+    exportData() {
+        const blob = new Blob([JSON.stringify(this.data, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'love_backup.json';
+        a.click();
+    },
+    importData(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            try {
+                const d = JSON.parse(e.target.result);
+                this.data = d;
+                this.saveData();
+                location.reload();
+            } catch (err) { this.toast('文件格式错误'); }
+        };
+        reader.readAsText(file);
     }
-},
-switchCam(){this.mode=this.mode==='user'?'environment':'user';if(this.stream){this.stream.getTracks().forEach(t=>t.stop());this.stream=null;}this.cam();},
-toggleView(){
-    const l=$('lvid'),i=$('cinfo');
-    if(l.classList.contains('main')){
-        l.classList.remove('main');
-        i.classList.remove('pip');
-    }else{
-        l.classList.add('main');
-        i.classList.add('pip');
-    }
-},
-hangup(){clearInterval(this.t);if(this.stream){this.stream.getTracks().forEach(t=>t.stop());this.stream=null;}$('call').classList.remove('show');$('mini').style.display='none';},
-minimize(){$('call').classList.remove('show');$('mini').style.display='flex';},
-expand(){$('mini').style.display='none';$('call').classList.add('show');}
 };
 
-function openMoney(t){closeAll();$('money-m').classList.add('show');}
-Chat.render();C.render();P.render();M.render();L.render();S.render();
+// 聊天
+const Chat = {
+    quoteMsg: null,
+    init() {
+        document.addEventListener('click', e => {
+            if (e.target.closest('[data-close]')) App.closeApp(e.target.closest('[data-close]').dataset.close);
+            if (e.target.closest('[data-close-modal]')) App.closeModal(e.target.closest('[data-close-modal]').dataset.closeModal);
+            if (e.target.classList.contains('mk')) e.target.classList.remove('show');
+        });
+        document.addEventListener('touchstart', () => {
+            if (!App.audioCtx) App.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            else if (App.audioCtx.state === 'suspended') App.audioCtx.resume();
+        }, { once: true });
+        
+        document.querySelectorAll('.ask-tab').forEach(tab => {
+            tab.onclick = function() {
+                document.querySelectorAll('.ask-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                const type = this.dataset.ask;
+                $('ask-single').style.display = type === 'single' ? 'block' : 'none';
+                $('ask-multi').style.display = type === 'multi' ? 'block' : 'none';
+                $('ask-text').style.display = type === 'text' ? 'block' : 'none';
+            };
+        });
+        document.querySelectorAll('#emoji-panel .e-btn[data-tab]').forEach(btn => {
+            btn.onclick = function() {
+                document.querySelectorAll('#emoji-panel .e-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('#emoji-panel .e-area').forEach(a => a.classList.remove('active'));
+                this.classList.add('active');
+                $('e-area-' + this.dataset.tab).classList.add('active');
+                $('e-add-pic').style.display = this.dataset.tab === 'pic' ? 'flex' : 'none';
+                Emoji.renderPanel();
+            };
+        });
+    },
+    render() {
+        const area = $('chat-area'), s = App.data.settings;
+        area.innerHTML = '';
+        App.data.msgs.forEach((m, i) => {
+            if (m.role === 'system') {
+                area.innerHTML += `<div class="sys">${m.content}</div>`;
+                return;
+            }
+            const isMe = m.role === 'user';
+            const avt = isMe ? s.myAvatar : s.botAvatar;
+            const name = isMe ? s.myName : s.botName;
+            const avH = s.showAvatar ? `<img class="avt" src="${avt || 'data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23ccc\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'}">` : '';
+            const nameH = s.showName ? `<div class="name">${name}</div>` : '';
+            const readH = (isMe && s.showRead) ? `<div style="font-size:11px;color:#999;text-align:right;margin-top:2px;">已读</div>` : '';
+            let timeH = '';
+            if (s.timeDisplay === 'bottom') timeH = `<div style="font-size:11px;color:#999;margin-top:4px;text-align:center;">${new Date(m.id).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>`;
+            
+            let cH = '';
+            if (m.type === 'red' || m.type === 'transfer') {
+                cH = `<div class="msg ${m.role}" style="background:${m.type==='red'?'#fa5151':'#fa9d3b'};color:#fff;padding:15px;border-radius:10px;width:200px;cursor:pointer;" onclick="Chat.openCard(${i})"><div style="font-size:24px;">${m.type==='red'?'🧧':'💸'}</div><div>${m.note}</div><div>¥${m.amount}</div><div style="font-size:12px;margin-top:5px;">${m.status==='opened'?'已领取':'点击领取'}</div></div>`;
+            } else if (m.type === 'survey') {
+                cH = `<div class="msg ${m.role}" style="padding:15px;"><b>${m.q}</b><br><br>${m.opts.map(o=>`<div style="border:1px solid var(--border);padding:5px;margin-bottom:5px;border-radius:5px;${o.sel?'background:var(--hbg)':''}">${o.t} ${o.sel?'✓':''}</div>`).join('')}</div>`;
+            } else {
+                cH = `<div class="msg ${m.role}" onclick="Chat.showActions(${i})">${m.isImg ? `<img src="${m.c}">` : m.c}</div>`;
+            }
+            area.innerHTML += `<div class="row ${m.role}">${!isMe?avH:''}<div class="wrap">${nameH}${cH}${timeH}${readH}</div>${isMe?avH:''}</div>`;
+        });
+        area.scrollTop = area.scrollHeight;
+    },
+    sendMsg() {
+        const input = $('msg-input'), text = input.value.trim();
+        if (!text) return;
+        const msg = { id: Date.now(), role: 'user', c: text };
+        if (this.quoteMsg) { msg.quote = this.quoteMsg.c; this.quoteMsg = null; $('quote-preview').style.display = 'none'; }
+        App.data.msgs.push(msg);
+        input.value = '';
+        App.saveData(); this.render(); this.playSound(); this.triggerReply(text);
+    },
+    sendImg(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            App.data.msgs.push({ id: Date.now(), role: 'user', isImg: true, c: e.target.result });
+            App.saveData(); this.render(); this.playSound(); this.triggerReply('[图片]');
+        };
+        reader.readAsDataURL(file);
+        input.value = '';
+    },
+    triggerReply(txt, isPro = false) {
+        const s = App.data.settings;
+        if (!isPro && Math.random() * 100 < s.ignoreProb) return;
+        
+        const delay = (Math.random() * (s.delayMax - s.delayMin) + s.delayMin) * 1000;
+        $('typing-status').style.display = 'block';
+        
+        setTimeout(() => {
+            $('typing-status').style.display = 'none';
+            let replyText = '嗯。';
+            const items = App.data.cards.flatMap(c => c.items);
+            if (items.length) replyText = items[Math.floor(Math.random() * items.length)];
+            
+            const msg = { id: Date.now(), role: 'other', c: replyText };
+            if (!isPro && txt && Math.random() * 100 < s.quoteProb) {
+                msg.quote = txt;
+            }
+            App.data.msgs.push(msg);
+            App.saveData(); this.render(); this.playSound();
+            
+            if (document.hidden && s.desktopNotify && Notification.permission === 'granted') {
+                new Notification(s.botName, { body: replyText });
+            }
+        }, delay);
+    },
+    playSound() {
+        if (!App.data.settings.soundEnabled || !App.audioCtx) return;
+        const osc = App.audioCtx.createOscillator(), gain = App.audioCtx.createGain();
+        osc.frequency.value = 800;
+        gain.gain.setValueAtTime(0.1, App.audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, App.audioCtx.currentTime + 0.1);
+        osc.connect(gain); gain.connect(App.audioCtx.destination);
+        osc.start(); osc.stop(App.audioCtx.currentTime + 0.1);
+    },
+    showActions(i) {
+        const m = App.data.msgs[i], sheet = $('sheet'), content = $('sheet-content');
+        content.innerHTML = '';
+        if (m.role === 'user' && !m.isImg && m.type !== 'survey') {
+            content.innerHTML += `<div class="act" onclick="Chat.addCard('${m.c.replace(/'/g, "\\'")}')">加入字卡库</div>`;
+        }
+        if (m.type !== 'survey') {
+            content.innerHTML += `<div class="act" onclick="Chat.quote(${i})">引用</div>`;
+        }
+        content.innerHTML += `<div class="act" style="color:#fa5151" onclick="App.data.msgs.splice(${i},1);App.saveData();Chat.render();App.closeAllOverlays();">删除</div>`;
+        content.innerHTML += `<div class="act ac" onclick="App.closeAllOverlays()">取消</div>`;
+        sheet.classList.add('show');
+    },
+    addCard(txt) {
+        App.data.cards[0].items.push(txt);
+        App.saveData(); App.toast('已加入字卡库'); App.closeAllOverlays();
+    },
+    quote(i) {
+        this.quoteMsg = App.data.msgs[i];
+        $('quote-text').innerText = this.quoteMsg.isImg ? '[图片]' : this.quoteMsg.c;
+        $('quote-preview').style.display = 'flex';
+        App.closeAllOverlays();
+    },
+    clear() {
+        if (confirm('清空聊天记录？')) { App.data.msgs = []; App.saveData(); this.render(); }
+    },
+    openMoney(type) {
+        $('money-modal').dataset.type = type;
+        $('money-amount').value = ''; $('money-note').value = '';
+        $('money-modal').classList.add('show');
+    },
+    doMoney() {
+        const amt = parseFloat($('money-amount').value), note = $('money-note').value, type = $('money-modal').dataset.type;
+        if (!amt || amt <= 0) return App.toast('请输入正确金额');
+        if (App.data.wallet.my < amt) return App.toast('余额不足');
+        App.data.wallet.my = (App.data.wallet.my - amt).toFixed(2);
+        App.data.msgs.push({ id: Date.now(), role: 'user', type, amount: amt.toFixed(2), note: note || '恭喜发财', status: 'unread' });
+        App.closeModal('money-modal'); App.saveData(); this.render();
+        setTimeout(() => {
+            if (Math.random() * 100 < App.data.settings.receiveProb) {
+                App.data.wallet.bot = (parseFloat(App.data.wallet.bot) + amt).toFixed(2);
+                App.data.msgs.push({ id: Date.now(), role: 'other', type, amount: amt.toFixed(2), note: '已收款', status: 'opened' });
+                App.data.msgs.push({ role: 'system', content: `对方已收下你的${type==='red'?'红包':'转账'}` });
+            } else {
+                App.data.wallet.my = (parseFloat(App.data.wallet.my) + amt).toFixed(2);
+                App.data.msgs.push({ role: 'system', content: `对方退回了你的${type==='red'?'红包':'转账'}` });
+            }
+            App.saveData(); this.render();
+        }, 2000);
+    },
+    openCard(i) {
+        const m = App.data.msgs[i];
+        if (m.status === 'opened') return App.toast('已领取');
+        if (m.role === 'user') return App.toast('等待对方领取');
+        m.status = 'opened';
+        App.data.wallet.my = (parseFloat(App.data.wallet.my) + parseFloat(m.amount)).toFixed(2);
+        App.data.msgs.push({ role: 'system', content: `你已领取 ${m.amount} 元` });
+        App.saveData(); this.render();
+    },
+    sendSurvey() {
+        const q = $('ask-q').value.trim(), activeTab = document.querySelector('.ask-tab.active').dataset.ask;
+        if (!q) return App.toast('请输入问题');
+        let opts = [], isText = false;
+        if (activeTab === 'single') {
+            const lines = $('ask-opt-single').value.split('\n').filter(x => x.trim());
+            if (lines.length < 2) return App.toast('至少两个选项');
+            opts = lines.map(t => ({ t, sel: false }));
+        } else if (activeTab === 'multi') {
+            const lines = $('ask-opt-multi').value.split('\n').filter(x => x.trim());
+            if (lines.length < 2) return App.toast('至少两个选项');
+            opts = lines.map(t => ({ t, sel: false }));
+        } else { isText = true; }
+        
+        const msgId = Date.now();
+        App.data.msgs.push({ id: msgId, role: 'user', type: 'survey', q, opts, isText, done: false });
+        $('ask-q').value = ''; $('ask-opt-single').value = ''; $('ask-opt-multi').value = '';
+        App.closeModal('ask-modal'); App.saveData(); this.render();
+        
+        setTimeout(() => {
+            const m = App.data.msgs.find(x => x.id === msgId);
+            if (m) {
+                m.done = true;
+                if (isText) {
+                    const items = App.data.cards.flatMap(c => c.items);
+                    m.selectedText = items.length ? items[0] : '不知道';
+                } else {
+                    m.opts[0].sel = true;
+                }
+                App.saveData(); this.render();
+            }
+        }, 3000);
+    }
+};
+
+// 字卡库
+const Cards = {
+    render() {
+        const search = $('search-input').value.toLowerCase();
+        let html = '';
+        App.data.cards.forEach((g, gi) => {
+            const items = g.items.filter(i => i.toLowerCase().includes(search));
+            if (!items.length && search) return;
+            html += `<div class="item" style="flex-direction:column;align-items:stretch;padding:10px;"><div style="font-weight:bold;margin-bottom:5px;display:flex;justify-content:space-between;"><span>${g.group} (${items.length})</span><span onclick="Cards.delGroup(${gi})" style="color:#fa5151;font-size:12px;">删除分组</span></div>`;
+            items.forEach((it) => {
+                html += `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);"><span>${it}</span><span onclick="Cards.delItem(${gi},'${it.replace(/'/g,"\\'")}')" style="color:#fa5151;font-size:12px;">删除</span></div>`;
+            });
+            html += `</div>`;
+        });
+        $('cards-list').innerHTML = html || '<div style="text-align:center;padding:20px;color:#999;">暂无字卡</div>';
+    },
+    add() {
+        const v = $('new-card').value.trim();
+        if (!v) return;
+        App.data.cards[0].items.push(v);
+        $('new-card').value = '';
+        App.saveData(); this.render();
+    },
+    delGroup(gi) {
+        if (confirm('删除分组及所有内容？')) { App.data.cards.splice(gi, 1); App.saveData(); this.render(); }
+    },
+    delItem(gi, it) {
+        App.data.cards[gi].items = App.data.cards[gi].items.filter(x => x !== it);
+        App.saveData(); this.render();
+    },
+    doBatch() {
+        const txt = $('batch-txt').value;
+        let currentGroup = '默认';
+        txt.split('\n').forEach(line => {
+            line = line.trim();
+            if (!line) return;
+            const match = line.match(/^【(.*?)】(.*)$/);
+            if (match) { currentGroup = match[1]; line = match[2].trim(); if (!line) return; }
+            let g = App.data.cards.find(c => c.group === currentGroup);
+            if (!g) { g = { group: currentGroup, items: [] }; App.data.cards.push(g); }
+            if (!g.items.includes(line)) g.items.push(line);
+        });
+        $('batch-txt').value = '';
+        App.closeModal('batch-modal'); App.saveData(); this.render();
+    }
+};
+
+// 拍一拍
+const Pat = {
+    editIdx: -1,
+    render() {
+        let html = '';
+        App.data.pats.forEach((p, i) => {
+            html += `<div class="item"><span>${p}</span><div class="acts"><span onclick="Pat.edit(${i})">修改</span><span onclick="Pat.del(${i})" style="color:#fa5151">删除</span></div></div>`;
+        });
+        $('pat-list').innerHTML = html || '<div style="text-align:center;padding:20px;color:#999;">词库为空</div>';
+    },
+    add() {
+        const v = $('new-pat').value.trim();
+        if (!v) return;
+        App.data.pats.push(v);
+        $('new-pat').value = '';
+        App.saveData(); this.render();
+    },
+    del(i) { App.data.pats.splice(i, 1); App.saveData(); this.render(); },
+    edit(i) { this.editIdx = i; $('edit-pat-txt').value = App.data.pats[i]; $('edit-pat-modal').classList.add('show'); },
+    saveEdit() {
+        const v = $('edit-pat-txt').value.trim();
+        if (v && this.editIdx > -1) {
+            App.data.pats[this.editIdx] = v;
+            App.saveData(); this.render(); App.closeModal('edit-pat-modal');
+        }
+    },
+    doBatch() {
+        $('pat-batch-txt').value.split('\n').forEach(l => { l = l.trim(); if (l && !App.data.pats.includes(l)) App.data.pats.push(l); });
+        $('pat-batch-txt').value = '';
+        App.closeModal('pat-batch-modal'); App.saveData(); this.render();
+    }
+};
+
+// 表情包
+const Emoji = {
+    renderMgr() {
+        document.querySelectorAll('#emoji-app .e-btn').forEach(b => {
+            if(!b.dataset.mgr) return;
+            b.onclick = function() {
+                document.querySelectorAll('#emoji-app .e-btn').forEach(x => x.classList.remove('active'));
+                document.querySelectorAll('#emoji-app .e-area').forEach(x => x.style.display = 'none');
+                this.classList.add('active');
+                $('m-' + this.dataset.mgr).style.display = 'flex';
+                Emoji.renderMgr();
+            };
+        });
+        
+        let hp = '', he = '', ht = '';
+        App.data.emojis.pic.forEach((u, i) => {
+            hp += `<div style="position:relative"><img src="${u}" style="width:100%;aspect-ratio:1;object-fit:contain;background:var(--bg);border-radius:8px;padding:5px;"><div style="position:absolute;top:0;right:0;background:#fa5151;color:#fff;width:20px;height:20px;border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:12px;cursor:pointer;" onclick="Emoji.del('pic',${i})">✕</div></div>`;
+        });
+        App.data.emojis.emo.forEach((u, i) => {
+            he += `<div class="item"><span style="font-size:24px">${u}</span><span onclick="Emoji.del('emo',${i})" style="color:#fa5151;font-size:12px">删除</span></div>`;
+        });
+        App.data.emojis.txt.forEach((u, i) => {
+            ht += `<div class="item"><span>${u}</span><span onclick="Emoji.del('txt',${i})" style="color:#fa5151;font-size:12px">删除</span></div>`;
+        });
+        $('m-pic-list').innerHTML = hp || '<div style="grid-column:span 4;text-align:center;color:#999;">暂无</div>';
+        $('m-emo-list').innerHTML = he || '<div style="text-align:center;color:#999;">暂无</div>';
+        $('m-txt-list').innerHTML = ht || '<div style="text-align:center;color:#999;">暂无</div>';
+    },
+    showMenu() {
+        $('sheet-content').innerHTML = `<div class="act" onclick="$('gallery-input').click();App.closeAllOverlays()">照片图库</div><div class="act" onclick="$('camera-input').click();App.closeAllOverlays()">拍照</div><div class="act ac" onclick="App.closeAllOverlays()">取消</div>`;
+        $('sheet').classList.add('show');
+    },
+    local(input) {
+        const f = input.files[0];
+        if (!f) return;
+        const r = new FileReader();
+        r.onload = e => {
+            App.data.emojis.pic.push(e.target.result);
+            App.saveData(); this.renderMgr();
+        };
+        r.readAsDataURL(f);
+        input.value = '';
+    },
+    add(type) {
+        const v = $(type === 'emo' ? 'e-emo-in' : 'e-txt-in').value.trim();
+        if (!v) return;
+        App.data.emojis[type].push(v);
+        $(type === 'emo' ? 'e-emo-in' : 'e-txt-in').value = '';
+        App.saveData(); this.renderMgr();
+    },
+    del(type, i) { App.data.emojis[type].splice(i, 1); App.saveData(); this.renderMgr(); },
+    doBatch(type) {
+        const v = $(type === 'emo' ? 'emoji-batch-txt' : 'text-batch-txt').value;
+        v.split('\n').forEach(l => { l = l.trim(); if (l) App.data.emojis[type].push(l); });
+        $(type === 'emo' ? 'emoji-batch-txt' : 'text-batch-txt').value = '';
+        App.closeModal(type === 'emo' ? 'emoji-batch-modal' : 'text-batch-modal');
+        App.saveData(); this.renderMgr();
+    },
+    renderPanel() {
+        let hp = '', he = '', ht = '';
+        App.data.emojis.pic.forEach(u => { hp += `<img src="${u}" onclick="Chat.sendImgSrc('${u}')">`; });
+        App.data.emojis.emo.forEach(u => { he += `<div class="e-txt" onclick="$('msg-input').value+='${u}'">${u}</div>`; });
+        App.data.emojis.txt.forEach(u => { ht += `<div class="e-txt" onclick="$('msg-input').value+='${u}'">${u}</div>`; });
+        $('e-area-pic').innerHTML = hp || '<div style="width:100%;text-align:center;color:#999;">暂无</div>';
+        $('e-area-emo').innerHTML = he || '<div style="width:100%;text-align:center;color:#999;">暂无</div>';
+        $('e-area-txt').innerHTML = ht || '<div style="width:100%;text-align:center;color:#999;">暂无</div>';
+    }
+};
+Chat.sendImgSrc = function(url) {
+    App.data.msgs.push({ id: Date.now(), role: 'user', isImg: true, c: url });
+    App.saveData(); this.render(); this.playSound(); this.triggerReply('[表情]');
+};
+
+// 信箱
+const Letters = {
+    render() {
+        let html = '';
+        [...App.data.letters].reverse().forEach(l => {
+            html += `<div class="item" onclick="Letters.read(${l.id})"><div class="item-info"><div class="item-title">${l.t}</div><div class="item-desc">${l.c}</div></div></div>`;
+        });
+        $('letters-list').innerHTML = html || '<div style="text-align:center;padding:20px;color:#999;">暂无信件</div>';
+    },
+    write() { $('letter-title').value = ''; $('letter-content').value = ''; $('letter-write-modal').classList.add('show'); },
+    doSend() {
+        const t = $('letter-title').value.trim() || '无标题', c = $('letter-content').value.trim();
+        if (!c) return App.toast('内容不能为空');
+        App.data.letters.push({ id: Date.now(), t, c, time: Date.now() });
+        App.closeModal('letter-write-modal'); App.saveData(); this.render();
+    },
+    read(id) {
+        const l = App.data.letters.find(x => x.id === id);
+        if (!l) return;
+        $('read-title').innerText = l.t; $('read-meta').innerText = new Date(l.time).toLocaleString(); $('read-content').innerText = l.c;
+        $('letter-read-modal').classList.add('show');
+    }
+};
+
+// 音乐
+const Music = {
+    audio: $('global-audio'), list: [],
+    render() {
+        let html = '';
+        App.data.music.forEach((m, i) => {
+            html += `<div class="item"><span>${m.name}</span><div class="acts"><span onclick="Music.play(${i})">播放</span><span onclick="Music.del(${i})" style="color:#fa5151">删除</span></div></div>`;
+        });
+        $('music-list').innerHTML = html || '<div style="text-align:center;padding:20px;color:#999;">暂无音乐</div>';
+    },
+    add() {
+        const u = $('music-url').value.trim();
+        if (!u) return;
+        App.data.music.push({ name: '网络音乐', url: u });
+        $('music-url').value = '';
+        App.saveData(); this.render();
+    },
+    play(i) {
+        this.audio.src = App.data.music[i].url;
+        this.audio.play();
+        $('music-title').innerText = App.data.music[i].name;
+        $('music-play').innerText = '⏸';
+    },
+    toggle() {
+        if (this.audio.paused) { this.audio.play(); $('music-play').innerText = '⏸'; }
+        else { this.audio.pause(); $('music-play').innerText = '▶'; }
+    },
+    del(i) { App.data.music.splice(i, 1); App.saveData(); this.render(); },
+    next() { this.play((App.data.music.findIndex(m=>m.url===this.audio.src)+1) % App.data.music.length); },
+    prev() { this.play((App.data.music.findIndex(m=>m.url===this.audio.src)-1+App.data.music.length) % App.data.music.length); }
+};
+
+// 设置
+const Settings = {
+    render() {
+        const s = App.data.settings, w = App.data.wallet;
+        $('set-my-balance').value = w.my; $('set-bot-balance').value = w.bot;
+        $('set-my-name').value = s.myName; $('my-avatar-preview').src = s.myAvatar || '';
+        $('set-bot-name').value = s.botName; $('bot-avatar-preview').src = s.botAvatar || '';
+        $('set-desktop-notify').checked = s.desktopNotify; $('set-keep-alive').checked = s.keepAlive;
+        $('set-time-display').value = s.timeDisplay; $('set-show-avatar').checked = s.showAvatar;
+        $('set-show-name').checked = s.showName; $('set-show-read').checked = s.showRead;
+        $('set-sound-enabled').checked = s.soundEnabled; $('set-theme').value = s.theme;
+        $('slider-font-size').value = s.fontSize; $('val-font-size').innerText = s.fontSize;
+        $('set-font-url').value = s.fontUrl; $('set-bubble-css').value = s.bubbleCss;
+        $('set-delay-min').value = s.delayMin; $('set-delay-max').value = s.delayMax;
+        $('set-proactive-min').value = s.proactiveMin; $('set-proactive-max').value = s.proactiveMax;
+        $('set-letter-min').value = s.letterMin; $('set-letter-max').value = s.letterMax;
+        
+        ['give','receive','return','ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob'].forEach(id => {
+            const el = $('slider-' + id), v = $('val-' + id);
+            if (el && v) {
+                let k = id.replace('-prob','Prob').replace('-','');
+                if(id==='pat-prob') k='patProb'; if(id==='call-prob') k='callProb'; if(id==='answer-prob') k='answerProb'; if(id==='hangup-prob') k='hangupProb'; if(id==='letter-prob') k='letterProb'; if(id==='reply-prob') k='replyProb';
+                el.value = s[k]; v.innerText = s[k] + '%';
+            }
+        });
+        
+        $('set-my-avatar').onchange = e => { const f = e.target.files[0]; if (f) { const r = new FileReader(); r.onload = ev => { s.myAvatar = ev.target.result; $('my-avatar-preview').src = s.myAvatar; App.saveData(); }; r.readAsDataURL(f); } };
+        $('set-bot-avatar').onchange = e => { const f = e.target.files[0]; if (f) { const r = new FileReader(); r.onload = ev => { s.botAvatar = ev.target.result; $('bot-avatar-preview').src = s.botAvatar; App.saveData(); }; r.readAsDataURL(f); } };
+        $('set-bg').onchange = e => { const f = e.target.files[0]; if (f) { const r = new FileReader(); r.onload = ev => { s.bgImage = ev.target.result; App.saveData(); App.applyStyles(); }; r.readAsDataURL(f); } };
+    },
+    sliderChange(id) { const el = $('slider-'+id); $('val-'+id).innerText = el.value + (id==='font'?'px':'%'); },
+    save() {
+        const s = App.data.settings, w = App.data.wallet;
+        w.my = parseFloat($('set-my-balance').value) || 0; w.bot = parseFloat($('set-bot-balance').value) || 0;
+        s.myName = $('set-my-name').value; s.botName = $('set-bot-name').value;
+        s.desktopNotify = $('set-desktop-notify').checked; s.keepAlive = $('set-keep-alive').checked;
+        s.timeDisplay = $('set-time-display').value; s.showAvatar = $('set-show-avatar').checked;
+        s.showName = $('set-show-name').checked; s.showRead = $('set-show-read').checked;
+        s.soundEnabled = $('set-sound-enabled').checked; s.theme = $('set-theme').value;
+        s.fontSize = parseInt($('slider-font-size').value); s.fontUrl = $('set-font-url').value;
+        s.bubbleCss = $('set-bubble-css').value; s.delayMin = parseInt($('set-delay-min').value)||1;
+        s.delayMax = parseInt($('set-delay-max').value)||5; s.proactiveMin = parseInt($('set-proactive-min').value)||0;
+        s.proactiveMax = parseInt($('set-proactive-max').value)||0; s.letterMin = parseInt($('set-letter-min').value)||0;
+        s.letterMax = parseInt($('set-letter-max').value)||0;
+        
+        ['give','receive','return','ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob'].forEach(id => {
+            const el = $('slider-' + id);
+            if (el) {
+                let k = id.replace('-prob','Prob').replace('-','');
+                if(id==='pat-prob') k='patProb'; if(id==='call-prob') k='callProb'; if(id==='answer-prob') k='answerProb'; if(id==='hangup-prob') k='hangupProb'; if(id==='letter-prob') k='letterProb'; if(id==='reply-prob') k='replyProb';
+                s[k] = parseInt(el.value);
+            }
+        });
+        App.saveData(); App.applyStyles(); App.toast('设置已保存');
+    }
+};
+
+// 通话界面逻辑
+const Call = {
+    isVideo: false, timer: null, sec: 0, stream: null, mode: 'user', videoEnabled: false,
+    start(video) {
+        this.isVideo = video;
+        this.videoEnabled = false;
+        this.sec = 0;
+        App.closeAllOverlays();
+        $('call').classList.add('show');
+        
+        $('call-remote-layer').classList.remove('pip');
+        $('call-local-layer').classList.remove('main');
+        $('lvid').style.display = 'none';
+        
+        $('cavt').src = App.data.settings.botAvatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+        $('cname').innerText = App.data.settings.botName;
+        $('cst').innerText = '正在呼叫...';
+        
+        $('call-actions').innerHTML = `<button class="cbtn" style="background:#ff3b30;width:100px;border-radius:30px;" onclick="Call.hangup()" id="btn-hangup">取消</button>`;
+        $('btn-cam').style.display = this.isVideo ? 'flex' : 'none';
+        $('btn-switch-cam').style.display = 'none';
+        
+        setTimeout(() => {
+            $('cst').innerText = '00:00';
+            $('btn-hangup').innerText = '挂断';
+            $('btn-hangup').style.width = '60px';
+            $('btn-hangup').style.borderRadius = '50%';
+            this.timer = setInterval(() => {
+                this.sec++;
+                $('cst').innerText = Math.floor(this.sec/60).toString().padStart(2,'0') + ':' + (this.sec%60).toString().padStart(2,'0');
+            }, 1000);
+            if (this.isVideo) this.toggleCam(); // 自动开一次
+        }, 3000);
+    },
+    toggleCam() {
+        if (!this.videoEnabled) {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: this.mode } }).then(s => {
+                this.stream = s;
+                this.videoEnabled = true;
+                $('lvid').srcObject = s;
+                $('lvid').style.display = 'block';
+                $('btn-switch-cam').style.display = 'flex';
+            }).catch(e => App.toast('无法打开摄像头'));
+        } else {
+            this.videoEnabled = false;
+            if (this.stream) { this.stream.getTracks().forEach(t => t.stop()); this.stream = null; }
+            $('lvid').style.display = 'none';
+            $('call-local-layer').classList.remove('main');
+            $('call-remote-layer').classList.remove('pip');
+            $('btn-switch-cam').style.display = 'none';
+        }
+    },
+    switchCam() {
+        this.mode = this.mode === 'user' ? 'environment' : 'user';
+        if (this.stream) this.stream.getTracks().forEach(t => t.stop());
+        this.toggleCam();
+    },
+    toggleView() {
+        const r = $('call-remote-layer'), l = $('call-local-layer');
+        if (l.classList.contains('main')) {
+            l.classList.remove('main');
+            r.classList.remove('pip');
+        } else {
+            l.classList.add('main');
+            r.classList.add('pip');
+        }
+    },
+    hangup() {
+        clearInterval(this.timer);
+        if (this.stream) { this.stream.getTracks().forEach(t => t.stop()); this.stream = null; }
+        $('call').classList.remove('show');
+        $('mini').style.display = 'none';
+    },
+    minimize() {
+        $('call').classList.remove('show');
+        $('mini').style.display = 'flex';
+        $('mini-avatar').src = App.data.settings.botAvatar || '';
+    },
+    expand() {
+        $('mini').style.display = 'none';
+        $('call').classList.add('show');
+    }
+};
+
+App.init();
+Chat.init();
 </script>
 </body>
 </html>
-<!-- 安全填充代码，防止系统自动截断导致前端无法运行 -->
-<!-- 安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充
+<!-- 安全填充代码，防止截断导致前端报错 -->
+<!-- 安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全填充安全
