@@ -347,12 +347,115 @@ const Chat={
             const askAmt = (Math.random() * 50 + 10).toFixed(2);
             App.data.wallet.bot = (parseFloat(App.data.wallet.bot) + parseFloat(askAmt)).toFixed(2);
             App.data.messages.push({id: Date.now(), role: 'system', content: `对方给自己申请了 ¥${askAmt} 余额（当前对方余额：¥${App.data.wallet.bot}）`, time: Date.now()});
-            const sendAmt = (Math.random() * 20 + 5).toFixed(2);
-            const type = Math.random() > 0.5 ? 'red' : 'transfer';
-            const note = type === 'red' ? '给你发个红包~' : '拿去买好吃的';
-            App.data.messages.push({id: Date.now() + 1, role: 'other', type: type, amount: sendAmt, note: note, status: 'unread', time: Date.now()});
-            this.render(); this.scrollToBottom(true); App.saveData(); this.playSound();
+            Chat.sendBotMoney();
         };
+    },
+    /* ============================================================
+     * 机器人消息构造：纯 Math.random() 加权抽签
+     * 从你填写的字卡库 / 图片表情 / Emoji / 颜文字中随机抽一条
+     * 无任何网络请求、无任何 AI/模型调用
+     * ============================================================ */
+    buildBotMessage(userText, isProactive = false) {
+        const s = App.data.settings;
+        const allCards = App.data.cards.flatMap(c => c.items).filter(i => !i.startsWith('!'));
+        const pics = App.data.emojis.pic || [];
+        const emojis = App.data.emojis.emoji || [];
+        const kaomojis = App.data.emojis.text || [];
+
+        const choices = [];
+        if (allCards.length > 0) choices.push({ type: 'text', weight: 50, arr: allCards });
+        if (pics.length > 0) choices.push({ type: 'pic', weight: 25, arr: pics });
+        if (emojis.length > 0) choices.push({ type: 'emoji', weight: 15, arr: emojis });
+        if (kaomojis.length > 0) choices.push({ type: 'kaomoji', weight: 10, arr: kaomojis });
+
+        let content = '嗯。';
+        let isImg = false;
+
+        if (choices.length > 0) {
+            const total = choices.reduce((a, c) => a + c.weight, 0);
+            let r = Math.random() * total;
+            let picked = choices[0];
+            for (const c of choices) { r -= c.weight; if (r <= 0) { picked = c; break; } }
+            const arr = picked.arr;
+            content = arr[Math.floor(Math.random() * arr.length)];
+            if (picked.type === 'pic') isImg = true;
+        } else {
+            const fallbacks = ['嗯。', '好的~', '知道了', '嗯嗯', '哦~'];
+            content = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+        }
+
+        const replyMsg = { id: Date.now(), role: 'other', content, time: Date.now() };
+        if (isImg) replyMsg.isImg = true;
+
+        if (!isProactive && userText && Math.random() * 100 < s.quoteProb) {
+            const recentUserMsgs = App.data.messages.filter(m => m.role === 'user').slice(-10);
+            if (recentUserMsgs.length > 0) {
+                const q = recentUserMsgs[Math.floor(Math.random() * recentUserMsgs.length)];
+                replyMsg.quote = { id: q.id, content: q.isImg ? '[图片]' : q.content };
+            }
+        }
+        return replyMsg;
+    },
+    /* 机器人主动发红包/转账（纯随机金额与类型） */
+    sendBotMoney() {
+        const sendAmt = (Math.random() * 20 + 5).toFixed(2);
+        const type = Math.random() > 0.5 ? 'red' : 'transfer';
+        const note = type === 'red' ? '给你发个红包~' : '拿去买好吃的';
+        App.data.messages.push({ id: Date.now(), role: 'other', type, amount: sendAmt, note, status: 'unread', time: Date.now() });
+        this.currentLimit = Math.max(this.currentLimit, 50);
+        this.render();
+        this.scrollToBottom(true);
+        App.saveData();
+        this.playSound();
+    },
+    /* 机器人主动向你发起问卷（选项从字卡库随机抽取） */
+    sendBotSurvey() {
+        const allCards = App.data.cards.flatMap(c => c.items).filter(i => !i.startsWith('!'));
+        if (allCards.length < 2) return;
+        const shuffled = [...allCards].sort(() => Math.random() - 0.5);
+        const optCount = Math.min(3, shuffled.length);
+        const options = shuffled.slice(0, optCount).map(t => ({ text: t, selected: false }));
+        const questions = [
+            '如果让你选一个，你会选哪个？',
+            '你喜欢哪一个呢？',
+            '如果是你，你会怎么选？',
+            '选一个最符合你现在心情的~',
+            '给我一个答案好不好？'
+        ];
+        const question = questions[Math.floor(Math.random() * questions.length)];
+        App.data.messages.push({
+            id: Date.now(),
+            role: 'other',
+            type: 'survey',
+            question,
+            options,
+            isText: false,
+            status: 'pending',
+            time: Date.now()
+        });
+        this.currentLimit = Math.max(this.currentLimit, 50);
+        this.render();
+        this.scrollToBottom(true);
+        App.saveData();
+        this.playSound();
+    },
+    /* 用户回答机器人发来的问卷 */
+    answerBotSurvey(msgIndex, optionIndex) {
+        const msg = App.data.messages[msgIndex];
+        if (!msg || msg.type !== 'survey' || msg.status === 'answered') return;
+        msg.options.forEach((o, i) => o.selected = i === optionIndex);
+        msg.status = 'answered';
+        msg.selectedText = msg.options[optionIndex].text;
+        App.data.messages.push({
+            id: Date.now(),
+            role: 'system',
+            content: `你选择了「${msg.selectedText}」`,
+            time: Date.now()
+        });
+        this.render();
+        App.saveData();
+        this.playSound();
+        setTimeout(() => { this.triggerReply("", true); }, 1500 + Math.random() * 1500);
     },
     editProfile(isMe) {
         this.editingProfileIsMe = isMe;
@@ -386,7 +489,6 @@ const Chat={
         
         let rawPat = selectedText;
         if (!rawPat) {
-            // 如果没有指定文本（对方主动拍，或者概率回拍），则随机
             rawPat = App.data.pats.length>0 ? App.data.pats[Math.floor(Math.random()*App.data.pats.length)] : '拍了拍';
         }
         
@@ -396,19 +498,16 @@ const Chat={
         
         rawPat = rawPat.trim();
 
-        // 智能拼装拍一拍文本
+        // 按固定规则拼接拍一拍文本
         if (rawPat === '拍了拍') {
             finalMsg = `${subject} 拍了拍 ${target}`;
         } else {
             let text = rawPat.replace(/我/g, subject).replace(/你/g, target);
             if (!text.includes(subject) && !text.includes(target)) {
-                // 没有任何名字或代词，如 "说:睡觉了"
                 finalMsg = `${subject}拍了拍${target}${text}`;
             } else if (!text.includes(subject)) {
-                // 只有宾语没主语，如 "抱了抱对方"
                 finalMsg = `${subject}${text}`;
             } else {
-                // 主语宾语都有
                 finalMsg = text;
             }
         }
@@ -459,11 +558,11 @@ const Chat={
                 msg.status='opened';
                 App.data.messages.push({role:'system',content:`对方已收下你的${type==='red'?'红包':'转账'} ${amt.toFixed(2)} 元`,time:Date.now()});
                 if(Math.random() < 0.7){
-                    const allCards=App.data.cards.flatMap(c=>c.items);
-                    if(allCards.length>0){
-                        const replyText=allCards[Math.floor(Math.random()*allCards.length)];
-                        setTimeout(() => {App.data.messages.push({id:Date.now()+1,role:'other',content:replyText,time:Date.now()});this.render(); App.saveData(); this.playSound();}, 1000);
-                    }
+                    setTimeout(() => {
+                        const replyMsg = this.buildBotMessage("", true);
+                        App.data.messages.push(replyMsg);
+                        this.render(); App.saveData(); this.playSound();
+                    }, 1000);
                 }
             } else if(rand < (receiveProb + returnProb)){
                 App.data.wallet.my=(parseFloat(App.data.wallet.my)+amt).toFixed(2);
@@ -508,7 +607,13 @@ const Chat={
             }else if(msg.type==='survey'){
                 let optsHtml='';
                 if(!msg.isText){optsHtml=msg.options.map((opt,oi)=>`<div class="survey-option ${opt.selected?'selected':''}"><div class="survey-opt-key">${String.fromCharCode(65+oi)}</div><div class="survey-radio"></div><div>${opt.text}</div>${opt.selected?'<div class="survey-check">✓</div>':''}</div>`).join('');}
-                let statusText=msg.status==='answered'?'已回答':'待回答';let footerText=msg.status==='answered'?`${App.data.settings.botName} 选了「${msg.selectedText}」`:'等待对方作答...';
+                let statusText=msg.status==='answered'?'已回答':'待回答';
+                let footerText;
+                if(msg.role==='user'){
+                    footerText = msg.status==='answered' ? `${App.data.settings.botName} 选了「${msg.selectedText}」` : '等待对方作答...';
+                } else {
+                    footerText = msg.status==='answered' ? `你选了「${msg.selectedText}」` : '等待你作答...';
+                }
                 contentHtml=`<div class="survey-card"><div class="survey-header"><div class="survey-tag">问问TA</div><div class="survey-status">${statusText}</div></div><div class="survey-question">${msg.question}</div><div class="survey-options">${optsHtml}</div><div class="survey-footer">${footerText}</div></div>`;
             }else{
                 let quoteHtml=msg.quote?`<div class="msg quote">${msg.quote.content}</div>`:'';let body=msg.isImg?`<img src="${msg.content}">`:msg.content;
@@ -517,6 +622,13 @@ const Chat={
             row.innerHTML=`${!isMe?avatarHtml:''}<div class="msg-content-wrapper"><div class="msg-header">${nameHtml}</div>${contentHtml}${timeHtml}${readHtml}</div>${isMe?avatarHtml:''}`;
             const targetEl=row.querySelector('.msg')||row.querySelector('.money-card')||row.querySelector('.survey-card');
             if(targetEl){targetEl.onclick=(e)=>{if(targetEl.classList.contains('money-card'))return;if(s.timeDisplay==='click'&&targetEl.classList.contains('msg')){const t=targetEl.nextElementSibling;if(t&&t.classList.contains('msg-time-bottom'))t.classList.toggle('show');}this.showMsgActions(msg);};}
+            /* 对方发来的问卷：点击选项作答 */
+            if(msg.type==='survey' && msg.role==='other' && msg.status==='pending' && !msg.isText){
+                row.querySelectorAll('.survey-option').forEach((optEl, oi) => {
+                    optEl.style.cursor = 'pointer';
+                    optEl.onclick = (e) => { e.stopPropagation(); this.answerBotSurvey(i, oi); };
+                });
+            }
             fragment.appendChild(row);
         });
         area.innerHTML='';area.appendChild(fragment);if(!this.isFetchingHistory)this.scrollToBottom();
@@ -556,16 +668,17 @@ const Chat={
         const delay=(Math.random()*(s.delayMax-s.delayMin)+s.delayMin)*1000;
         $('typing-status').style.display='block';$('typing-status').innerText=s.typingText;
         setTimeout(()=>{
-            $('typing-status').style.display='none';let replyText="嗯。";const allCards=App.data.cards.flatMap(c=>c.items).filter(i=>!i.startsWith('!'));if(allCards.length>0)replyText=allCards[Math.floor(Math.random()*allCards.length)];
-            let replyMsg={id:Date.now(),role:'other',content:replyText,time:Date.now()};
-            if(!isProactive&&userText&&Math.random()*100<s.quoteProb){const recentUserMsgs=App.data.messages.filter(m=>m.role==='user').slice(-10);if(recentUserMsgs.length>0){const q=recentUserMsgs[Math.floor(Math.random()*recentUserMsgs.length)];replyMsg.quote={id:q.id,content:q.isImg?'[图片]':q.content};}}
-            App.data.messages.push(replyMsg);this.currentLimit=Math.max(this.currentLimit,50);this.render();App.saveData();this.playSound();
-            if(document.hidden&&s.desktopNotify&&Notification.permission==='granted'){try{new Notification(s.botName,{body:replyText,icon:s.botAvatar||''});}catch(e){}}
+            $('typing-status').style.display='none';
+            const replyMsg = this.buildBotMessage(userText, isProactive);
+            App.data.messages.push(replyMsg);
+            this.currentLimit=Math.max(this.currentLimit,50);
+            this.render();App.saveData();this.playSound();
+            if(document.hidden&&s.desktopNotify&&Notification.permission==='granted'){try{new Notification(s.botName,{body:replyMsg.isImg?'[表情包]':replyMsg.content,icon:s.botAvatar||''});}catch(e){}}
         },delay);
     }
 };
 
-/* 主动发消息定时器（真功能，纯字卡随机，不涉及任何 AI） */
+/* 主动发消息定时器：纯 Math.random() 随机触发，无任何 AI/网络调用 */
 const Proactive = {
     timer: null,
     init() { this.schedule(); },
@@ -579,12 +692,21 @@ const Proactive = {
         const hi = Math.max(min, max);
         const delayMs = (Math.random() * (hi - lo) + lo) * 60 * 1000;
         this.timer = setTimeout(() => {
-            try {
-                const allCards = App.data.cards.flatMap(c => c.items).filter(i => !i.startsWith('!'));
-                if (allCards.length > 0) Chat.triggerReply("", true);
-            } catch (e) { console.error('[Proactive] 异常', e); }
+            try { this.fire(); } catch (e) { console.error('[Proactive] 异常', e); }
             this.schedule();
         }, delayMs);
+    },
+    fire() {
+        const allCards = App.data.cards.flatMap(c => c.items).filter(i => !i.startsWith('!'));
+        if (allCards.length === 0 && (App.data.emojis.pic||[]).length === 0 && (App.data.emojis.emoji||[]).length === 0) return;
+        const rand = Math.random() * 100;
+        if (rand < 75) {
+            Chat.triggerReply("", true);
+        } else if (rand < 88) {
+            Chat.sendBotMoney();
+        } else {
+            Chat.sendBotSurvey();
+        }
     }
 };
 
@@ -717,7 +839,7 @@ const Emoji={
     editText(idx){this.editingType='text';this.editingIdx=idx;$('edit-card-text').value=App.data.emojis.text[idx];$('edit-card-modal').classList.add('show');},
     renderManager(){
         const grid=$('emoji-grid-full');grid.innerHTML='';
-        if(App.data.emojis.pic.length===0){grid.innerHTML='<div style="grid-column:span 4;text-align:center;color:#999;padding:20px;">暂无表情包</div>';}else{App.data.emojis.pic.forEach((url,idx)=>{const container=document.createElement('div');container.style.position='relative';container.innerHTML=`<img src="${url}" style="width:100%;aspect-ratio:1;object-fit:contain;background:var(--bg-color);border-radius:8px;border:1px solid var(--border-color);padding:5px;"><span style="position:absolute;top:-5px;right:-5px;background:#fa5151;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;" onclick="Emoji.delPic(${idx})">✕</span>`;grid.appendChild(container);});}
+        if(App.data.emojis.pic.length===0){grid.innerHTML='<div style="grid-column:span 4;text-align:center;color:#999;padding:20px;">暂无表情包</div>';}else{App.data.emojis.pic.forEach((url,idx)=>{const container=document.createElement('div');container.style.position='relative';container.innerHTML=`<img src="${url}" style="width:100%;aspect-ratio:1;object-fit:contain;background:var(--bg-color);border-radius:8px;border:1px solid var(--border-color);padding:5px;cursor:pointer;" title="点击选择操作"><span style="position:absolute;top:-5px;right:-5px;background:#fa5151;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;" onclick="event.stopPropagation();Emoji.delPic(${idx})">✕</span>`;grid.appendChild(container);});}
         const emojiList=$('emoji-list-container');emojiList.innerHTML='';App.data.emojis.emoji.forEach((e,idx)=>{const div=document.createElement('div');div.className='card-item';div.innerHTML=`<span style="font-size:24px;">${e}</span><div class="card-actions"><span onclick="Emoji.editEmoji(${idx})">修改</span><span onclick="Emoji.delEmoji(${idx})">删除</span></div>`;emojiList.appendChild(div);});
         const textList=$('text-list-container');textList.innerHTML='';App.data.emojis.text.forEach((t,idx)=>{const div=document.createElement('div');div.className='card-item';div.innerHTML=`<span>${t}</span><div class="card-actions"><span onclick="Emoji.editText(${idx})">修改</span><span onclick="Emoji.delText(${idx})">删除</span></div>`;textList.appendChild(div);});
     },
@@ -731,369 +853,4 @@ const Emoji={
         const textDiv=$('emoji-content-text');textDiv.innerHTML='';App.data.emojis.text.forEach(t=>{const div=document.createElement('div');div.className='emoji-txt-item';div.innerText=t;div.onclick=()=>{$('msg-input').value+=t;};textDiv.appendChild(div);});
     }
 };
-
-const Letters={
-    currentTab:'from_ta',
-    init(){
-        $('btn-write-letter').onclick=()=>{$('write-letter-title').value='';$('write-letter-content').value='';$('write-letter-modal').classList.add('show');};
-        $('btn-send-letter').onclick=()=>this.send();
-        document.querySelectorAll('.letter-tab').forEach(tab=>{tab.onclick=()=>{document.querySelectorAll('.letter-tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');this.currentTab=tab.dataset.tab;this.render();};});
-    },
-    render(){
-        const list=$('letters-list');list.innerHTML='';const filtered=App.data.letters.filter(l=>l.type===this.currentTab);
-        if(filtered.length===0){list.innerHTML=`<div style="text-align:center;padding:20px;color:#999;">暂无信件</div>`;return;}
-        [...filtered].reverse().forEach((letter)=>{const div=document.createElement('div');div.className='list-item';div.innerHTML=`<div class="list-item-info"><div class="list-item-title">${letter.title}</div><div class="list-item-desc">${letter.content}</div></div><div class="card-actions"><span onclick="Letters.read(${letter.id})">阅读</span></div>`;list.appendChild(div);});
-    },
-    send(){
-        const title=$('write-letter-title').value.trim()||'无标题';const content=$('write-letter-content').value.trim();
-        if(!content)return App.toast('信件内容不能为空');
-        App.data.letters.push({id:Date.now(),title,content,time:Date.now(),type:'from_me'});
-        App.closeModal('write-letter-modal');App.saveData();if(this.currentTab==='from_me')this.render();App.toast('信件已寄出');
-        if(Math.random()*100<App.data.settings.replyProb){
-            const allCards=App.data.cards.flatMap(c=>c.items);
-            setTimeout(()=>{
-                const replyContent=allCards.length>0?allCards[Math.floor(Math.random()*allCards.length)]:'我收到你的信了。';
-                App.data.letters.push({id:Date.now(),title:`回复: ${title}`,content:`看到你的信了。\n\n${replyContent}`,time:Date.now(),type:'reply'});
-                App.saveData();if($('letter-app').style.display==='flex'&&this.currentTab==='reply')this.render();
-                App.toast('收到了一封新回信');if(Notification.permission==='granted'&&App.data.settings.desktopNotify){try{new Notification('新信件',{body:'对方回复了你的信件'});}catch(e){}}
-            },5000+Math.random()*5000);
-        }
-    },
-    read(id){const letter=App.data.letters.find(l=>l.id===id);if(!letter)return;$('read-letter-title').innerText=letter.title;$('read-letter-meta').innerText=`${letter.type==='from_me'?'我':App.data.settings.botName} 写于 ${new Date(letter.time).toLocaleString()}`;$('read-letter-content').innerText=letter.content;$('read-letter-modal').classList.add('show');}
-};
-
-const Music={
-    audio:$('global-audio'),
-    init(){
-        this.audio.addEventListener('timeupdate',()=>{if(!this.audio.duration)return;const p=(this.audio.currentTime/this.audio.duration)*100;$('music-progress-bar').value=p;$('music-cur-time').innerText=this.formatTime(this.audio.currentTime);$('music-total-time').innerText=this.formatTime(this.audio.duration);});
-        this.audio.addEventListener('ended',()=>this.next());$('btn-play').onclick=()=>this.togglePlay();$('btn-next').onclick=()=>this.next();$('btn-prev').onclick=()=>this.prev();$('btn-mode').onclick=()=>this.toggleMode();
-        $('btn-add-music-url').onclick=()=>this.addUrl();$('btn-add-music-file').onclick=()=>$('music-file-input').click();
-        $('music-file-input').onchange=(e)=>{const file=e.target.files[0];if(!file)return;if(file.size>4*1024*1024)return App.toast('本地音乐过大，建议使用URL(4MB内)');const reader=new FileReader();reader.onload=(ev)=>{App.data.music.list.push({name:file.name,url:ev.target.result});App.saveData();this.renderList();};reader.readAsDataURL(file);e.target.value='';};
-        $('music-progress-bar').oninput=function(){if(Music.audio.duration)Music.audio.currentTime=(this.value/100)*Music.audio.duration;};
-    },
-    formatTime(s){if(isNaN(s))return '00:00';const m=Math.floor(s/60);const sec=Math.floor(s%60);return `${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;},
-    renderList(){const list=$('music-list');list.innerHTML='';if(App.data.music.list.length===0){list.innerHTML='<div style="text-align:center;padding:20px;color:#999;font-size:14px;">暂无音乐，请添加</div>';return;}App.data.music.list.forEach((item,idx)=>{const div=document.createElement('div');div.className='list-item';div.innerHTML=`<div class="list-item-info"><div class="list-item-title" style="color:${idx===App.data.music.currentIndex?'var(--accent)':'var(--text-color)'}">${item.name}</div></div><div class="card-actions"><span onclick="Music.play(${idx})">播放</span><span onclick="Music.rename(${idx})">改名</span><span onclick="Music.remove(${idx})">删除</span></div>`;list.appendChild(div);});},
-    addUrl(){const url=$('music-url-input').value.trim();if(!url)return;App.data.music.list.push({name:'网络音乐',url:url});App.saveData();this.renderList();$('music-url-input').value='';},
-    rename(idx){const name=prompt('输入新名称',App.data.music.list[idx].name);if(name){App.data.music.list[idx].name=name;App.saveData();this.renderList();if(App.data.music.currentIndex===idx)$('music-title').innerText=name;}},
-    remove(idx){if(App.data.music.currentIndex===idx){this.audio.pause();App.data.music.currentIndex=-1;$('music-title').innerText='未在播放';$('btn-play').innerText='▶';}App.data.music.list.splice(idx,1);App.saveData();this.renderList();},
-    play(idx){if(idx<0||idx>=App.data.music.list.length)return;App.data.music.currentIndex=idx;this.audio.src=App.data.music.list[idx].url;this.audio.play().catch(e=>App.toast('播放失败: '+e.message));$('music-title').innerText=App.data.music.list[idx].name;$('btn-play').innerText='⏸';this.renderList();},
-    togglePlay(){if(App.data.music.currentIndex===-1&&App.data.music.list.length>0)return this.play(0);if(this.audio.paused){this.audio.play().catch(e=>App.toast('播放失败'));$('btn-play').innerText='⏸';}else{this.audio.pause();$('btn-play').innerText='▶';}},
-    next(){if(App.data.music.list.length===0)return;let idx=App.data.music.currentIndex;if(App.data.music.mode==='random'){idx=Math.floor(Math.random()*App.data.music.list.length);}else{idx=(idx+1)%App.data.music.list.length;}this.play(idx);},
-    prev(){if(App.data.music.list.length===0)return;let idx=App.data.music.currentIndex;if(App.data.music.mode==='random'){idx=Math.floor(Math.random()*App.data.music.list.length);}else{idx=(idx-1+App.data.music.list.length)%App.data.music.list.length;}this.play(idx);},
-    toggleMode(){let m=App.data.music.mode==='order'?'random':'order';App.data.music.mode=m;$('btn-mode').innerText=m==='order'?'🔁':'🔀';App.toast(m==='order'?'顺序播放':'随机播放');App.saveData();}
-};
-
-const Call={
-    isVideo:false,timer:null,seconds:0,localStream:null,currentFacingMode:'user',isMinimized:false,callTimeout:null,videoEnabled:false,
-    init(){
-        $('btn-switch-camera').onclick=()=>this.switchCamera();$('btn-toggle-camera').onclick=()=>this.toggleCamera();
-        document.querySelector('.call-minimize-btn').onclick=()=>this.minimize();$('btn-hangup-action').onclick=()=>this.hangup(false);
-        $('local-video-preview').onclick=()=>this.toggleVideoView();
-    },
-    toggleVideoView(){if(!this.videoEnabled)return;const l=$('local-video-preview'),b=$('call-bg');if(l.classList.contains('is-main')){l.classList.remove('is-main');b.classList.remove('is-pip');}else{l.classList.add('is-main');b.classList.add('is-pip');}},
-    start(isVideo){
-        this.isVideo=isVideo;this.isMinimized=false;this.videoEnabled=false;$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');
-        const avatar=App.data.settings.botAvatar||'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-        $('call-avatar-img').src=avatar;$('mini-avatar').src=avatar;$('call-name-text').innerText=App.data.settings.botName;$('call-status-text').innerText='正在呼叫...';$('call-actions-ongoing').style.display='flex';$('btn-hangup-action').innerText='取消';$('call-actions-incoming').style.display='none';
-        const b=$('call-bg');b.classList.remove('is-pip');b.style.display='flex';const l=$('local-video-preview');l.style.display='none';l.classList.remove('is-main');
-        $('btn-toggle-camera').style.display=this.isVideo?'flex':'none';$('btn-switch-camera').style.display='none';$('btn-toggle-camera').innerText='📷';
-        if(this.callTimeout)clearTimeout(this.callTimeout);
-        this.callTimeout=setTimeout(()=>{if(Math.random()*100<App.data.settings.answerProb){this.connected();}else{this.hangup(true);App.toast('对方拒绝了通话');}},3000);
-    },
-    startIncoming(isVideo){
-        if($('call-overlay').classList.contains('show'))return;
-        if(this.timer||this.callTimeout)return;
-        this.isVideo=isVideo;this.isMinimized=false;this.videoEnabled=false;
-        $('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');
-        const avatar=App.data.settings.botAvatar||'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-        $('call-avatar-img').src=avatar;$('mini-avatar').src=avatar;
-        $('call-name-text').innerText=App.data.settings.botName;
-        $('call-status-text').innerText=isVideo?'邀请你视频通话...':'邀请你语音通话...';
-        $('call-actions-incoming').style.display='flex';$('call-actions-ongoing').style.display='none';
-        const b=$('call-bg');b.classList.remove('is-pip');b.style.display='flex';
-        const l=$('local-video-preview');l.style.display='none';l.classList.remove('is-main');
-        $('btn-toggle-camera').style.display='none';$('btn-switch-camera').style.display='none';
-        if(this.callTimeout)clearTimeout(this.callTimeout);
-        this.callTimeout=setTimeout(()=>{
-            if($('call-actions-incoming').style.display!=='none'){
-                App.toast('未接听，通话已取消');
-                this.hangup(true);
-            }
-        },30000);
-    },
-    connected(){
-        if(this.callTimeout)clearTimeout(this.callTimeout);$('call-status-text').innerText='00:00';$('mini-status').innerText='通话中';$('call-actions-incoming').style.display='none';$('call-actions-ongoing').style.display='flex';$('btn-hangup-action').innerText='挂断';
-        $('btn-toggle-camera').style.display=this.isVideo?'flex':'none';
-        this.seconds=0;this.timer=setInterval(()=>{this.seconds++;const m=Math.floor(this.seconds/60).toString().padStart(2,'0');const s=(this.seconds%60).toString().padStart(2,'0');$('call-status-text').innerText=`${m}:${s}`;if(Math.random()*100<(App.data.settings.hangupProb/60)){this.hangup(true);App.toast('对方挂断了通话');}},1000);
-        if(this.isVideo){this.toggleCamera();}
-    },
-    toggleCamera(){
-        if(!this.videoEnabled){this.videoEnabled=true;this.startCamera();$('btn-toggle-camera').innerText='🚫';$('btn-switch-camera').style.display='flex';}else{this.videoEnabled=false;if(this.localStream){this.localStream.getTracks().forEach(t=>t.stop());this.localStream=null;}const l=$('local-video-preview');l.style.display='none';l.srcObject=null;l.classList.remove('is-main');$('call-bg').classList.remove('is-pip');$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';}
-    },
-    answer(){this.connected();},
-    startCamera(){
-        if(!this.videoEnabled)return;
-        if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){App.toast('当前环境不支持摄像头');this.videoEnabled=false;$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';return;}
-        if(this.localStream)this.localStream.getTracks().forEach(t=>t.stop());
-        navigator.mediaDevices.getUserMedia({audio:true,video:{facingMode:this.currentFacingMode}}).then(stream=>{this.localStream=stream;const l=$('local-video-preview');l.srcObject=stream;l.style.display='block';l.style.transform=this.currentFacingMode==='user'?'scaleX(-1)':'none';$('call-bg').classList.remove('is-pip');l.classList.remove('is-main');}).catch(err=>{console.error('获取摄像头失败:',err);App.toast('无法打开摄像头，请检查权限');this.videoEnabled=false;$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';});
-    },
-    switchCamera(){this.currentFacingMode=this.currentFacingMode==='user'?'environment':'user';this.startCamera();},
-    hangup(isRemote){if(this.timer)clearInterval(this.timer);if(this.callTimeout)clearTimeout(this.callTimeout);this.timer=null;this.callTimeout=null;if(this.localStream){this.localStream.getTracks().forEach(t=>t.stop());this.localStream=null;}$('local-video-preview').style.display='none';$('local-video-preview').srcObject=null;$('call-overlay').classList.remove('show');$('call-mini-bar').style.display='none';this.isMinimized=false;},
-    minimize(){this.isMinimized=true;$('call-overlay').classList.remove('show');$('call-mini-bar').style.display='flex';},
-    expand(){this.isMinimized=false;$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');}
-};
-
-/* 对方主动来电定时器（每 3~4 分钟按 callProb 判定一次） */
-const CallProactive = {
-    timer: null,
-    init() { this.schedule(); },
-    schedule() {
-        if (this.timer) { clearTimeout(this.timer); this.timer = null; }
-        const prob = parseInt(App.data.settings.callProb) || 0;
-        if (prob <= 0) return;
-        const delayMs = (3 * 60 * 1000) + Math.random() * 60 * 1000;
-        this.timer = setTimeout(() => {
-            try {
-                const p = parseInt(App.data.settings.callProb) || 0;
-                if (p > 0 && Math.random() * 100 < p) {
-                    Call.startIncoming(Math.random() < 0.5);
-                }
-            } catch (e) { console.error('[CallProactive] 异常', e); }
-            this.schedule();
-        }, delayMs);
-    }
-};
-
-/* 对方主动拍一拍定时器（每 5~6 分钟按 patProb 判定一次） */
-const PatProactive = {
-    timer: null,
-    init() { this.schedule(); },
-    schedule() {
-        if (this.timer) { clearTimeout(this.timer); this.timer = null; }
-        const prob = parseInt(App.data.settings.patProb) || 0;
-        if (prob <= 0) return;
-        const delayMs = (5 * 60 * 1000) + Math.random() * 60 * 1000;
-        this.timer = setTimeout(() => {
-            try {
-                const p = parseInt(App.data.settings.patProb) || 0;
-                if (p > 0 && Math.random() * 100 < p) {
-                    Chat.triggerPat(false);
-                }
-            } catch (e) { console.error('[PatProactive] 异常', e); }
-            this.schedule();
-        }, delayMs);
-    }
-};
-
-const Settings={
-    sliderKeyMap:{'ignore':'ignoreProb','quote':'quoteProb','pat-prob':'patProb','call-prob':'callProb','answer-prob':'answerProb','hangup-prob':'hangupProb','letter-prob':'letterProb','reply-prob':'replyProb'},
-    _fontCache:'',_bubbleCache:'',
-    init(){
-        this.upgradeBubbleCssInput();
-        try {
-            const fs = $('dynamic-font-style');
-            if (fs && fs.parentNode !== document.head) document.head.appendChild(fs);
-            const bs = $('dynamic-bubble-style');
-            if (bs && bs.parentNode !== document.head) document.head.appendChild(bs);
-        } catch(e) {}
-
-        $('btn-save-settings').onclick=()=>this.save();
-        $('set-my-avatar-file').onchange=(e)=>{const file=e.target.files[0];if(!file)return;compressImage(file,(base64)=>{App.data.settings.myAvatar=base64;$('my-avatar-preview').src=base64;App.saveData();});e.target.value='';};
-        $('set-bot-avatar-file').onchange=(e)=>{const file=e.target.files[0];if(!file)return;compressImage(file,(base64)=>{App.data.settings.botAvatar=base64;$('bot-avatar-preview').src=base64;App.saveData();});e.target.value='';};
-        $('set-bg').onchange=(e)=>{const file=e.target.files[0];if(!file)return;compressImage(file,(base64)=>{App.data.settings.bgImage=base64;this.applyStyles();App.saveData();});e.target.value='';};
-        $('btn-export-all').onclick=()=>{App.downloadFile(JSON.stringify(App.data,null,2),'love_backup.json','application/json;charset=utf-8');};
-        $('btn-import-all').onclick=()=>$('import-all-file').click();
-        $('import-all-file').onchange=(e)=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=(ev)=>{try{const data=JSON.parse(ev.target.result);App.data=data;App.saveData();this.render();this.applyStyles();App.toast('导入成功');}catch(err){App.toast('数据格式错误');}};reader.readAsText(file);e.target.value='';};
-        $('btn-reset-all').onclick=()=>{if(confirm('确定重置所有数据？不可恢复！')){localStorage.removeItem(DB_KEY);document.cookie = "myName=; max-age=0; path=/";location.reload();}};
-        $('set-desktop-notify').onchange=function(){if(this.checked){if(!('Notification' in window)){App.toast('您的浏览器不支持通知');return;}if(Notification.permission!=='granted'){Notification.requestPermission().then(perm=>{if(perm==='granted')App.toast('通知权限已开启');else App.toast('通知权限被拒绝');}).catch(e=>App.toast('当前环境无法请求通知'));}else App.toast('通知权限已开启');}};
-        $('set-keep-alive').onchange=function(){const audio=$('keep-alive-audio');if(this.checked){if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(App.audioCtx.state==='suspended')App.audioCtx.resume();audio.play().then(()=>App.toast('后台保活已开启')).catch(e=>App.toast('请轻触屏幕以允许保活'));}else{audio.pause();App.toast('后台保活已关闭');}};
-
-        const autoSaveIds = [
-            'set-my-balance','set-bot-balance','set-my-name','set-bot-name',
-            'set-time-display','set-show-avatar','set-show-name','set-show-read','set-sound-enabled',
-            'set-theme','set-delay-min','set-delay-max','set-proactive-min','set-proactive-max',
-            'set-letter-min','set-letter-max','set-font-url','set-bubble-css'
-        ];
-        autoSaveIds.forEach(id => {
-            let el = $(id);
-            if(el) {
-                el.addEventListener('change', () => this.save());
-                if(el.type === 'text' || el.type === 'number' || el.tagName==='TEXTAREA') {
-                    el.addEventListener('blur', () => this.save());
-                }
-            }
-        });
-        ['ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob','font-size'].forEach(id => {
-            let el = $('slider-'+id);
-            if(el) el.addEventListener('change', () => this.save());
-        });
-    },
-    upgradeBubbleCssInput(){
-        const old = $('set-bubble-css');
-        if (!old || old.tagName === 'TEXTAREA') return;
-        const ta = document.createElement('textarea');
-        ta.id = 'set-bubble-css';
-        ta.placeholder = '支持完整 CSS 规则（可多行）。\n可用类名：.msg / .msg.user / .msg.other\n也兼容：.message / .message-sent / .message-received';
-        ta.value = old.value || '';
-        ta.style.cssText = 'width:100%;padding:10px;border:1px solid var(--border-color);border-radius:8px;margin-top:5px;background:var(--bg-color);color:var(--text-color);font-size:13px;outline:none;resize:vertical;min-height:140px;font-family:monospace;line-height:1.5;';
-        old.parentNode.replaceChild(ta, old);
-    },
-    render(){
-        const s=App.data.settings,w=App.data.wallet;
-        if($('set-my-balance')) $('set-my-balance').value=w.my;
-        if($('set-bot-balance')) $('set-bot-balance').value=w.bot;
-        $('set-my-name').value=s.myName;$('my-avatar-preview').src=s.myAvatar||'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-        $('set-bot-name').value=s.botName;$('bot-avatar-preview').src=s.botAvatar||'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-        $('set-desktop-notify').checked=s.desktopNotify;$('set-keep-alive').checked=s.keepAlive;$('set-time-display').value=s.timeDisplay;$('set-show-avatar').checked=s.showAvatar;$('set-show-name').checked=s.showName;$('set-show-read').checked=s.showRead;$('set-sound-enabled').checked=s.soundEnabled;$('set-theme').value=s.theme;
-        $('slider-font-size').value=s.fontSize;$('val-font-size').innerText=s.fontSize;$('set-font-url').value=s.fontUrl;$('set-bubble-css').value=s.bubbleCss;
-        $('set-delay-min').value=s.delayMin;$('set-delay-max').value=s.delayMax;$('set-proactive-min').value=s.proactiveMin;$('set-proactive-max').value=s.proactiveMax;$('set-letter-min').value=s.letterMin;$('set-letter-max').value=s.letterMax;
-        const sliders=['give','receive','return','ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob'];
-        sliders.forEach(id=>{
-            const el=$('slider-'+id);const valEl=$('val-'+id);
-            if(el&&valEl){
-                const key=this.sliderKeyMap[id];
-                const v=(key&&s[key]!==undefined)?s[key]:10;
-                el.value=v;valEl.innerText=v+'%';
-            }
-        });
-    },
-    sliderChange(id){const el=$('slider-'+id);const valEl=$('val-'+id);if(el&&valEl)valEl.innerText=el.value+(id==='font'?'px':'%');if(id==='font'){App.data.settings.fontSize=parseInt(el.value);this.applyStyles();}},
-    save(){
-        const s=App.data.settings, w=App.data.wallet;
-        if($('set-my-balance')) w.my=parseFloat($('set-my-balance').value||0).toFixed(2);
-        if($('set-bot-balance')) w.bot=parseFloat($('set-bot-balance').value||0).toFixed(2);
-        s.myName=$('set-my-name').value;s.botName=$('set-bot-name').value;s.desktopNotify=$('set-desktop-notify').checked;s.keepAlive=$('set-keep-alive').checked;s.timeDisplay=$('set-time-display').value;s.showAvatar=$('set-show-avatar').checked;s.showName=$('set-show-name').checked;s.showRead=$('set-show-read').checked;s.soundEnabled=$('set-sound-enabled').checked;s.theme=$('set-theme').value;s.fontSize=parseInt($('slider-font-size').value);s.fontUrl=$('set-font-url').value;s.bubbleCss=$('set-bubble-css').value;s.delayMin=parseInt($('set-delay-min').value)||1;s.delayMax=parseInt($('set-delay-max').value)||5;s.proactiveMin=parseInt($('set-proactive-min').value)||0;s.proactiveMax=parseInt($('set-proactive-max').value)||0;s.letterMin=parseInt($('set-letter-min').value)||0;s.letterMax=parseInt($('set-letter-max').value)||0;
-        const sliders=['give','receive','return','ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob'];
-        sliders.forEach(id=>{
-            const el=$('slider-'+id);
-            if(el){
-                const key=this.sliderKeyMap[id];
-                if(key) s[key]=parseInt(el.value)||0;
-            }
-        });
-        App.saveData();this.applyStyles();App.toast('设置已保存');
-        if($('chat-title')) $('chat-title').innerText = s.botName;
-        if (typeof Proactive !== 'undefined') Proactive.schedule();
-        if (typeof LetterProactive !== 'undefined') LetterProactive.schedule();
-        if (typeof CallProactive !== 'undefined') CallProactive.schedule();
-        if (typeof PatProactive !== 'undefined') PatProactive.schedule();
-    },
-    applyStyles(){
-        const s=App.data.settings;
-        document.documentElement.style.setProperty('--font-size-base',s.fontSize+'px');
-        if(s.theme==='dark')document.documentElement.setAttribute('data-theme','dark');
-        else if(s.theme==='light')document.documentElement.removeAttribute('data-theme');
-        else{if(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)document.documentElement.setAttribute('data-theme','dark');else document.documentElement.removeAttribute('data-theme');}
-        this.applyFont(s);
-        this.applyBubble(s);
-        const chatArea=$('chat-area');
-        if(s.bgImage)chatArea.style.backgroundImage=`url(${s.bgImage})`;else chatArea.style.backgroundImage='none';
-    },
-    applyFont(s) {
-        const styleEl = $('dynamic-font-style');
-        if (!styleEl) return;
-        const raw = (s.fontUrl || '').trim();
-        const DEFAULT = '"SimSun", "Songti SC", serif';
-        const root = document.documentElement;
-        let css = '';
-        let family = '';
-
-        if (!raw) {
-            css = '';
-            family = '';
-        } else if (raw.startsWith('@') || raw.includes('{')) {
-            css = raw;
-            const m = raw.match(/font-family\s*:\s*['"]?([^;'"}\n]+)/i);
-            if (m) family = m[1].trim().replace(/^['"]|['"]$/g, '');
-        } else {
-            let src = raw;
-            if (raw.includes('|')) {
-                const p = raw.split('|');
-                family = (p[0]||'').trim();
-                src = (p[1]||'').trim();
-            }
-            const isFontFile = /\.(woff2?|ttf|otf|eot)([?#].*)?$/i.test(src);
-            if (isFontFile) {
-                if (!family) {
-                    const mm = src.match(/([^\/\\?#]+?)\.(woff2?|ttf|otf|eot)([?#]|$)/i);
-                    family = mm ? mm[1] : 'CustomFont';
-                }
-                const ext = (src.match(/\.(woff2?|ttf|otf|eot)/i) || [,'woff2'])[1].toLowerCase();
-                const fmtMap = {woff2:'woff2', woff:'woff', ttf:'truetype', otf:'opentype', eot:'embedded-opentype'};
-                css = `@font-face{font-family:'${family}';src:url('${src}') format('${fmtMap[ext]||ext}');font-weight:normal;font-style:normal;font-display:swap;}`;
-            } else {
-                css = `@import url('${src}');`;
-            }
-        }
-
-        if (this._fontCache !== css) {
-            this._fontCache = css;
-            styleEl.textContent = css;
-        }
-        root.style.setProperty('--custom-font', family ? `'${family}', ${DEFAULT}` : DEFAULT);
-
-        if (family && document.fonts && document.fonts.load) {
-            try { document.fonts.load(`16px '${family}'`).catch(()=>{}); } catch(e){}
-        }
-    },
-    applyBubble(s) {
-        const el = $('dynamic-bubble-style');
-        if (!el) return;
-        const raw = (s.bubbleCss || '').trim();
-        let css = '';
-        if (raw) {
-            const norm = this.normalizeBubbleCss(raw);
-            if (norm.includes('{')) {
-                css = norm;
-            } else {
-                css = `.msg.user { ${norm} }`;
-            }
-        }
-        if (this._bubbleCache !== css) {
-            this._bubbleCache = css;
-            el.textContent = css;
-        }
-    },
-    normalizeBubbleCss(css) {
-        return css
-            .replace(/\.message-sent\b/g, '.msg.user')
-            .replace(/\.message-received\b/g, '.msg.other')
-            .replace(/\.message\b/g, '.msg');
-    }
-};
-
-/* ===================== 启动 & 持久化 ===================== */
-document.addEventListener('visibilitychange', function(){
-    if (document.visibilityState === 'hidden') { try{ App.forceSave(); }catch(e){} }
-});
-window.addEventListener('pagehide', function(){ try{ App.forceSave(); }catch(e){} });
-window.addEventListener('beforeunload', function(){ try{ App.forceSave(); }catch(e){} });
-
-(async function boot(){
-    try {
-        if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
-        await IDB.init();
-        await App.loadData();
-        
-        Chat.init();
-        Cards.init();
-        Pat.init();
-        Emoji.init();
-        Letters.init();
-        Music.init();
-        Call.init();
-        Settings.init();
-        Settings.applyStyles();
-        
-        var modeBtn = $('btn-mode');
-        if (modeBtn) modeBtn.innerText = (App.data.music && App.data.music.mode === 'random') ? '🔀' : '🔁';
-
-        Proactive.init();
-        LetterProactive.init();
-        CallProactive.init();
-        PatProactive.init();
-    } catch (err) {
-        console.error('[boot] 初始化崩溃: ', err);
-    }
-})();
 </script>
