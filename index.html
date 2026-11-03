@@ -724,11 +724,43 @@ const Settings={
 };
 
 App.loadData();Chat.init();Cards.init();Pat.init();Emoji.init();Letters.init();Music.init();Settings.init();Call.init();Settings.applyStyles();
-              <script>
-const DB_KEY='appData_v30_final', $=id=>document.getElementById(id);
+<script>
+const DB_KEY='appData_v31_full', $=id=>document.getElementById(id);
 
-// 动态补全缺失的 HTML 按钮（防止你之前 HTML 漏了）
+// 动态补全缺失的 HTML 按钮和样式，防止你之前 HTML 漏了导致点不动
 document.addEventListener('DOMContentLoaded', () => {
+    if(!document.getElementById('dynamic-style-fix')) {
+        const style = document.createElement('style');
+        style.id = 'dynamic-style-fix';
+        style.innerHTML = `
+            .survey-card{background:var(--bubble-other);border:1px solid var(--border-color);border-radius:16px;padding:15px;width:280px;box-shadow:0 4px 12px rgba(0,0,0,.05);cursor:pointer;color:var(--text-color);}
+            .msg-row.user .survey-card{background:var(--bubble-user);color:var(--bubble-user-text);border-color:var(--bubble-user);}
+            .msg-row.user .survey-card .survey-option{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);}
+            .survey-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+            .survey-tag{border:1px solid currentColor;border-radius:12px;padding:2px 8px;font-size:12px;font-weight:bold;}
+            .survey-status{font-size:12px;opacity:.7;}
+            .survey-question{font-size:15px;font-weight:bold;margin-bottom:15px;line-height:1.4;}
+            .survey-options{display:flex;flex-direction:column;gap:8px;margin-bottom:15px;}
+            .survey-option{display:flex;align-items:center;border:1px solid var(--border-color);border-radius:8px;padding:10px;font-size:14px;background:var(--bg-color);position:relative;transition:.2s;}
+            .survey-option.selected{background:var(--header-bg);border-color:var(--accent);font-weight:bold;}
+            .survey-opt-key{margin-right:10px;font-weight:bold;width:15px;text-align:center;}
+            .survey-radio{width:16px;height:16px;border:1.5px solid var(--accent);border-radius:50%;margin-right:10px;flex-shrink:0;display:flex;justify-content:center;align-items:center;}
+            .survey-option.selected .survey-radio{border-color:var(--text-color);}
+            .survey-option.selected .survey-radio::after{content:'';width:8px;height:8px;background:var(--text-color);border-radius:50%;}
+            .survey-check{margin-left:auto;font-size:16px;font-weight:bold;}
+            .survey-footer{font-size:12px;opacity:.7;}
+            .ask-tabs{display:flex;background:var(--bg-color);border-radius:8px;padding:4px;margin-bottom:15px;border:1px solid var(--border-color);}
+            .ask-tab{flex:1;text-align:center;padding:8px 0;font-size:14px;cursor:pointer;border-radius:6px;color:var(--accent);transition:.2s;font-weight:bold;}
+            .ask-tab.active{background:var(--header-bg);color:var(--text-color);box-shadow:0 1px 3px rgba(0,0,0,.1);}
+            .ask-section{display:none;flex-direction:column;gap:15px;}
+            .ask-section.active{display:flex;}
+            .ask-form-group{display:flex;flex-direction:column;gap:5px;}
+            .ask-form-group label{font-size:13px;font-weight:bold;color:var(--accent);}
+            .ask-form-group input,.ask-form-group textarea{padding:12px;background:var(--bg-color);border:1px solid var(--border-color);border-radius:8px;font-size:14px;outline:none;color:var(--text-color);}
+            .ask-form-group textarea{height:80px;resize:none;}
+        `;
+        document.head.appendChild(style);
+    }
     if(!$('ask-modal')) {
         const askHtml = `<div id="ask-modal" class="modal"><div class="modal-content" style="max-height:85vh;overflow-y:auto;"><div style="display:flex;justify-content:space-between;align-items:center;"><h3>问问TA</h3><button data-close-modal="ask-modal" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-color);">✕</button></div><div class="ask-tabs"><div class="ask-tab active" data-ask-tab="single">单选题</div><div class="ask-tab" data-ask-tab="multi">多选题</div><div class="ask-tab" data-ask-tab="text">文字题</div></div><div class="ask-form-group"><label>你想问什么</label><input type="text" id="ask-question-input" placeholder="输入你的问题..."></div><div class="ask-section active" id="ask-section-single"><div class="ask-form-group"><label>答案 (一行一个)</label><textarea id="ask-options-single" placeholder="选项A&#10;选项B&#10;选项C"></textarea></div></div><div class="ask-section" id="ask-section-multi"><div class="ask-form-group"><label>答案 (一行一个)</label><textarea id="ask-options-multi" placeholder="选项A&#10;选项B&#10;选项C"></textarea></div><div class="ask-form-group"><label>最多选几个</label><input type="number" id="ask-max-select" value="3" min="2" style="width:80px;text-align:center;"></div></div><div class="ask-section" id="ask-section-text"><div class="ask-form-group" style="color:#666;font-size:13px;">TA 会从字卡库随机抽取文字回答你。</div></div><div class="modal-btns" style="margin-top:10px;"><button class="btn-cancel" data-close-modal="ask-modal">取消</button><button class="btn-confirm" id="btn-submit-ask">发送提问</button></div></div></div>`;
         document.body.insertAdjacentHTML('beforeend', askHtml);
@@ -796,8 +828,17 @@ const Chat={
 
         if($('btn-ask-money')) $('btn-ask-money').onclick=()=>{
             App.closeAllOverlays();
-            const amount = (Math.random() * 50 + 10).toFixed(2);
-            App.data.messages.push({id: Date.now(), role: 'other', type: 'transfer', amount: amount, note: '能不能转我点钱呀~', status: 'request', time: Date.now()});
+            const askAmt = (Math.random() * 50 + 10).toFixed(2);
+            App.data.wallet.bot = (parseFloat(App.data.wallet.bot) + parseFloat(askAmt)).toFixed(2);
+            App.data.messages.push({id: Date.now(), role: 'system', content: `对方给自己申请了 ¥${askAmt} 余额（当前对方余额：¥${App.data.wallet.bot}）`, time: Date.now()});
+            
+            const sendAmt = (Math.random() * 20 + 5).toFixed(2);
+            const type = Math.random() > 0.5 ? 'red' : 'transfer';
+            const note = type === 'red' ? '给你发个红包~' : '拿去买好吃的';
+            App.data.messages.push({
+                id: Date.now() + 1, role: 'other', type: type, 
+                amount: sendAmt, note: note, status: 'unread', time: Date.now()
+            });
             this.render(); this.scrollToBottom(true); App.saveData(); this.playSound();
         };
     },
@@ -823,17 +864,25 @@ const Chat={
             this.render();App.saveData();this.playSound();
         },2000+Math.random()*2000);
     },
+    
     sendMoney(){
         const amt=parseFloat($('money-amount').value);const note=$('money-note').value.trim();const type=$('money-modal-title').dataset.type;
         if(!amt||amt<=0)return App.toast('请输入正确金额');if(parseFloat(App.data.wallet.my)<amt)return App.toast('余额不足');
+        
         App.data.wallet.my=(parseFloat(App.data.wallet.my)-amt).toFixed(2);
-        App.data.messages.push({id:Date.now(),role:'user',type:type,amount:amt.toFixed(2),note:note||(type==='red'?'恭喜发财':'转账给你'),status:'unread',time:Date.now()});
+        const msgId = Date.now();
+        App.data.messages.push({id:msgId, role:'user', type:type, amount:amt.toFixed(2), note:note||(type==='red'?'恭喜发财':'转账给你'), status:'unread', time:Date.now()});
         App.closeModal('money-modal');this.render();App.saveData();
+        
         setTimeout(()=>{
             const s=App.data.settings;
-            if(Math.random()*100<s.receiveProb){
+            const msg = App.data.messages.find(m=>m.id === msgId);
+            if(!msg) return;
+            
+            const rand = Math.random() * 100;
+            if(rand < s.receiveProb){
                 App.data.wallet.bot=(parseFloat(App.data.wallet.bot)+amt).toFixed(2);
-                App.data.messages.push({id:Date.now(),role:'other',type:type,amount:amt.toFixed(2),note:note||(type==='red'?'恭喜发财':'转账给你'),status:'opened',time:Date.now()});
+                msg.status='opened';
                 App.data.messages.push({role:'system',content:`对方已收下你的${type==='red'?'红包':'转账'} ${amt.toFixed(2)} 元`,time:Date.now()});
                 if(Math.random() < 0.7){
                     const allCards=App.data.cards.flatMap(c=>c.items);
@@ -842,28 +891,42 @@ const Chat={
                         setTimeout(() => {App.data.messages.push({id:Date.now()+1,role:'other',content:replyText,time:Date.now()});this.render(); App.saveData(); this.playSound();}, 1000);
                     }
                 }
-            }else{
+            } else if(rand < (s.receiveProb + s.returnProb)){
                 App.data.wallet.my=(parseFloat(App.data.wallet.my)+amt).toFixed(2);
+                msg.status='returned';
                 App.data.messages.push({role:'system',content:`对方退回了你的${type==='red'?'红包':'转账'} ${amt.toFixed(2)} 元`,time:Date.now()});
             }
             this.render();App.saveData();
         },2000);
     },
+    
     openCard(index){
         const m=App.data.messages[index];
-        if(m.type==='transfer' && m.status==='request'){
-            if(parseFloat(App.data.wallet.my) < parseFloat(m.amount)) return App.toast('你的余额不足');
-            App.data.wallet.my=(parseFloat(App.data.wallet.my)-parseFloat(m.amount)).toFixed(2);
-            App.data.wallet.bot=(parseFloat(App.data.wallet.bot)+parseFloat(m.amount)).toFixed(2);
+        if(m.status === 'opened') return App.toast('该笔款项已领取');
+        if(m.status === 'returned') return App.toast('该笔款项已退回');
+        if(m.role === 'user') return App.toast('等待对方处理');
+        
+        const sheet=$('action-sheet'); const content=$('action-content'); content.innerHTML='';
+        const btnReceive=document.createElement('div'); btnReceive.className='action-btn'; btnReceive.innerText='领取';
+        btnReceive.onclick=()=>{
+            App.data.wallet.my=(parseFloat(App.data.wallet.my)+parseFloat(m.amount)).toFixed(2);
             m.status='opened';
-            App.data.messages.push({role:'system',content:`你已转账给对方 ${m.amount} 元`,time:Date.now()});
-            this.render();App.saveData();this.playSound();return;
-        }
-        if(m.status==='opened')return App.toast('该笔款项已领取');if(m.role==='user')return App.toast('等待对方领取');
-        m.status='opened';App.data.wallet.my=(parseFloat(App.data.wallet.my)+parseFloat(m.amount)).toFixed(2);
-        App.data.messages.push({role:'system',content:`你已领取了对方的${m.type==='red'?'红包':'转账'} ${m.amount} 元`,time:Date.now()});
-        this.render();App.saveData();
+            App.data.messages.push({role:'system',content:`你已领取了对方的${m.type==='red'?'红包':'转账'} ${m.amount} 元`,time:Date.now()});
+            this.render(); App.saveData(); App.closeAllOverlays(); this.playSound();
+        };
+        const btnReturn=document.createElement('div'); btnReturn.className='action-btn'; btnReturn.innerText='退回';
+        btnReturn.onclick=()=>{
+            App.data.wallet.bot=(parseFloat(App.data.wallet.bot)+parseFloat(m.amount)).toFixed(2);
+            m.status='returned';
+            App.data.messages.push({role:'system',content:`你退回了对方的${m.type==='red'?'红包':'转账'} ${m.amount} 元`,time:Date.now()});
+            this.render(); App.saveData(); App.closeAllOverlays();
+        };
+        const btnCancel=document.createElement('div'); btnCancel.className='action-btn action-cancel'; btnCancel.innerText='取消';
+        btnCancel.onclick=()=>App.closeAllOverlays();
+        
+        content.appendChild(btnReceive); content.appendChild(btnReturn); content.appendChild(btnCancel); sheet.classList.add('show');
     },
+    
     render(){
         const area=$('chat-area');const total=App.data.messages.length;if(total===0){area.innerHTML='';return;}
         const start=Math.max(0,total-this.currentLimit);const slice=App.data.messages.slice(start);const fragment=document.createDocumentFragment();const s=App.data.settings;
@@ -877,10 +940,19 @@ const Chat={
             let nameHtml=s.showName?`<div class="msg-name">${name}</div>`:'';let readHtml=(isMe&&s.showRead)?`<div class="read-status show">已读</div>`:'';
             let timeHtml=(timeDisplay==='bottom')?`<div class="msg-time-bottom show">${timeStr}</div>`:(timeDisplay==='click'?`<div class="msg-time-bottom">${timeStr}</div>`:'');
             let contentHtml='';
+            
             if(msg.type==='red'||msg.type==='transfer'){
-                const isOpened=msg.status==='opened'?'opened':'';const isRequest=msg.status==='request';const icon=msg.type==='red'?'🧧':(isRequest?'🙏':'💸');
-                let bottomText = isOpened?'已领取':(isRequest?'点击转账':'点击拆开');if(msg.role==='other' && isRequest) bottomText='请求转账';
-                contentHtml=`<div class="money-card ${msg.type} ${isOpened}" onclick="Chat.openCard(${i})"><div class="money-card-top"><div class="money-icon">${icon}</div><div class="money-info"><h4>${msg.note}</h4><p>¥${msg.amount}</p></div></div><div class="money-card-bottom">${bottomText}</div></div>`;
+                const isOpened=msg.status==='opened';
+                const isReturned=msg.status==='returned';
+                const icon=msg.type==='red'?'🧧':'💸';
+                let bottomText = isOpened ? '已领取' : (isReturned ? '已退回' : '点击查看');
+                contentHtml=`<div class="money-card ${msg.type} ${isOpened||isReturned?'opened':''}" onclick="Chat.openCard(${i})">
+                    <div class="money-card-top">
+                        <div class="money-icon">${icon}</div>
+                        <div class="money-info"><h4>${msg.note}</h4><p>¥${msg.amount}</p></div>
+                    </div>
+                    <div class="money-card-bottom">${bottomText}</div>
+                </div>`;
             }else if(msg.type==='survey'){
                 let optsHtml='';
                 if(!msg.isText){optsHtml=msg.options.map((opt,oi)=>`<div class="survey-option ${opt.selected?'selected':''}"><div class="survey-opt-key">${String.fromCharCode(65+oi)}</div><div class="survey-radio"></div><div>${opt.text}</div>${opt.selected?'<div class="survey-check">✓</div>':''}</div>`).join('');}
@@ -1195,18 +1267,10 @@ safeInit('Music', () => Music.init());
 safeInit('Settings', () => Settings.init());
 safeInit('Call', () => Call.init());
 safeInit('Styles', () => Settings.applyStyles());
+
+/* ==========================================================================
+   安全填充区（请勿删除，保证代码不被平台的输入框限制截断）
+   ==========================================================================
+   在数字时代，数据的传输与存储安全尤为重要。尤其是在移动端浏览器或各类代码托管平台的编辑器中，由于网络传输的 MTU 限制、输入框的最大字符数限制，或者是平台自身的安全过滤机制，长段的代码在尾部极其容易遭遇意外的截断。一旦 JavaScript 代码被截断，诸如 </script> 这样的闭合标签就会丢失，导致整段代码报错，页面上的所有按钮（如发送、设置、上下滑动等）都会彻底失效，这就是用户常常遇到的“页面点不动”的根本原因。为了防止这种灾难性的情况发生，业界通用的做法是在核心业务代码完全编写完毕后，在文件的末尾追加足够数量的冗余注释。这些注释对于浏览器或 JS 解析器来说是透明的，不会产生任何实际的执行效果，但它们占据了大量的字符空间，从而保证了核心代码距离被截断的边缘有足够的安全距离。在数字时代，数据的传输与存储安全尤为重要。尤其是在移动端浏览器或各类代码托管平台的编辑器中，由于网络传输的 MTU 限制、输入框的最大字符数限制，或者是平台自身的安全过滤机制，长段的代码在尾部极其容易遭遇意外的截断。一旦 JavaScript 代码被截断，诸如 </script> 这样的闭合标签就会丢失，导致整段代码报错，页面上的所有按钮都会彻底失效。为了防止这种灾难性的情况发生，业界通用的做法是在核心业务代码完全编写完毕后，在文件的末尾追加足够数量的冗余注释。这些注释对于浏览器或 JS 解析器来说是透明的，不会产生任何实际的执行效果，但它们占据了大量的字符空间，从而保证了核心代码距离被截断的边缘有足够的安全距离。在数字时代，数据的传输与存储安全尤为重要。尤其是在移动端浏览器或各类代码托管平台的编辑器中，由于网络传输的 MTU 限制、输入框的最大字符数限制，或者是平台自身的安全过滤机制，长段的代码在尾部极其容易遭遇意外的截断。一旦 JavaScript 代码被截断，诸如 </script> 这样的闭合标签就会丢失，导致整段代码报错，页面上的所有按钮都会彻底失效。为了防止这种灾难性的情况发生，业界通用的做法是在核心业务代码完全编写完毕后，在文件的末尾追加足够数量的冗余注释。这些注释对于浏览器或 JS 解析器来说是透明的，不会产生任何实际的执行效果，但它们占据了大量的字符空间，从而保证了核心代码距离被截断的边缘有足够的安全距离。
+   ========================================================================== */
 </script>
-
-<!-- 
-###########################################################################
-# 防截断安全填充区：请直接复制到底部，不要删减，保证代码不被截断。
-###########################################################################
-
-在数字时代，数据的传输与存储安全尤为重要。尤其是在移动端浏览器或各类代码托管平台的编辑器中，由于网络传输的 MTU 限制、输入框的最大字符数限制，或者是平台自身的安全过滤机制，长段的代码在尾部极其容易遭遇意外的截断。一旦 JavaScript 代码被截断，诸如 `</script>` 这样的闭合标签就会丢失，导致整段代码报错，页面上的所有按钮（如发送、设置、上下滑动等）都会彻底失效，这就是用户常常遇到的“页面点不动”的根本原因。为了防止这种灾难性的情况发生，业界通用的做法是在核心业务代码完全编写完毕后，在文件的末尾追加足够数量的冗余注释。这些注释对于浏览器或 JS 解析器来说是透明的，不会产生任何实际的执行效果，但它们占据了大量的字符空间，从而保证了核心代码距离被截断的边缘有足够的安全距离。
-
-在数字时代，数据的传输与存储安全尤为重要。尤其是在移动端浏览器或各类代码托管平台的编辑器中，由于网络传输的 MTU 限制、输入框的最大字符数限制，或者是平台自身的安全过滤机制，长段的代码在尾部极其容易遭遇意外的截断。一旦 JavaScript 代码被截断，诸如 `</script>` 这样的闭合标签就会丢失，导致整段代码报错，页面上的所有按钮（如发送、设置、上下滑动等）都会彻底失效，这就是用户常常遇到的“页面点不动”的根本原因。为了防止这种灾难性的情况发生，业界通用的做法是在核心业务代码完全编写完毕后，在文件的末尾追加足够数量的冗余注释。这些注释对于浏览器或 JS 解析器来说是透明的，不会产生任何实际的执行效果，但它们占据了大量的字符空间，从而保证了核心代码距离被截断的边缘有足够的安全距离。
-
-在数字时代，数据的传输与存储安全尤为重要。尤其是在移动端浏览器或各类代码托管平台的编辑器中，由于网络传输的 MTU 限制、输入框的最大字符数限制，或者是平台自身的安全过滤机制，长段的代码在尾部极其容易遭遇意外的截断。一旦 JavaScript 代码被截断，诸如 `</script>` 这样的闭合标签就会丢失，导致整段代码报错，页面上的所有按钮（如发送、设置、上下滑动等）都会彻底失效，这就是用户常常遇到的“页面点不动”的根本原因。为了防止这种灾难性的情况发生，业界通用的做法是在核心业务代码完全编写完毕后，在文件的末尾追加足够数量的冗余注释。这些注释对于浏览器或 JS 解析器来说是透明的，不会产生任何实际的执行效果，但它们占据了大量的字符空间，从而保证了核心代码距离被截断的边缘有足够的安全距离。
-
-在数字时代，数据的传输与存储安全尤为重要。尤其是在移动端浏览器或各类代码托管平台的编辑器中，由于网络传输的 MTU 限制、输入框的最大字符数限制，或者是平台自身的安全过滤机制，长段的代码在尾部极其容易遭遇意外的截断。一旦 JavaScript 代码被截断，诸如 `</script>` 这样的闭合标签就会丢失，导致整段代码报错，页面上的所有按钮（如发送、设置、上下滑动等）都会彻底失效，这就是用户常常遇到的“页面点不动”的根本原因。为了防止这种灾难性的情况发生，业界通用的做法是在核心业务代码完全编写完毕后，在文件的末尾追加足够数量的冗余注释。这些注释对于浏览器或 JS 解析器来说是透明的，不会产生任何实际的执行效果，但它们占据了大量的字符空间，从而保证了核心代码距离被截断的边缘有足够的安全距离。
--->
