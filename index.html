@@ -159,7 +159,7 @@
 const DB_KEY='appData_v31_final', $=id=>document.getElementById(id);
 const compressImage=(file,cb)=>{const r=new FileReader();r.readAsDataURL(file);r.onload=(e)=>{const i=new Image();i.src=e.target.result;i.onload=()=>{let w=i.width,h=i.height,m=300;if(w>m){h=Math.round(h*m/w);w=m;}if(h>m){w=Math.round(w*m/h);h=m;}const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',.6));};};};
 
-// ====== 【新增】IndexedDB 数据库，双保险防 iOS 清缓存 ======
+// ====== IndexedDB 数据库双保险 ======
 const IDB = {
     db: null,
     init() {
@@ -203,31 +203,24 @@ const App={
         letters:[],music:{list:[],mode:'order',currentIndex:-1},wallet:{my:520.22,bot:100.00},
         settings:{myName:'我',myAvatar:'',botName:'对方',botAvatar:'',showAvatar:true,showName:true,showRead:true,soundEnabled:true,theme:'system',fontSize:16,bubbleCss:'',bgImage:'',timeDisplay:'bottom',fontUrl:'',typingText:'对方正在输入...',delayMin:2,delayMax:5,proactiveMin:0,proactiveMax:0,ignoreProb:20,quoteProb:30,patProb:10,callProb:5,answerProb:80,hangupProb:10,letterMin:0,letterMax:0,letterProb:10,replyProb:80,receiveProb:80,returnProb:10,desktopNotify:false,keepAlive:false}
     },
-    audioCtx:null,saveTimeout:null,
+    audioCtx:null,
     
-    // 双保险保存
+    // 【极致同步保存】取消一切延迟，瞬间写入
     saveData(){
-        clearTimeout(this.saveTimeout);
-        this.saveTimeout = setTimeout(() => {
-            try {
-                const str = JSON.stringify(this.data);
-                localStorage.setItem(DB_KEY, str);
-                if(IDB.db) IDB.set(DB_KEY, this.data);
-            } catch(e) { console.warn('saveData 失败：',e); }
-        }, 200);
-    },
-    
-    // 强存（切后台瞬间触发）
-    forceSave(){
-        clearTimeout(this.saveTimeout);
         try {
             const str = JSON.stringify(this.data);
             localStorage.setItem(DB_KEY, str);
             if(IDB.db) IDB.set(DB_KEY, this.data);
-        } catch(e) { console.warn('forceSave 失败：',e); }
+        } catch(e) { 
+            console.warn('saveData 失败：', e); 
+            if(e.name === 'QuotaExceededError') alert('存储空间已满！请清理一些图片或表情包。');
+        }
     },
     
-    // 异步读取双重数据
+    forceSave(){
+        this.saveData();
+    },
+    
     async loadData(){
         try{
             const s = localStorage.getItem(DB_KEY);
@@ -649,7 +642,7 @@ const Settings={
         $('set-desktop-notify').onchange=function(){if(this.checked){if(!('Notification' in window)){App.toast('您的浏览器不支持通知');return;}if(Notification.permission!=='granted'){Notification.requestPermission().then(perm=>{if(perm==='granted')App.toast('通知权限已开启');else App.toast('通知权限被拒绝');}).catch(e=>App.toast('当前环境无法请求通知'));}else App.toast('通知权限已开启');}};
         $('set-keep-alive').onchange=function(){const audio=$('keep-alive-audio');if(this.checked){if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(App.audioCtx.state==='suspended')App.audioCtx.resume();audio.play().then(()=>App.toast('后台保活已开启')).catch(e=>App.toast('请轻触屏幕以允许保活'));}else{audio.pause();App.toast('后台保活已关闭');}};
 
-        // 【新增】让所有输入框、下拉菜单在改变时自动保存，不用再点按钮
+        // 【新增】让所有输入框、下拉菜单在改变时瞬间自动保存
         const autoSaveIds = [
             'set-my-balance','set-bot-balance','set-my-name','set-bot-name',
             'set-time-display','set-show-avatar','set-show-name','set-show-read','set-sound-enabled',
@@ -658,9 +651,13 @@ const Settings={
         ];
         autoSaveIds.forEach(id => {
             let el = $(id);
-            if(el) el.addEventListener('change', () => this.save());
+            if(el) {
+                el.addEventListener('change', () => this.save());
+                if(el.type === 'text' || el.type === 'number') {
+                    el.addEventListener('blur', () => this.save()); // 失去焦点也保存
+                }
+            }
         });
-        // 滑块松手自动保存
         ['ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob','font-size'].forEach(id => {
             let el = $('slider-'+id);
             if(el) el.addEventListener('change', () => this.save());
@@ -699,7 +696,7 @@ const Settings={
     }
 };
 
-/* ===================== 启动 & 持久化（关键修复） ===================== */
+/* ===================== 启动 & 持久化 ===================== */
 document.addEventListener('visibilitychange', function(){
     if (document.visibilityState === 'hidden') { try{ App.forceSave(); }catch(e){} }
 });
@@ -708,8 +705,18 @@ window.addEventListener('beforeunload', function(){ try{ App.forceSave(); }catch
 
 (async function boot(){
     try {
-        await IDB.init(); // 等待 IndexedDB 初始化
-        await App.loadData(); // 等待双数据读取完成
+        // 申请永不清理权限
+        if (navigator.storage && navigator.storage.persist) {
+            navigator.storage.persist();
+        }
+
+        // 检查是否为本地文件
+        if (window.location.protocol === 'file:') {
+            setTimeout(() => alert('警告：您正在通过本地文件访问。iOS 会强行清空本地文件的记录。\n\n请务必把网页上传到服务器(如 GitHub Pages)，然后用 Safari 访问网址并“添加到主屏幕”，这样数据才不会丢！'), 1000);
+        }
+
+        await IDB.init();
+        await App.loadData();
         
         Chat.init();
         Cards.init();
@@ -720,9 +727,9 @@ window.addEventListener('beforeunload', function(){ try{ App.forceSave(); }catch
         Call.init();
         Settings.init();
         Settings.applyStyles();
+        
         var modeBtn = $('btn-mode');
         if (modeBtn) modeBtn.innerText = (App.data.music && App.data.music.mode === 'random') ? '🔀' : '🔁';
-        console.log('[boot] 数据库就绪，消息数：', (App.data.messages||[]).length);
     } catch (err) {
         console.error('[boot] 初始化失败：', err);
     }
