@@ -212,17 +212,10 @@ const App={
     },
     audioCtx:null,
     
-    // ======== 三重保存机制：数据库为主，本地与Cookie为辅 ========
     saveData(){
         const str = JSON.stringify(this.data);
-        
-        // 1. 首选 IndexedDB 存大数据（容量极大，防 iOS 清空）
         if(IDB.db) IDB.set(DB_KEY, this.data).catch(()=>{});
-        
-        // 2. 备用 localStorage（爆了也不影响上面和下面）
         try { localStorage.setItem(DB_KEY, str); } catch(e) { console.warn('LocalStorage已满'); }
-        
-        // 3. 兜底 Cookie，死保名字
         try { document.cookie = "myName=" + encodeURIComponent(this.data.settings.myName) + "; max-age=31536000; path=/; SameSite=Lax"; } catch(e) {}
     },
     forceSave(){ this.saveData(); },
@@ -231,14 +224,8 @@ const App={
         let hasData = false;
         let lsData = null;
         let idbData = null;
-
-        // 读 LocalStorage
         try { const s = localStorage.getItem(DB_KEY); if(s) lsData = JSON.parse(s); } catch(e){}
-
-        // 读 IndexedDB
         try { if(IDB.db) idbData = await IDB.get(DB_KEY); } catch(e) {}
-
-        // 优先使用 IndexedDB
         if (idbData) {
             this.data = { ...this.data, ...idbData, settings: { ...this.data.settings, ...(idbData.settings||{}) }, wallet: { ...this.data.wallet, ...(idbData.wallet||{}) }, emojis: { ...this.data.emojis, ...(idbData.emojis||{}) } };
             hasData = true;
@@ -246,8 +233,6 @@ const App={
             this.data = { ...this.data, ...lsData, settings: { ...this.data.settings, ...(lsData.settings||{}) }, wallet: { ...this.data.wallet, ...(lsData.wallet||{}) }, emojis: { ...this.data.emojis, ...(lsData.emojis||{}) } };
             hasData = true;
         }
-
-        // 全挂了，从 Cookie 救名字
         if (!hasData) {
             const cookieMatch = document.cookie.match(/(^| )myName=([^;]+)/);
             if (cookieMatch) {
@@ -262,7 +247,17 @@ const App={
     closeModal(id){$(id).classList.remove('show');},
     toast(msg){const el=document.createElement('div');el.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:#fff;padding:10px 20px;border-radius:8px;z-index:9999;font-size:14px;pointer-events:none;transition:opacity 0.3s;';el.innerText=msg;document.body.appendChild(el);setTimeout(()=>{el.style.opacity='0';setTimeout(()=>el.remove(),300);},1500);},
     openMoneyModal(type){$('money-modal-title').innerText=type==='red'?'发红包':'转账';$('money-modal-title').dataset.type=type;$('money-amount').value='';$('money-note').value='';$('money-modal').classList.add('show');},
-    downloadFile(content,fileName){const a=document.createElement('a');const file=new Blob([content],{type:'text/plain'});a.href=URL.createObjectURL(file);a.download=fileName;a.click();URL.revokeObjectURL(a.href);}
+    /* ★修复：支持 mimeType 参数，确保 .json 导出不被改成 .txt；延迟 revoke 防下载中断 */
+    downloadFile(content,fileName,mimeType){
+        const a=document.createElement('a');
+        const file=new Blob([content],{type:mimeType||'text/plain;charset=utf-8'});
+        a.href=URL.createObjectURL(file);
+        a.download=fileName;
+        a.style.display='none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);
+    }
 };
 
 document.body.addEventListener('click',function(e){
@@ -773,18 +768,23 @@ const PatProactive = {
 };
 
 const Settings={
-    /* 显式映射，避免 ignore/quote 被错误写成 s.ignore / s.quote */
     sliderKeyMap:{'ignore':'ignoreProb','quote':'quoteProb','pat-prob':'patProb','call-prob':'callProb','answer-prob':'answerProb','hangup-prob':'hangupProb','letter-prob':'letterProb','reply-prob':'replyProb'},
     _fontCache:'',_bubbleCache:'',
     init(){
-        // ★启动时把气泡 CSS 输入框升级为 textarea（多行更方便）
         this.upgradeBubbleCssInput();
+        try {
+            const fs = $('dynamic-font-style');
+            if (fs && fs.parentNode !== document.head) document.head.appendChild(fs);
+            const bs = $('dynamic-bubble-style');
+            if (bs && bs.parentNode !== document.head) document.head.appendChild(bs);
+        } catch(e) {}
 
         $('btn-save-settings').onclick=()=>this.save();
         $('set-my-avatar-file').onchange=(e)=>{const file=e.target.files[0];if(!file)return;compressImage(file,(base64)=>{App.data.settings.myAvatar=base64;$('my-avatar-preview').src=base64;App.saveData();});e.target.value='';};
         $('set-bot-avatar-file').onchange=(e)=>{const file=e.target.files[0];if(!file)return;compressImage(file,(base64)=>{App.data.settings.botAvatar=base64;$('bot-avatar-preview').src=base64;App.saveData();});e.target.value='';};
         $('set-bg').onchange=(e)=>{const file=e.target.files[0];if(!file)return;compressImage(file,(base64)=>{App.data.settings.bgImage=base64;this.applyStyles();App.saveData();});e.target.value='';};
-        $('btn-export-all').onclick=()=>{App.downloadFile(JSON.stringify(App.data,null,2),'love_backup.json');};
+        /* ★修复：JSON 导出显式指定 application/json，避免被浏览器改成 .txt */
+        $('btn-export-all').onclick=()=>{App.downloadFile(JSON.stringify(App.data,null,2),'love_backup.json','application/json;charset=utf-8');};
         $('btn-import-all').onclick=()=>$('import-all-file').click();
         $('import-all-file').onchange=(e)=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=(ev)=>{try{const data=JSON.parse(ev.target.result);App.data=data;App.saveData();this.render();this.applyStyles();App.toast('导入成功');}catch(err){App.toast('数据格式错误');}};reader.readAsText(file);e.target.value='';};
         $('btn-reset-all').onclick=()=>{if(confirm('确定重置所有数据？不可恢复！')){localStorage.removeItem(DB_KEY);document.cookie = "myName=; max-age=0; path=/";location.reload();}};
@@ -811,7 +811,6 @@ const Settings={
             if(el) el.addEventListener('change', () => this.save());
         });
     },
-    /* ★把 <input id="set-bubble-css"> 换成 <textarea> 同 id，保留原值与绑定 */
     upgradeBubbleCssInput(){
         const old = $('set-bubble-css');
         if (!old || old.tagName === 'TEXTAREA') return;
@@ -856,7 +855,6 @@ const Settings={
             }
         });
         App.saveData();this.applyStyles();App.toast('设置已保存');
-        // 保存后立即按新参数重排所有定时器
         if (typeof Proactive !== 'undefined') Proactive.schedule();
         if (typeof LetterProactive !== 'undefined') LetterProactive.schedule();
         if (typeof CallProactive !== 'undefined') CallProactive.schedule();
@@ -873,14 +871,9 @@ const Settings={
         const chatArea=$('chat-area');
         if(s.bgImage)chatArea.style.backgroundImage=`url(${s.bgImage})`;else chatArea.style.backgroundImage='none';
     },
-    /* ★字体：智能识别 4 种写法
-       1) 完整 @font-face{...} 或 @import ... 或含 { 的 CSS
-       2) 字体名|URL       → 手动指定字体名
-       3) xxx.woff2/woff/ttf/otf/eot  → 自动生成 @font-face，字体名默认取文件名
-       4) 其它 → 当 CSS 文件 @import
-    */
     applyFont(s) {
         const styleEl = $('dynamic-font-style');
+        if (!styleEl) return;
         const raw = (s.fontUrl || '').trim();
         const DEFAULT = '"SimSun", "Songti SC", serif';
         const root = document.documentElement;
@@ -915,20 +908,19 @@ const Settings={
             }
         }
 
-        // 缓存避免重复刷新造成字体闪烁
         if (this._fontCache !== css) {
             this._fontCache = css;
-            styleEl.innerHTML = css;
+            styleEl.textContent = css;
         }
         root.style.setProperty('--custom-font', family ? `'${family}', ${DEFAULT}` : DEFAULT);
+
+        if (family && document.fonts && document.fonts.load) {
+            try { document.fonts.load(`16px '${family}'`).catch(()=>{}); } catch(e){}
+        }
     },
-    /* ★气泡 CSS：
-       - 含 { → 视为完整规则，原样注入（并做类名兼容替换）
-       - 不含 { → 视为声明片段，塞进 .msg.user
-       兼容 .message / .message-sent / .message-received → .msg / .msg.user / .msg.other
-    */
     applyBubble(s) {
         const el = $('dynamic-bubble-style');
+        if (!el) return;
         const raw = (s.bubbleCss || '').trim();
         let css = '';
         if (raw) {
@@ -941,11 +933,10 @@ const Settings={
         }
         if (this._bubbleCache !== css) {
             this._bubbleCache = css;
-            el.innerHTML = css;
+            el.textContent = css;
         }
     },
     normalizeBubbleCss(css) {
-        // 先处理具体类，再处理 .message 整体，避免 .message 吞掉 .message-sent
         return css
             .replace(/\.message-sent\b/g, '.msg.user')
             .replace(/\.message-received\b/g, '.msg.other')
