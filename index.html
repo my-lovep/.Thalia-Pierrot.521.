@@ -8,8 +8,7 @@
 :root{--bg-color:#f5f5f5;--chat-bg:#ededed;--text-color:#111;--bubble-user:#333;--bubble-user-text:#fff;--bubble-other:#fff;--bubble-other-text:#111;--header-bg:#f5f5f5;--border-color:#dcdcdc;--font-size-base:16px;--accent:#888;--custom-font:"SimSun","Songti SC",serif;}
 [data-theme="dark"]{--bg-color:#000;--chat-bg:#111;--text-color:#eee;--bubble-user:#555;--bubble-user-text:#fff;--bubble-other:#222;--bubble-other-text:#eee;--header-bg:#111;--border-color:#333;--accent:#666;}
 *{box-sizing:border-box;margin:0;padding:0;font-family:var(--custom-font);transition:background .2s,color .2s;-webkit-tap-highlight-color:transparent;}
-/* 移动端点击优化 */
-.app-icon,.back-btn,.header-btn,.btn-icon,.btn-send,.panel-action,.action-btn,.emoji-tab-btn,.ask-tab,.btn-tool,.music-btn,.call-btn,.card-actions span,.list-item,.group-title,.setting-item .toggle,.profile-edit img,.call-minimize-btn,#call-mini-bar{ touch-action:manipulation; }
+.app-icon,.back-btn,.header-btn,.btn-icon,.btn-send,.panel-action,.action-btn,.emoji-tab-btn,.ask-tab,.btn-tool,.music-btn,.call-btn,.card-actions span,.list-item,.group-title,.setting-item .toggle,.profile-edit img,.call-minimize-btn,#call-mini-bar{touch-action:manipulation;}
 body{background:var(--bg-color);color:var(--text-color);height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;font-size:var(--font-size-base);user-select:none;-webkit-user-select:none;}
 svg{fill:currentColor;width:24px;height:24px;}img{object-fit:cover;}
 #home-screen{display:grid;grid-template-columns:repeat(3,1fr);gap:25px;padding:60px 20px 20px;align-content:start;height:100%;background:url('data:image/svg+xml;utf8,<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="%23ddd"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative;z-index:1;}
@@ -162,7 +161,7 @@ svg{fill:currentColor;width:24px;height:24px;}img{object-fit:cover;}
 .ask-form-group input,.ask-form-group textarea{padding:12px;background:var(--bg-color);border:1px solid var(--border-color);border-radius:8px;font-size:14px;outline:none;color:var(--text-color);}
 .ask-form-group textarea{height:80px;resize:none;}
 
-/* 通话相关样式 */
+/* 通话悬浮层 */
 #call-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:#111;z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;pointer-events:none;}
 #call-overlay.show{display:flex;pointer-events:auto;}
 #remote-video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:none;z-index:1;background:#222;}
@@ -277,7 +276,6 @@ svg{fill:currentColor;width:24px;height:24px;}img{object-fit:cover;}
 </div>
 </div>
 
-<!-- 各类弹窗 -->
 <div id="batch-modal" class="modal"><div class="modal-content"><h3 style="text-align:center;">批量添加字卡</h3><textarea id="batch-text" placeholder="【日常】&#10;早安&#10;晚安"></textarea><div class="modal-btns"><button class="btn-cancel" data-close-modal="batch-modal">取消</button><button class="btn-confirm" id="btn-batch-confirm">确认</button></div></div></div>
 <div id="pat-batch-modal" class="modal"><div class="modal-content"><h3 style="text-align:center;">批量添加拍一拍</h3><textarea id="pat-text" placeholder="抱了抱你&#10;说:睡觉了"></textarea><div class="modal-btns"><button class="btn-cancel" data-close-modal="pat-batch-modal">取消</button><button class="btn-confirm" id="btn-pat-batch-confirm">保存</button></div></div></div>
 <div id="edit-pat-modal" class="modal"><div class="modal-content"><h3 style="text-align:center;">修改拍一拍</h3><input type="text" id="edit-pat-text" placeholder="输入词条..."><div class="modal-btns"><button class="btn-cancel" data-close-modal="edit-pat-modal">取消</button><button class="btn-confirm" id="btn-edit-pat-confirm">保存</button></div></div></div>
@@ -291,12 +289,13 @@ svg{fill:currentColor;width:24px;height:24px;}img{object-fit:cover;}
 
 <div id="action-sheet"><div id="action-content"></div></div>
 
-<!-- 悬浮小窗及通话层 -->
+<!-- 通话悬浮窗 -->
 <div id="call-mini-bar" onclick="Call.expand()">
     <img id="mini-avatar" src="">
     <span id="mini-status">正在通话...</span>
 </div>
 
+<!-- 通话全屏界面 -->
 <div id="call-overlay">
 <video id="remote-video" autoplay playsinline muted style="transform:scaleX(-1);"></video>
 <video id="local-video-preview" autoplay playsinline muted></video>
@@ -306,7 +305,7 @@ svg{fill:currentColor;width:24px;height:24px;}img{object-fit:cover;}
 </button>
 <div class="call-info-area" id="call-info-area"><img id="call-avatar-img" class="call-avatar" src=""><div id="call-name-text" class="call-name">对方</div><div id="call-status-text" class="call-status">正在呼叫...</div></div>
 <div class="call-actions" id="call-actions-incoming" style="display:none;"><button class="call-btn btn-reject" onclick="Call.hangup(true)">拒绝</button><button class="call-btn btn-answer" onclick="Call.answer()">接听</button></div>
-<div class="call-actions" id="call-actions-ongoing" style="display:none;"><button class="call-btn btn-hangup" onclick="Call.hangup(false)">挂断</button></div>
+<div class="call-actions" id="call-actions-ongoing" style="display:flex;"><button class="call-btn btn-hangup" id="btn-hangup-action" onclick="Call.hangup(false)">取消</button></div>
 </div>
 
 <input type="file" id="gallery-emoji-input" multiple accept="image/*" style="display:none">
@@ -318,7 +317,25 @@ svg{fill:currentColor;width:24px;height:24px;}img{object-fit:cover;}
 
 <script>
 const DB_KEY='appData_v25_camera';
-const compressImage=(file,callback)=>{const reader=new FileReader();reader.readAsDataURL(file);reader.onload=(e)=>{const img=new Image();img.src=e.target.result;img.onload=()=>{let width=img.width;let height=img.height;const max=300;if(width>max){height=Math.round((height*max)/width);width=max;}if(height>max){width=Math.round((width*max)/height);height=max;}const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,width,height);callback(canvas.toDataURL('image/jpeg',0.6));};};};
+const compressImage=(file,callback)=>{
+    const reader=new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload=(e)=>{
+        const img=new Image();
+        img.src=e.target.result;
+        img.onload=()=>{
+            let width=img.width,height=img.height;
+            const max=300;
+            if(width>max){height=Math.round((height*max)/width);width=max;}
+            if(height>max){width=Math.round((width*max)/height);height=max;}
+            const canvas=document.createElement('canvas');
+            canvas.width=width;canvas.height=height;
+            const ctx=canvas.getContext('2d');
+            ctx.drawImage(img,0,0,width,height);
+            callback(canvas.toDataURL('image/jpeg',0.6));
+        };
+    };
+};
 
 const App={
 data:{messages:[],cards:[{group:'默认',items:['你好','晚安','今天过得怎么样？'],collapsed:false}],pats:['拍了拍','抱了抱你','摸了摸你的头'],emojis:{pic:[],emoji:['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🧐','🤓','😎','🤩','🥳'],text:['(￣▽￣)','(✿◡‿◡)','( •̀ ω •́ )y','(⊙_⊙)？','(╯°□°）╯︵ ┻━┻','┬─┬ノ( º _ ºノ)','(づ｡◕‿‿◕｡)づ']},letters:[],music:{list:[],mode:'order',currentIndex:-1},wallet:{my:520.22,bot:100.00},settings:{myName:'我',myAvatar:'',botName:'对方',botAvatar:'',showAvatar:true,showName:true,showRead:true,soundEnabled:true,theme:'system',fontSize:16,bubbleCss:'',bgImage:'',timeDisplay:'bottom',fontUrl:'',typingText:'对方正在输入...',delayMin:2,delayMax:5,proactiveMin:0,proactiveMax:0,ignoreProb:20,quoteProb:30,patProb:10,callProb:5,answerProb:80,hangupProb:10,letterMin:0,letterMax:0,letterProb:10,replyProb:80,desktopNotify:false,keepAlive:false,giveProb:10,receiveProb:80,returnProb:20}},
@@ -344,7 +361,12 @@ document.body.addEventListener('click',function(e){
     if(e.target.classList.contains('modal'))e.target.classList.remove('show');
     if(e.target.id==='action-sheet'){e.target.classList.remove('show');}
 });
-document.body.addEventListener('touchstart',function unlockAudio(){if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();else if(App.audioCtx.state==='suspended')App.audioCtx.resume();document.body.removeEventListener('touchstart',unlockAudio);},{once:true});
+
+document.body.addEventListener('touchstart',function unlockAudio(){
+    if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    else if(App.audioCtx.state==='suspended')App.audioCtx.resume();
+    document.body.removeEventListener('touchstart',unlockAudio);
+},{once:true});
 
 const Chat={
     currentLimit:50,isFetchingHistory:false,quoteMsg:null,patTimer:null,
@@ -360,18 +382,14 @@ const Chat={
         document.getElementById('close-emoji').onclick=()=>App.closeAllOverlays();
         document.getElementById('btn-cancel-quote').onclick=()=>{this.quoteMsg=null;document.getElementById('quote-preview').style.display='none';};
         
-        // 修复问问TA点击无反应
         document.getElementById('btn-open-ask').onclick=()=>{
             App.closeAllOverlays(); 
-            setTimeout(() => {
-                document.getElementById('ask-modal').classList.add('show');
-            }, 50);
+            setTimeout(() => { document.getElementById('ask-modal').classList.add('show'); }, 50);
         };
         
         document.getElementById('btn-upload-img').onclick=()=>document.getElementById('img-upload-input').click();
         document.getElementById('img-upload-input').onchange=(e)=>{const file=e.target.files[0];if(!file)return;compressImage(file,(base64)=>{App.data.messages.push({id:Date.now(),role:'user',content:base64,isImg:true,time:Date.now()});this.currentLimit=50;this.render();App.saveData();this.playSound();});e.target.value='';};
         
-        // 拨打电话/视频
         document.getElementById('btn-call-voice').onclick=()=>Call.start(false);
         document.getElementById('btn-call-video').onclick=()=>Call.start(true);
         
@@ -459,9 +477,12 @@ const Chat={
         if(total===0){area.innerHTML='';return;}
         const start=Math.max(0,total-this.currentLimit);const slice=App.data.messages.slice(start);
         const fragment=document.createDocumentFragment();const s=App.data.settings;
+        
         slice.forEach((msg,idx)=>{
             const i=start+idx;
-            if(msg.role==='system'){const div=document.createElement('div');div.className='sys-msg';div.innerText=msg.content;fragment.appendChild(div);return;}
+            if(msg.role==='system'){
+                const div=document.createElement('div');div.className='sys-msg';div.innerText=msg.content;fragment.appendChild(div);return;
+            }
             const row=document.createElement('div');row.className=`msg-row ${msg.role}`;
             const isMe=msg.role==='user';
             const avatarUrl=isMe?s.myAvatar:(msg.senderAvatar||s.botAvatar);
@@ -506,7 +527,9 @@ const Chat={
             }
             fragment.appendChild(row);
         });
-        area.replaceChildren(fragment);
+        
+        area.innerHTML = '';
+        area.appendChild(fragment);
         if(!this.isFetchingHistory)this.scrollToBottom();
     },
     scrollToBottom:function(force=false){
@@ -591,8 +614,6 @@ const Chat={
             }
             App.data.messages.push(replyMsg);
             this.currentLimit=Math.max(this.currentLimit,50);this.render();App.saveData();this.playSound();
-            
-            // 桌面通知推送
             if(document.hidden&&s.desktopNotify&&Notification.permission==='granted'){
                 new Notification(s.botName,{body:replyText,icon:s.botAvatar||''});
             }
@@ -724,7 +745,6 @@ const Emoji={
                 this.classList.add('active');
                 document.getElementById(`emoji-content-${this.dataset.emojiTab}`).classList.add('active');
                 
-                // 控制"加图片"按钮的显示
                 const picWrap = document.getElementById('emoji-add-pic-wrap');
                 if(this.dataset.emojiTab === 'pic') picWrap.style.display = 'block';
                 else picWrap.style.display = 'none';
@@ -868,11 +888,12 @@ const Music={
     toggleMode:function(){let m=App.data.music.mode==='order'?'random':'order';App.data.music.mode=m;document.getElementById('btn-mode').innerText=m==='order'?'🔁':'🔀';App.toast(m==='order'?'顺序播放':'随机播放');App.saveData();}
 };
 
-// 修复：重写通话功能
 const Call={
-    isVideo:false, timer:null, seconds:0, localStream:null, currentFacingMode:'user', isMinimized:false,
+    isVideo:false, timer:null, seconds:0, localStream:null, currentFacingMode:'user', isMinimized:false, callTimeout:null,
     init:function(){
         document.getElementById('btn-switch-camera').onclick=()=>this.switchCamera();
+        document.querySelector('.call-minimize-btn').onclick=()=>this.minimize();
+        document.getElementById('btn-hangup-action').onclick=()=>this.hangup(false);
     },
     start:function(isVideo){
         this.isVideo=isVideo;
@@ -888,14 +909,18 @@ const Call={
         document.getElementById('call-status-text').innerText='正在呼叫...';
         document.getElementById('mini-status').innerText='正在呼叫...';
         
-        document.getElementById('call-actions-ongoing').style.display='none';
+        // 拨出时直接显示挂断按钮
+        document.getElementById('call-actions-ongoing').style.display='flex';
+        document.getElementById('btn-hangup-action').innerText='取消';
+        
         document.getElementById('call-actions-incoming').style.display='none';
         document.getElementById('call-info-area').style.display='flex';
         document.getElementById('remote-video').style.display='none';
         document.getElementById('local-video-preview').style.display='none';
         document.getElementById('btn-switch-camera').style.display='none';
         
-        setTimeout(()=>{
+        if(this.callTimeout) clearTimeout(this.callTimeout);
+        this.callTimeout = setTimeout(()=>{
             if(Math.random()*100 < App.data.settings.answerProb){
                 this.connected();
             }else{
@@ -905,19 +930,21 @@ const Call={
         }, 3000);
     },
     connected:function(){
+        if(this.callTimeout) clearTimeout(this.callTimeout);
+        
         document.getElementById('call-status-text').innerText='00:00';
         document.getElementById('mini-status').innerText='通话中';
         document.getElementById('call-actions-incoming').style.display='none';
         document.getElementById('call-actions-ongoing').style.display='flex';
-        this.seconds=0;
+        document.getElementById('btn-hangup-action').innerText='挂断'; // 接通后变挂断
         
+        this.seconds=0;
         this.timer=setInterval(()=>{
             this.seconds++;
             const m=Math.floor(this.seconds/60).toString().padStart(2,'0');
             const s=(this.seconds%60).toString().padStart(2,'0');
             document.getElementById('call-status-text').innerText=`${m}:${s}`;
             
-            // 对方随机挂断逻辑
             if(Math.random()*100 < (App.data.settings.hangupProb/60)){
                 this.hangup(true);
                 App.toast('对方挂断了通话');
@@ -940,7 +967,7 @@ const Call={
             localVideo.style.transform=this.currentFacingMode==='user'?'scaleX(-1)':'none';
             
             const remoteVideo=document.getElementById('remote-video');
-            remoteVideo.srcObject=stream; // 模拟对方画面
+            remoteVideo.srcObject=stream;
             remoteVideo.style.display='block';
             remoteVideo.style.transform=this.currentFacingMode==='user'?'scaleX(-1)':'none';
             
@@ -957,7 +984,10 @@ const Call={
     },
     hangup:function(isRemote){
         if(this.timer) clearInterval(this.timer);
+        if(this.callTimeout) clearTimeout(this.callTimeout);
         this.timer = null;
+        this.callTimeout = null;
+        
         if(this.localStream){
             this.localStream.getTracks().forEach(t=>t.stop());
             this.localStream = null;
@@ -990,167 +1020,4 @@ const Settings={
         document.getElementById('set-bot-avatar-file').onchange=(e)=>{const file=e.target.files[0];if(!file)return;compressImage(file,(base64)=>{App.data.settings.botAvatar=base64;document.getElementById('bot-avatar-preview').src=base64;App.saveData();});e.target.value='';};
         document.getElementById('set-bg').onchange=(e)=>{const file=e.target.files[0];if(!file)return;compressImage(file,(base64)=>{App.data.settings.bgImage=base64;this.applyStyles();App.saveData();});e.target.value='';};
         
-        document.getElementById('btn-export-all').onclick=()=>{App.downloadFile(JSON.stringify(App.data,null,2),'love_backup.json');};
-        document.getElementById('btn-import-all').onclick=()=>document.getElementById('import-all-file').click();
-        document.getElementById('import-all-file').onchange=(e)=>{
-            const file=e.target.files[0];if(!file)return;
-            const reader=new FileReader();
-            reader.onload=(ev)=>{
-                try{
-                    const data=JSON.parse(ev.target.result);
-                    App.data=data;App.saveData();this.render();this.applyStyles();App.toast('导入成功');
-                }catch(err){App.toast('数据格式错误');}
-            };
-            reader.readAsText(file);e.target.value='';
-        };
-        document.getElementById('btn-reset-all').onclick=()=>{if(confirm('确定重置所有数据？不可恢复！')){localStorage.removeItem(DB_KEY);location.reload();}};
-        
-        // 监听通知和保活开关
-        document.getElementById('set-desktop-notify').onchange=function(){
-            if(this.checked && Notification.permission !== 'granted'){
-                Notification.requestPermission();
-            }
-        };
-        document.getElementById('set-keep-alive').onchange=function(){
-            const audio = document.getElementById('keep-alive-audio');
-            if(this.checked){
-                audio.play().catch(e => console.log('保活播放被拦截', e));
-            }else{
-                audio.pause();
-            }
-        };
-    },
-    render:function(){
-        const s=App.data.settings,w=App.data.wallet;
-        document.getElementById('set-my-balance').value=w.my;
-        document.getElementById('set-bot-balance').value=w.bot;
-        document.getElementById('set-my-name').value=s.myName;
-        document.getElementById('my-avatar-preview').src=s.myAvatar||'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-        document.getElementById('set-bot-name').value=s.botName;
-        document.getElementById('bot-avatar-preview').src=s.botAvatar||'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-        document.getElementById('set-desktop-notify').checked=s.desktopNotify;
-        document.getElementById('set-keep-alive').checked=s.keepAlive;
-        document.getElementById('set-time-display').value=s.timeDisplay;
-        document.getElementById('set-show-avatar').checked=s.showAvatar;
-        document.getElementById('set-show-name').checked=s.showName;
-        document.getElementById('set-show-read').checked=s.showRead;
-        document.getElementById('set-sound-enabled').checked=s.soundEnabled;
-        document.getElementById('set-theme').value=s.theme;
-        document.getElementById('slider-font-size').value=s.fontSize;
-        document.getElementById('val-font-size').innerText=s.fontSize;
-        document.getElementById('set-font-url').value=s.fontUrl;
-        document.getElementById('set-bubble-css').value=s.bubbleCss;
-        document.getElementById('set-delay-min').value=s.delayMin;
-        document.getElementById('set-delay-max').value=s.delayMax;
-        document.getElementById('set-proactive-min').value=s.proactiveMin;
-        document.getElementById('set-proactive-max').value=s.proactiveMax;
-        document.getElementById('set-letter-min').value=s.letterMin;
-        document.getElementById('set-letter-max').value=s.letterMax;
-        
-        const sliders=['give','receive','return','ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob'];
-        sliders.forEach(id=>{
-            const el=document.getElementById('slider-'+id);const valEl=document.getElementById('val-'+id);
-            if(el&&valEl){
-                let propKey=id.replace('-prob','Prob').replace('-','');
-                if(id==='pat-prob')propKey='patProb';
-                if(id==='call-prob')propKey='callProb';
-                if(id==='answer-prob')propKey='answerProb';
-                if(id==='hangup-prob')propKey='hangupProb';
-                if(id==='letter-prob')propKey='letterProb';
-                if(id==='reply-prob')propKey='replyProb';
-                el.value=s[propKey]!==undefined?s[propKey]:10;
-                valEl.innerText=el.value+'%';
-            }
-        });
-    },
-    sliderChange:function(id){
-        const el=document.getElementById('slider-'+id);const valEl=document.getElementById('val-'+id);
-        if(el&&valEl)valEl.innerText=el.value+(id==='font'?'px':'%');
-        if(id==='font'){App.data.settings.fontSize=parseInt(el.value);this.applyStyles();}
-    },
-    save:function(){
-        const s=App.data.settings,w=App.data.wallet;
-        w.my=parseFloat(document.getElementById('set-my-balance').value||0).toFixed(2);
-        w.bot=parseFloat(document.getElementById('set-bot-balance').value||0).toFixed(2);
-        s.myName=document.getElementById('set-my-name').value;
-        s.botName=document.getElementById('set-bot-name').value;
-        s.desktopNotify=document.getElementById('set-desktop-notify').checked;
-        s.keepAlive=document.getElementById('set-keep-alive').checked;
-        s.timeDisplay=document.getElementById('set-time-display').value;
-        s.showAvatar=document.getElementById('set-show-avatar').checked;
-        s.showName=document.getElementById('set-show-name').checked;
-        s.showRead=document.getElementById('set-show-read').checked;
-        s.soundEnabled=document.getElementById('set-sound-enabled').checked;
-        s.theme=document.getElementById('set-theme').value;
-        s.fontSize=parseInt(document.getElementById('slider-font-size').value);
-        s.fontUrl=document.getElementById('set-font-url').value;
-        s.bubbleCss=document.getElementById('set-bubble-css').value;
-        s.delayMin=parseInt(document.getElementById('set-delay-min').value)||1;
-        s.delayMax=parseInt(document.getElementById('set-delay-max').value)||5;
-        s.proactiveMin=parseInt(document.getElementById('set-proactive-min').value)||0;
-        s.proactiveMax=parseInt(document.getElementById('set-proactive-max').value)||0;
-        s.letterMin=parseInt(document.getElementById('set-letter-min').value)||0;
-        s.letterMax=parseInt(document.getElementById('set-letter-max').value)||0;
-        
-        const sliders=['give','receive','return','ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob'];
-        sliders.forEach(id=>{
-            const el=document.getElementById('slider-'+id);
-            if(el){
-                let propKey=id.replace('-prob','Prob').replace('-','');
-                if(id==='pat-prob')propKey='patProb';
-                if(id==='call-prob')propKey='callProb';
-                if(id==='answer-prob')propKey='answerProb';
-                if(id==='hangup-prob')propKey='hangupProb';
-                if(id==='letter-prob')propKey='letterProb';
-                if(id==='reply-prob')propKey='replyProb';
-                s[propKey]=parseInt(el.value);
-            }
-        });
-        App.saveData();this.applyStyles();App.toast('设置已保存');
-    },
-    applyStyles:function(){
-        const s=App.data.settings;
-        document.documentElement.style.setProperty('--font-size-base',s.fontSize+'px');
-        
-        if(s.theme==='dark') document.documentElement.setAttribute('data-theme','dark');
-        else if(s.theme==='light') document.documentElement.removeAttribute('data-theme');
-        else{
-            if(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.setAttribute('data-theme','dark');
-            else document.documentElement.removeAttribute('data-theme');
-        }
-        
-        const fontStyle=document.getElementById('dynamic-font-style');
-        if(s.fontUrl){
-            if(s.fontUrl.startsWith('http')||s.fontUrl.startsWith('@import')){
-                fontStyle.innerHTML=s.fontUrl.startsWith('@')?s.fontUrl:`@import url('${s.fontUrl}');`;
-            }else{
-                document.documentElement.style.setProperty('--custom-font',s.fontUrl);
-            }
-        }else{
-            fontStyle.innerHTML='';document.documentElement.style.setProperty('--custom-font','"SimSun", "Songti SC", serif');
-        }
-        
-        const bubbleStyle=document.getElementById('dynamic-bubble-style');
-        bubbleStyle.innerHTML=s.bubbleCss?`.msg.user { ${s.bubbleCss} }`:'';
-        
-        const chatArea=document.getElementById('chat-area');
-        if(s.bgImage) chatArea.style.backgroundImage=`url(${s.bgImage})`;
-        else chatArea.style.backgroundImage='none';
-    }
-};
-
-// 核心初始化
-App.loadData();
-Chat.init();
-Cards.init();
-Pat.init();
-Emoji.init();
-Letters.init();
-Music.init();
-Settings.init();
-Call.init(); // 初始化通话
-Settings.applyStyles();
-
-</script>
-</body>
-</html>
+        document.getElementById('btn-export-all').onclick=()=>{App.downloadFile(JSON.stringify(App.data,null,2),'love_back
