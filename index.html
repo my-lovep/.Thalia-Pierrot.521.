@@ -241,13 +241,12 @@ const App={
         }
     },
     
-    openApp(id){this.closeAllOverlays();$(id).style.display='flex';try{if(id==='chat-app'){Chat.currentLimit=50;Chat.render();Chat.scrollToBottom(true);}else if(id==='cards-app')Cards.render();else if(id==='settings-app')Settings.render();else if(id==='letter-app')Letters.render();else if(id==='emoji-app')Emoji.renderManager();else if(id==='pat-app')Pat.render();else if(id==='music-app')Music.renderList();}catch(e){console.error(e);}},
+    openApp(id){this.closeAllOverlays();$(id).style.display='flex';try{if(id==='chat-app'){Chat.currentLimit=50;Chat.render();Chat.scrollToBottom(true);$('chat-title').innerText=App.data.settings.botName;}else if(id==='cards-app')Cards.render();else if(id==='settings-app')Settings.render();else if(id==='letter-app')Letters.render();else if(id==='emoji-app')Emoji.renderManager();else if(id==='pat-app')Pat.render();else if(id==='music-app')Music.renderList();}catch(e){console.error(e);}},
     closeApp(id){$(id).style.display='none';this.closeAllOverlays();},
     closeAllOverlays(){$('emoji-panel').style.display='none';$('extra-panel').style.display='none';$('action-sheet').classList.remove('show');document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show'));},
     closeModal(id){$(id).classList.remove('show');},
     toast(msg){const el=document.createElement('div');el.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:#fff;padding:10px 20px;border-radius:8px;z-index:9999;font-size:14px;pointer-events:none;transition:opacity 0.3s;';el.innerText=msg;document.body.appendChild(el);setTimeout(()=>{el.style.opacity='0';setTimeout(()=>el.remove(),300);},1500);},
     openMoneyModal(type){$('money-modal-title').innerText=type==='red'?'发红包':'转账';$('money-modal-title').dataset.type=type;$('money-amount').value='';$('money-note').value='';$('money-modal').classList.add('show');},
-    /* ★修复：支持 mimeType 参数，确保 .json 导出不被改成 .txt；延迟 revoke 防下载中断 */
     downloadFile(content,fileName,mimeType){
         const a=document.createElement('a');
         const file=new Blob([content],{type:mimeType||'text/plain;charset=utf-8'});
@@ -270,10 +269,65 @@ document.body.addEventListener('click',function(e){
 document.body.addEventListener('touchstart',function unlockAudio(){try{if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();else if(App.audioCtx.state==='suspended')App.audioCtx.resume();document.body.removeEventListener('touchstart',unlockAudio);}catch(e){}},{once:true});
 
 const Chat={
-    currentLimit:50,isFetchingHistory:false,quoteMsg:null,patTimer:null,
+    currentLimit:50,isFetchingHistory:false,quoteMsg:null,patTimer:null,editingProfileIsMe:false,
     init(){
+        // 动态注入修改资料弹窗
+        if(!$('profile-modal')){
+            const modal = document.createElement('div');
+            modal.id = 'profile-modal';
+            modal.className = 'modal';
+            modal.innerHTML = `<div class="modal-content"><h3 style="text-align:center;" id="profile-modal-title">修改资料</h3><div class="profile-edit" style="flex-direction:column;align-items:center;gap:10px;margin-bottom:10px;"><img id="profile-modal-avatar" src="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;"><input type="file" id="profile-modal-file" accept="image/*" style="width:100%;"></div><input type="text" id="profile-modal-name" placeholder="输入名字"><div class="modal-btns"><button class="btn-cancel" data-close-modal="profile-modal">取消</button><button class="btn-confirm" id="profile-modal-save">保存</button></div></div>`;
+            document.body.appendChild(modal);
+            
+            $('profile-modal-file').onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                compressImage(file, (base64) => { $('profile-modal-avatar').src = base64; });
+                e.target.value = '';
+            };
+            $('profile-modal-save').onclick = () => {
+                const name = $('profile-modal-name').value.trim();
+                const avatar = $('profile-modal-avatar').src;
+                const isMe = this.editingProfileIsMe;
+                if (isMe) {
+                    App.data.settings.myName = name || '我';
+                    App.data.settings.myAvatar = avatar.startsWith('data:') ? avatar : '';
+                } else {
+                    App.data.settings.botName = name || '对方';
+                    App.data.settings.botAvatar = avatar.startsWith('data:') ? avatar : '';
+                    $('chat-title').innerText = App.data.settings.botName;
+                }
+                App.saveData();
+                this.render();
+                App.closeModal('profile-modal');
+            };
+        }
+
+        // 动态注入拍一拍选择弹窗
+        if(!$('pat-select-modal')) {
+            const modal = document.createElement('div');
+            modal.id = 'pat-select-modal';
+            modal.className = 'modal';
+            modal.innerHTML = `<div class="modal-content"><h3 style="text-align:center;">选择拍一拍动作</h3><div class="list-container" id="pat-select-list" style="max-height: 50vh; padding: 0; margin-bottom: 15px; overflow-y: auto;"></div><div class="modal-btns"><button class="btn-cancel" data-close-modal="pat-select-modal">取消</button></div></div>`;
+            document.body.appendChild(modal);
+        }
+
+        // 动态注入拍一拍按钮
+        const extraPanel = $('extra-panel');
+        if(extraPanel && !$('btn-pat-user')){
+            const btn = document.createElement('div');
+            btn.className = 'panel-action';
+            btn.id = 'btn-pat-user';
+            btn.innerHTML = `<div class="icon-box" style="font-size:24px;">👋</div><span>拍一拍</span>`;
+            extraPanel.appendChild(btn);
+            btn.onclick = () => { App.closeAllOverlays(); this.showPatSelection(); };
+        }
+
         const area=$('chat-area');
         area.addEventListener('scroll',()=>{if(area.scrollTop<=10&&!this.isFetchingHistory){if(this.currentLimit>=App.data.messages.length)return;this.isFetchingHistory=true;const oldHeight=area.scrollHeight;this.currentLimit+=50;this.render();requestAnimationFrame(()=>{area.scrollTop=area.scrollHeight-oldHeight+area.scrollTop;this.isFetchingHistory=false;});}},{passive:true});
+        
+        $('chat-title').innerText = App.data.settings.botName;
+        
         $('btn-send-msg').onclick=()=>this.sendUserMsg();
         $('msg-input').addEventListener('keypress',(e)=>{if(e.key==='Enter')this.sendUserMsg();});
         $('btn-continue').onclick=()=>this.triggerReply("",true);
@@ -300,7 +354,72 @@ const Chat={
             this.render(); this.scrollToBottom(true); App.saveData(); this.playSound();
         };
     },
-    triggerPat(isMe){if(this.patTimer)return;this.patTimer=setTimeout(()=>this.patTimer=null,500);const s=App.data.settings;const patCard=App.data.pats.length>0?App.data.pats[Math.floor(Math.random()*App.data.pats.length)]:'拍了拍';let target=isMe?s.botName:s.myName;let subject=isMe?s.myName:s.botName;let finalMsg=`${subject} ${patCard.replace(/我/g,subject).replace(/你/g,target)}`;if(patCard==='拍了拍')finalMsg=`${subject} 拍了拍 ${target}`;App.data.messages.push({id:Date.now(),role:'system',content:finalMsg,time:Date.now()});this.currentLimit=50;this.render();this.scrollToBottom(true);App.saveData();this.playSound();if(isMe&&Math.random()*100<s.patProb)setTimeout(()=>this.triggerPat(false),1500+Math.random()*1000);},
+    editProfile(isMe) {
+        this.editingProfileIsMe = isMe;
+        const name = isMe ? App.data.settings.myName : App.data.settings.botName;
+        const avatar = isMe ? App.data.settings.myAvatar : App.data.settings.botAvatar;
+        $('profile-modal-title').innerText = isMe ? '我的资料' : '对方资料';
+        $('profile-modal-name').value = name;
+        $('profile-modal-avatar').src = avatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+        $('profile-modal').classList.add('show');
+    },
+    showPatSelection() {
+        if (App.data.pats.length === 0) return App.toast('拍一拍词库为空，请先去添加');
+        const list = $('pat-select-list');
+        list.innerHTML = '';
+        App.data.pats.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'card-item';
+            div.style.cursor = 'pointer';
+            div.innerHTML = `<span>${item}</span>`;
+            div.onclick = () => {
+                App.closeModal('pat-select-modal');
+                this.triggerPat(true, item);
+            };
+            list.appendChild(div);
+        });
+        $('pat-select-modal').classList.add('show');
+    },
+    triggerPat(isMe, selectedText = null){
+        if(this.patTimer)return;this.patTimer=setTimeout(()=>this.patTimer=null,500);
+        const s=App.data.settings;
+        
+        let rawPat = selectedText;
+        if (!rawPat) {
+            // 如果没有指定文本（对方主动拍，或者概率回拍），则随机
+            rawPat = App.data.pats.length>0 ? App.data.pats[Math.floor(Math.random()*App.data.pats.length)] : '拍了拍';
+        }
+        
+        let subject = isMe ? s.myName : s.botName;
+        let target = isMe ? s.botName : s.myName;
+        let finalMsg = '';
+        
+        rawPat = rawPat.trim();
+
+        // 智能拼装拍一拍文本
+        if (rawPat === '拍了拍') {
+            finalMsg = `${subject} 拍了拍 ${target}`;
+        } else {
+            let text = rawPat.replace(/我/g, subject).replace(/你/g, target);
+            if (!text.includes(subject) && !text.includes(target)) {
+                // 没有任何名字或代词，如 "说:睡觉了"
+                finalMsg = `${subject}拍了拍${target}${text}`;
+            } else if (!text.includes(subject)) {
+                // 只有宾语没主语，如 "抱了抱对方"
+                finalMsg = `${subject}${text}`;
+            } else {
+                // 主语宾语都有
+                finalMsg = text;
+            }
+        }
+
+        App.data.messages.push({id:Date.now(),role:'system',content:finalMsg,time:Date.now()});
+        this.currentLimit=50;this.render();this.scrollToBottom(true);App.saveData();this.playSound();
+        
+        if(isMe&&Math.random()*100<s.patProb){
+            setTimeout(()=>this.triggerPat(false),1500+Math.random()*1000);
+        }
+    },
     sendSurvey(){
         const q=$('ask-question-input').value.trim();
         if(!q)return App.toast('请输入问题');
@@ -369,6 +488,7 @@ const Chat={
         content.appendChild(btnReceive); content.appendChild(btnReturn); content.appendChild(btnCancel); sheet.classList.add('show');
     },
     render(){
+        if($('chat-title')) $('chat-title').innerText = App.data.settings.botName;
         const area=$('chat-area');const total=App.data.messages.length;if(total===0){area.innerHTML='';return;}
         const start=Math.max(0,total-this.currentLimit);const slice=App.data.messages.slice(start);const fragment=document.createDocumentFragment();const s=App.data.settings;
         slice.forEach((msg,idx)=>{
@@ -377,7 +497,7 @@ const Chat={
             const row=document.createElement('div');row.className=`msg-row ${msg.role}`;const isMe=msg.role==='user';
             const avatarUrl=isMe?s.myAvatar:(msg.senderAvatar||s.botAvatar);const name=isMe?s.myName:(msg.senderName||s.botName);
             let timeStr=new Date(msg.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});let timeDisplay=s.timeDisplay;let avatarHtml='';
-            if(s.showAvatar){let timeInAvatar=timeDisplay==='avatar-bottom'?`<div class="msg-time-avatar">${timeStr}</div>`:'';avatarHtml=`<div class="avatar-container"><img class="avatar" src="${avatarUrl||'data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23ccc\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'}" ondblclick="Chat.triggerPat(${isMe})">${timeInAvatar}</div>`;}
+            if(s.showAvatar){let timeInAvatar=timeDisplay==='avatar-bottom'?`<div class="msg-time-avatar">${timeStr}</div>`:'';avatarHtml=`<div class="avatar-container"><img class="avatar" src="${avatarUrl||'data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23ccc\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'}" onclick="Chat.editProfile(${isMe})">${timeInAvatar}</div>`;}
             let nameHtml=s.showName?`<div class="msg-name">${name}</div>`:'';let readHtml=(isMe&&s.showRead)?`<div class="read-status show">已读</div>`:'';
             let timeHtml=(timeDisplay==='bottom')?`<div class="msg-time-bottom show">${timeStr}</div>`:(timeDisplay==='click'?`<div class="msg-time-bottom">${timeStr}</div>`:'');
             let contentHtml='';
@@ -458,7 +578,6 @@ const Proactive = {
         const lo = Math.min(min, max);
         const hi = Math.max(min, max);
         const delayMs = (Math.random() * (hi - lo) + lo) * 60 * 1000;
-        console.log(`[Proactive] 下次主动发消息: ${(delayMs / 60000).toFixed(2)} 分钟后`);
         this.timer = setTimeout(() => {
             try {
                 const allCards = App.data.cards.flatMap(c => c.items).filter(i => !i.startsWith('!'));
@@ -482,7 +601,6 @@ const LetterProactive = {
         const lo = Math.min(min, max);
         const hi = Math.max(min, max);
         const delayMs = (Math.random() * (hi - lo) + lo) * 60 * 1000;
-        console.log(`[LetterProactive] 下次主动写信检查: ${(delayMs / 60000).toFixed(2)} 分钟后`);
         this.timer = setTimeout(() => {
             try {
                 const cur = App.data.settings;
@@ -783,7 +901,6 @@ const Settings={
         $('set-my-avatar-file').onchange=(e)=>{const file=e.target.files[0];if(!file)return;compressImage(file,(base64)=>{App.data.settings.myAvatar=base64;$('my-avatar-preview').src=base64;App.saveData();});e.target.value='';};
         $('set-bot-avatar-file').onchange=(e)=>{const file=e.target.files[0];if(!file)return;compressImage(file,(base64)=>{App.data.settings.botAvatar=base64;$('bot-avatar-preview').src=base64;App.saveData();});e.target.value='';};
         $('set-bg').onchange=(e)=>{const file=e.target.files[0];if(!file)return;compressImage(file,(base64)=>{App.data.settings.bgImage=base64;this.applyStyles();App.saveData();});e.target.value='';};
-        /* ★修复：JSON 导出显式指定 application/json，避免被浏览器改成 .txt */
         $('btn-export-all').onclick=()=>{App.downloadFile(JSON.stringify(App.data,null,2),'love_backup.json','application/json;charset=utf-8');};
         $('btn-import-all').onclick=()=>$('import-all-file').click();
         $('import-all-file').onchange=(e)=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=(ev)=>{try{const data=JSON.parse(ev.target.result);App.data=data;App.saveData();this.render();this.applyStyles();App.toast('导入成功');}catch(err){App.toast('数据格式错误');}};reader.readAsText(file);e.target.value='';};
@@ -855,6 +972,7 @@ const Settings={
             }
         });
         App.saveData();this.applyStyles();App.toast('设置已保存');
+        if($('chat-title')) $('chat-title').innerText = s.botName;
         if (typeof Proactive !== 'undefined') Proactive.schedule();
         if (typeof LetterProactive !== 'undefined') LetterProactive.schedule();
         if (typeof CallProactive !== 'undefined') CallProactive.schedule();
