@@ -156,18 +156,17 @@
 <style id="dynamic-bubble-style"></style>
 
 <script>
-// ====== 真正的 PWA 强制注册 ======
+// ====== 真正的 PWA 强制注册，确保 iOS 分配持久化存储空间 ======
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW 注册失败:', err));
     });
 }
 
-window.onerror = function(msg, url, line) { console.warn('JS Error:', msg, 'Line:', line); };
-
 const DB_KEY='appData_v31_final', $=id=>document.getElementById(id);
 const compressImage=(file,cb)=>{const r=new FileReader();r.readAsDataURL(file);r.onload=(e)=>{const i=new Image();i.src=e.target.result;i.onload=()=>{let w=i.width,h=i.height,m=300;if(w>m){h=Math.round(h*m/w);w=m;}if(h>m){w=Math.round(w*m/h);h=m;}const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',.6));};};};
 
+// ====== IndexedDB 核心存储 ======
 const IDB = {
     db: null,
     init() {
@@ -212,19 +211,18 @@ const App={
         settings:{myName:'我',myAvatar:'',botName:'对方',botAvatar:'',showAvatar:true,showName:true,showRead:true,soundEnabled:true,theme:'system',fontSize:16,bubbleCss:'',bgImage:'',timeDisplay:'bottom',fontUrl:'',typingText:'对方正在输入...',delayMin:2,delayMax:5,proactiveMin:0,proactiveMax:0,ignoreProb:20,quoteProb:30,patProb:10,callProb:5,answerProb:80,hangupProb:10,letterMin:0,letterMax:0,letterProb:10,replyProb:80,receiveProb:80,returnProb:10,desktopNotify:false,keepAlive:false}
     },
     audioCtx:null,
-    loadSource: '无',
     
-    // ======== 修复致命 Bug：分离保存逻辑，互不影响 ========
+    // ======== 三重保存机制：数据库为主，本地与Cookie为辅 ========
     saveData(){
         const str = JSON.stringify(this.data);
         
-        // 1. 首选 IndexedDB 存大数据（容量极大，不怕爆）
+        // 1. 首选 IndexedDB 存大数据（容量极大，防 iOS 清空）
         if(IDB.db) IDB.set(DB_KEY, this.data).catch(()=>{});
         
         // 2. 备用 localStorage（爆了也不影响上面和下面）
-        try { localStorage.setItem(DB_KEY, str); } catch(e) { console.warn('LocalStorage满了'); }
+        try { localStorage.setItem(DB_KEY, str); } catch(e) { console.warn('LocalStorage已满'); }
         
-        // 3. 兜底 Cookie，存名字
+        // 3. 兜底 Cookie，死保名字
         try { document.cookie = "myName=" + encodeURIComponent(this.data.settings.myName) + "; max-age=31536000; path=/; SameSite=Lax"; } catch(e) {}
     },
     forceSave(){ this.saveData(); },
@@ -240,14 +238,12 @@ const App={
         // 读 IndexedDB
         try { if(IDB.db) idbData = await IDB.get(DB_KEY); } catch(e) {}
 
-        // 优先使用 IndexedDB（它数据最全）
+        // 优先使用 IndexedDB
         if (idbData) {
             this.data = { ...this.data, ...idbData, settings: { ...this.data.settings, ...(idbData.settings||{}) }, wallet: { ...this.data.wallet, ...(idbData.wallet||{}) }, emojis: { ...this.data.emojis, ...(idbData.emojis||{}) } };
-            this.loadSource = 'IndexedDB(稳定)';
             hasData = true;
         } else if (lsData) {
             this.data = { ...this.data, ...lsData, settings: { ...this.data.settings, ...(lsData.settings||{}) }, wallet: { ...this.data.wallet, ...(lsData.wallet||{}) }, emojis: { ...this.data.emojis, ...(lsData.emojis||{}) } };
-            this.loadSource = 'LocalStorage(备用)';
             hasData = true;
         }
 
@@ -256,7 +252,6 @@ const App={
             const cookieMatch = document.cookie.match(/(^| )myName=([^;]+)/);
             if (cookieMatch) {
                 this.data.settings.myName = decodeURIComponent(cookieMatch[2]);
-                this.loadSource = 'Cookie(救回)';
             }
         }
     },
@@ -662,6 +657,7 @@ const Settings={
         $('set-desktop-notify').onchange=function(){if(this.checked){if(!('Notification' in window)){App.toast('您的浏览器不支持通知');return;}if(Notification.permission!=='granted'){Notification.requestPermission().then(perm=>{if(perm==='granted')App.toast('通知权限已开启');else App.toast('通知权限被拒绝');}).catch(e=>App.toast('当前环境无法请求通知'));}else App.toast('通知权限已开启');}};
         $('set-keep-alive').onchange=function(){const audio=$('keep-alive-audio');if(this.checked){if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(App.audioCtx.state==='suspended')App.audioCtx.resume();audio.play().then(()=>App.toast('后台保活已开启')).catch(e=>App.toast('请轻触屏幕以允许保活'));}else{audio.pause();App.toast('后台保活已关闭');}};
 
+        // 自动保存：输入框、下拉菜单、滑块改变时瞬间保存
         const autoSaveIds = [
             'set-my-balance','set-bot-balance','set-my-name','set-bot-name',
             'set-time-display','set-show-avatar','set-show-name','set-show-read','set-sound-enabled',
@@ -702,9 +698,7 @@ const Settings={
         s.myName=$('set-my-name').value;s.botName=$('set-bot-name').value;s.desktopNotify=$('set-desktop-notify').checked;s.keepAlive=$('set-keep-alive').checked;s.timeDisplay=$('set-time-display').value;s.showAvatar=$('set-show-avatar').checked;s.showName=$('set-show-name').checked;s.showRead=$('set-show-read').checked;s.soundEnabled=$('set-sound-enabled').checked;s.theme=$('set-theme').value;s.fontSize=parseInt($('slider-font-size').value);s.fontUrl=$('set-font-url').value;s.bubbleCss=$('set-bubble-css').value;s.delayMin=parseInt($('set-delay-min').value)||1;s.delayMax=parseInt($('set-delay-max').value)||5;s.proactiveMin=parseInt($('set-proactive-min').value)||0;s.proactiveMax=parseInt($('set-proactive-max').value)||0;s.letterMin=parseInt($('set-letter-min').value)||0;s.letterMax=parseInt($('set-letter-max').value)||0;
         const sliders=['give','receive','return','ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob'];
         sliders.forEach(id=>{const el=$('slider-'+id);if(el){let propKey=id.replace('-prob','Prob').replace('-','');if(id==='pat-prob')propKey='patProb';if(id==='call-prob')propKey='callProb';if(id==='answer-prob')propKey='answerProb';if(id==='hangup-prob')propKey='hangupProb';if(id==='letter-prob')propKey='letterProb';if(id==='reply-prob')propKey='replyProb';s[propKey]=parseInt(el.value);}});
-        App.saveData();this.applyStyles();
-        
-        alert('设置已保存！\n\n当前名字: ' + s.myName + '\n\n请上划杀掉桌面图标，重新打开测试。');
+        App.saveData();this.applyStyles();App.toast('设置已保存');
     },
     applyStyles(){
         const s=App.data.settings;
@@ -742,17 +736,8 @@ window.addEventListener('beforeunload', function(){ try{ App.forceSave(); }catch
         
         var modeBtn = $('btn-mode');
         if (modeBtn) modeBtn.innerText = (App.data.music && App.data.music.mode === 'random') ? '🔀' : '🔁';
-
-        // ====== 诊断大字报 ======
-        const diagEl = document.createElement('div');
-        diagEl.style.cssText = 'position:fixed;top:0;left:0;background:rgba(0,0,0,0.9);color:#fff;font-size:14px;z-index:99999;padding:10px;width:100%;pointer-events:none;line-height:1.5;';
-        diagEl.innerHTML = `
-            <div style="color:#ffcc00;">数据来源: ${App.loadSource}</div>
-            <div>读取到的名字: <span style="color:#00ffcc;font-weight:bold;">${App.data.settings.myName}</span></div>
-        `;
-        document.body.appendChild(diagEl);
     } catch (err) {
-        alert('[boot] 初始化崩溃: ' + err.message);
+        console.error('[boot] 初始化崩溃: ', err);
     }
 })();
 </script>
