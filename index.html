@@ -159,7 +159,6 @@
 const DB_KEY='appData_v31_final', $=id=>document.getElementById(id);
 const compressImage=(file,cb)=>{const r=new FileReader();r.readAsDataURL(file);r.onload=(e)=>{const i=new Image();i.src=e.target.result;i.onload=()=>{let w=i.width,h=i.height,m=300;if(w>m){h=Math.round(h*m/w);w=m;}if(h>m){w=Math.round(w*m/h);h=m;}const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',.6));};};};
 
-// ====== IndexedDB 数据库双保险 ======
 const IDB = {
     db: null,
     init() {
@@ -205,22 +204,18 @@ const App={
     },
     audioCtx:null,
     
-    // 【极致同步保存】取消一切延迟，瞬间写入
     saveData(){
         try {
             const str = JSON.stringify(this.data);
             localStorage.setItem(DB_KEY, str);
             if(IDB.db) IDB.set(DB_KEY, this.data);
-        } catch(e) { 
-            console.warn('saveData 失败：', e); 
-            if(e.name === 'QuotaExceededError') alert('存储空间已满！请清理一些图片或表情包。');
-        }
+        } catch(e) { console.warn('saveData error', e); }
     },
-    
     forceSave(){
         this.saveData();
+        // 诊断：切后台强制保存时提示
+        // alert('触发切后台强制保存！当前名字：' + this.data.settings.myName);
     },
-    
     async loadData(){
         try{
             const s = localStorage.getItem(DB_KEY);
@@ -642,7 +637,6 @@ const Settings={
         $('set-desktop-notify').onchange=function(){if(this.checked){if(!('Notification' in window)){App.toast('您的浏览器不支持通知');return;}if(Notification.permission!=='granted'){Notification.requestPermission().then(perm=>{if(perm==='granted')App.toast('通知权限已开启');else App.toast('通知权限被拒绝');}).catch(e=>App.toast('当前环境无法请求通知'));}else App.toast('通知权限已开启');}};
         $('set-keep-alive').onchange=function(){const audio=$('keep-alive-audio');if(this.checked){if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(App.audioCtx.state==='suspended')App.audioCtx.resume();audio.play().then(()=>App.toast('后台保活已开启')).catch(e=>App.toast('请轻触屏幕以允许保活'));}else{audio.pause();App.toast('后台保活已关闭');}};
 
-        // 【新增】让所有输入框、下拉菜单在改变时瞬间自动保存
         const autoSaveIds = [
             'set-my-balance','set-bot-balance','set-my-name','set-bot-name',
             'set-time-display','set-show-avatar','set-show-name','set-show-read','set-sound-enabled',
@@ -654,7 +648,7 @@ const Settings={
             if(el) {
                 el.addEventListener('change', () => this.save());
                 if(el.type === 'text' || el.type === 'number') {
-                    el.addEventListener('blur', () => this.save()); // 失去焦点也保存
+                    el.addEventListener('blur', () => this.save());
                 }
             }
         });
@@ -696,7 +690,7 @@ const Settings={
     }
 };
 
-/* ===================== 启动 & 持久化 ===================== */
+/* ===================== 启动 & 持久化（带诊断） ===================== */
 document.addEventListener('visibilitychange', function(){
     if (document.visibilityState === 'hidden') { try{ App.forceSave(); }catch(e){} }
 });
@@ -705,14 +699,8 @@ window.addEventListener('beforeunload', function(){ try{ App.forceSave(); }catch
 
 (async function boot(){
     try {
-        // 申请永不清理权限
         if (navigator.storage && navigator.storage.persist) {
             navigator.storage.persist();
-        }
-
-        // 检查是否为本地文件
-        if (window.location.protocol === 'file:') {
-            setTimeout(() => alert('警告：您正在通过本地文件访问。iOS 会强行清空本地文件的记录。\n\n请务必把网页上传到服务器(如 GitHub Pages)，然后用 Safari 访问网址并“添加到主屏幕”，这样数据才不会丢！'), 1000);
         }
 
         await IDB.init();
@@ -730,8 +718,21 @@ window.addEventListener('beforeunload', function(){ try{ App.forceSave(); }catch
         
         var modeBtn = $('btn-mode');
         if (modeBtn) modeBtn.innerText = (App.data.music && App.data.music.mode === 'random') ? '🔀' : '🔁';
+
+        // ====== 诊断面板 ======
+        const diagEl = document.createElement('div');
+        diagEl.style.cssText = 'position:fixed;top:0;left:0;background:rgba(255,0,0,0.8);color:white;font-size:12px;z-index:99999;padding:5px;pointer-events:none;';
+        diagEl.innerText = `启动OK. 名字:${App.data.settings.myName} 协议:${location.protocol}`;
+        document.body.appendChild(diagEl);
+
+        setTimeout(() => {
+            if (window.location.protocol === 'file:') {
+                alert('警告：您正在使用本地文件 (file://) 打开。\n\niOS 系统机制会导致每次切后台后，本地文件的数据 100% 被清空。\n\n请务必将文件上传到服务器，并获取 https:// 开头的网址！');
+            }
+        }, 1000);
+        
     } catch (err) {
-        console.error('[boot] 初始化失败：', err);
+        alert('[boot] 初始化崩溃: ' + err.message);
     }
 })();
 </script>
