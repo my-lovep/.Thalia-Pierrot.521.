@@ -156,16 +156,15 @@
 <style id="dynamic-bubble-style"></style>
 
 <script>
-// ====== 1. 动态注入 Service Worker，欺骗 iOS 将其识别为真正的 PWA ======
+// ====== 真正的 Service Worker 注册 ======
 if ('serviceWorker' in navigator) {
-    try {
-        const swCode = `self.addEventListener('install', function(e) { self.skipWaiting(); });
-                        self.addEventListener('activate', function(e) { return self.clients.claim(); });
-                        self.addEventListener('fetch', function(e) { e.respondWith(fetch(e.request).catch(() => new Response(''))); });`;
-        const blob = new Blob([swCode], {type: 'application/javascript'});
-        const swUrl = URL.createObjectURL(blob);
-        navigator.serviceWorker.register(swUrl).catch(err => console.log('SW注册失败', err));
-    } catch(e) {}
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+            console.log('SW 注册成功', reg.scope);
+        }).catch(err => {
+            console.warn('SW 注册失败，请检查 sw.js 是否存在：', err);
+        });
+    });
 }
 
 window.onerror = function(msg, url, line) { console.warn('JS Error:', msg, 'Line:', line); };
