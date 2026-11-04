@@ -156,26 +156,12 @@
 <style id="dynamic-bubble-style"></style>
 
 <script>
-// ====== 动态注入 CSS ======
+// ====== 动态注入 CSS (保留输入框防挤压，去掉所有语音相关样式) ======
 (function() {
     const style = document.createElement('style');
     style.textContent = `
         .input-area input { flex: 1; min-width: 0 !important; padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; font-size: 15px; background: var(--bg-color); color: var(--text-color); }
         .btn-send { flex-shrink: 0 !important; min-width: 56px !important; white-space: nowrap; background: var(--bubble-user); color: var(--bubble-user-text); border: none; border-radius: 6px; height: 34px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 14px; font-weight: bold; box-sizing: border-box; padding: 0 12px; }
-        
-        /* 语音消息气泡样式 */
-        .audio-msg { display: flex; align-items: center; gap: 8px; min-width: 70px; cursor: pointer; user-select: none; transition: width 0.3s; }
-        .audio-msg .audio-icon { width: 20px; height: 20px; fill: currentColor; }
-        .audio-msg .audio-duration { font-size: 14px; font-weight: bold; }
-        .msg-row.user .audio-msg { flex-direction: row-reverse; }
-        .audio-msg.playing .audio-icon { animation: audio-pulse 0.8s infinite alternate; }
-        @keyframes audio-pulse { from { opacity: 0.4; } to { opacity: 1; } }
-        
-        /* 底部按住说话按钮 */
-        #btn-hold-talk { flex: 1; min-width: 0; height: 38px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; display: none; justify-content: center; align-items: center; font-size: 15px; font-weight: bold; color: var(--text-color); cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: none; transition: background 0.1s; }
-        #btn-hold-talk.active { background: #dcdcdc; color: #333; }
-        #btn-hold-talk.cancel { background: #ff3b30; color: #fff; border-color: #ff3b30; }
-        [data-theme="dark"] #btn-hold-talk.active { background: #333; color: #eee; }
     `;
     document.head.appendChild(style);
 })();
@@ -190,9 +176,10 @@ if ('serviceWorker' in navigator) {
 const DB_KEY='appData_v31_final', $=id=>document.getElementById(id);
 const compressImage=(file,cb)=>{const r=new FileReader();r.readAsDataURL(file);r.onload=(e)=>{const i=new Image();i.src=e.target.result;i.onload=()=>{let w=i.width,h=i.height,m=300;if(w>m){h=Math.round(h*m/w);w=m;}if(h>m){w=Math.round(w*m/h);h=m;}const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',.6));};};};
 
-// ====== 修复乱码核心 Bug：改用单引号防止 HTML 截断 ======
+// ====== 默认头像 (已修复乱码问题：改用单引号包裹) ======
 const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
 
+// ====== 图片 blob 缓存 ======
 const ImgCache = {
     map: new Map(),
     get(dataUrl) {
@@ -332,8 +319,6 @@ document.body.addEventListener('touchstart',function unlockAudio(){try{if(!App.a
 
 const Chat={
     currentLimit:50,isFetchingHistory:false,quoteMsg:null,patTimer:null,editingProfileIsMe:false,
-    isVoiceMode: false, mediaRecorder: null, audioChunks: [], recordStartTime: 0,
-    audioMimeType: '',
     
     init(){
         if(!$('profile-modal')){
@@ -369,23 +354,6 @@ const Chat={
             modal.className = 'modal';
             modal.innerHTML = `<div class="modal-content"><h3 style="text-align:center;">选择拍一拍动作</h3><div class="list-container" id="pat-select-list" style="max-height: 50vh; padding: 0; margin-bottom: 15px; overflow-y: auto;"></div><div class="modal-btns"><button class="btn-cancel" data-close-modal="pat-select-modal">取消</button></div></div>`;
             document.body.appendChild(modal);
-        }
-
-        // --- 注入语音 UI ---
-        const inputArea = document.querySelector('.input-area');
-        if (!$('btn-toggle-voice') && inputArea) {
-            const voiceBtn = document.createElement('button');
-            voiceBtn.className = 'btn-icon'; voiceBtn.id = 'btn-toggle-voice';
-            voiceBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>`;
-            const emojiBtn = $('btn-toggle-emoji');
-            inputArea.insertBefore(voiceBtn, emojiBtn.nextSibling);
-            
-            const holdBtn = document.createElement('button');
-            holdBtn.id = 'btn-hold-talk'; holdBtn.innerText = '按住 说话';
-            inputArea.insertBefore(holdBtn, $('msg-input'));
-
-            voiceBtn.onclick = () => this.toggleVoiceMode();
-            this.bindHoldTalkEvents(holdBtn);
         }
 
         const extraPanel = $('extra-panel');
@@ -424,194 +392,6 @@ const Chat={
         };
     },
 
-    // --- 语音功能核心逻辑 ---
-    toggleVoiceMode() {
-        this.isVoiceMode = !this.isVoiceMode;
-        const input = $('msg-input');
-        const holdBtn = $('btn-hold-talk');
-        const sendBtn = $('btn-send-msg');
-        const emojiBtn = $('btn-toggle-emoji');
-        const extraBtn = $('btn-toggle-extra');
-        const voiceBtn = $('btn-toggle-voice');
-
-        if (this.isVoiceMode) {
-            input.style.display = 'none';
-            sendBtn.style.display = 'none';
-            emojiBtn.style.display = 'none';
-            extraBtn.style.display = 'none';
-            holdBtn.style.display = 'flex';
-            voiceBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 2H5v-2h2v2zm0-3H5V8h2v2zm9 7H8v-2h8v2zm0-4h-2v-2h2v2zm0-3h-2V8h2v2zm3 3h-2v-2h2v2zm0-3h-2V8h2v2z"/></svg>`;
-            App.closeAllOverlays();
-        } else {
-            input.style.display = 'block';
-            sendBtn.style.display = 'flex';
-            emojiBtn.style.display = 'flex';
-            extraBtn.style.display = 'flex';
-            holdBtn.style.display = 'none';
-            voiceBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>`;
-        }
-    },
-
-    bindHoldTalkEvents(btn) {
-        let startY = 0;
-        let isCancelled = false;
-        
-        const startRecord = async (e) => {
-            e.preventDefault();
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                return App.toast('当前环境不支持录音');
-            }
-            
-            isCancelled = false;
-            startY = e.touches ? e.touches[0].clientY : e.clientY;
-            
-            let stream;
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            } catch (err) {
-                console.error('麦克风错误', err);
-                return App.toast('无法访问麦克风，请检查权限');
-            }
-
-            // 针对 iOS Safari 优化格式优先级
-            if (!this.audioMimeType) {
-                if (window.MediaRecorder && MediaRecorder.isTypeSupported) {
-                    const types = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'];
-                    for (const t of types) {
-                        if (MediaRecorder.isTypeSupported(t)) {
-                            this.audioMimeType = t;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            this.audioChunks = [];
-            try {
-                if (this.audioMimeType) {
-                    this.mediaRecorder = new MediaRecorder(stream, { mimeType: this.audioMimeType });
-                } else {
-                    this.mediaRecorder = new MediaRecorder(stream);
-                    this.audioMimeType = this.mediaRecorder.mimeType || 'audio/webm';
-                }
-            } catch (err) {
-                console.error('MediaRecorder创建失败', err);
-                try {
-                    this.mediaRecorder = new MediaRecorder(stream);
-                    this.audioMimeType = this.mediaRecorder.mimeType || 'audio/webm';
-                } catch (e2) {
-                    return App.toast('当前浏览器不支持录音');
-                }
-            }
-
-            this.mediaRecorder.ondataavailable = event => {
-                if (event.data.size > 0) this.audioChunks.push(event.data);
-            };
-            
-            this.mediaRecorder.onstop = () => {
-                stream.getTracks().forEach(track => track.stop());
-            };
-
-            this.mediaRecorder.start();
-            this.recordStartTime = Date.now();
-            
-            // 按钮交互
-            btn.classList.add('active');
-            btn.innerText = '松开 结束';
-        };
-
-        const endRecord = (e) => {
-            e.preventDefault();
-            if (!this.mediaRecorder || this.mediaRecorder.state === 'inactive') return;
-            
-            btn.classList.remove('active');
-            btn.classList.remove('cancel');
-            btn.innerText = '按住 说话';
-
-            const duration = Math.round((Date.now() - this.recordStartTime) / 1000);
-            
-            this.mediaRecorder.stop();
-            
-            if (isCancelled) {
-                this.mediaRecorder = null;
-                return;
-            }
-            if (duration < 1) {
-                this.mediaRecorder = null;
-                return App.toast('说话时间太短');
-            }
-
-            setTimeout(() => {
-                const audioBlob = new Blob(this.audioChunks, { type: this.audioMimeType });
-                const reader = new FileReader();
-                reader.readAsDataURL(audioBlob);
-                reader.onloadend = () => {
-                    const base64data = reader.result;
-                    this.sendUserMsg('[语音]', false, { isAudio: true, audioData: base64data, duration: duration });
-                };
-                this.mediaRecorder = null;
-            }, 100);
-        };
-
-        const moveRecord = (e) => {
-            if (!this.mediaRecorder || this.mediaRecorder.state === 'inactive') return;
-            const currentY = e.touches ? e.touches[0].clientY : e.clientY;
-            if (startY - currentY > 50) {
-                if (!isCancelled) {
-                    isCancelled = true;
-                    btn.classList.add('cancel');
-                    btn.innerText = '松开 取消';
-                }
-            } else {
-                if (isCancelled) {
-                    isCancelled = false;
-                    btn.classList.remove('cancel');
-                    btn.innerText = '松开 结束';
-                }
-            }
-        };
-
-        btn.addEventListener('touchstart', startRecord, {passive: false});
-        btn.addEventListener('touchend', endRecord, {passive: false});
-        btn.addEventListener('touchmove', moveRecord, {passive: false});
-        btn.addEventListener('touchcancel', endRecord);
-        
-        btn.addEventListener('mousedown', startRecord);
-        btn.addEventListener('mouseup', endRecord);
-        btn.addEventListener('mouseleave', (e) => {
-            if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
-                isCancelled = true;
-                endRecord(e);
-            }
-        });
-    },
-
-    playAudioMsg(el, url) {
-        if (!url) return;
-        
-        // iOS 播放优化：每次点击强制重置 Audio 实例，绕过部分系统的播放限制
-        if (window._currentAudio) {
-            window._currentAudio.pause();
-            document.querySelectorAll('.audio-msg').forEach(e => e.classList.remove('playing'));
-        }
-        
-        window._currentAudio = new Audio(url);
-        window._currentAudio.onended = () => { el.classList.remove('playing'); };
-        
-        let playPromise = window._currentAudio.play();
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
-                el.classList.add('playing');
-            }).catch(e => {
-                console.error('播放失败', e);
-                App.toast('播放失败，请重试');
-            });
-        } else {
-            el.classList.add('playing');
-        }
-    },
-    // -------------------------
-
     buildBotMessage(userText, isProactive = false) {
         const s = App.data.settings;
         const allCards = App.data.cards.flatMap(c => c.items).filter(i => !i.startsWith('!'));
@@ -648,7 +428,7 @@ const Chat={
             const recentUserMsgs = App.data.messages.filter(m => m.role === 'user').slice(-10);
             if (recentUserMsgs.length > 0) {
                 const q = recentUserMsgs[Math.floor(Math.random() * recentUserMsgs.length)];
-                replyMsg.quote = { id: q.id, content: q.isImg ? '[图片]' : (q.isAudio?'[语音]':q.content) };
+                replyMsg.quote = { id: q.id, content: q.isImg ? '[图片]' : q.content };
             }
         }
         return replyMsg;
@@ -794,12 +574,6 @@ const Chat={
                 let statusText=msg.status==='answered'?'已回答':'待回答';
                 let footerText = msg.role==='user' ? (msg.status==='answered'?`${App.data.settings.botName} 选了「${msg.selectedText}」`:'等待对方作答...') : (msg.status==='answered'?`你选了「${msg.selectedText}」`:'等待你作答...');
                 contentHtml=`<div class="survey-card"><div class="survey-header"><div class="survey-tag">问问TA</div><div class="survey-status">${statusText}</div></div><div class="survey-question">${msg.question}</div><div class="survey-options">${optsHtml}</div><div class="survey-footer">${footerText}</div></div>`;
-            }else if(msg.isAudio) {
-                const width = Math.min(60 + msg.duration * 3, 180); 
-                contentHtml = `<div class="msg ${msg.role} audio-msg" style="width: ${width}px;" onclick="Chat.playAudioMsg(this, '${msg.audioData}')">
-                    <svg class="audio-icon" viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
-                    <span class="audio-duration">${msg.duration}"</span>
-                </div>`;
             }else{
                 let quoteHtml=msg.quote?`<div class="msg quote">${msg.quote.content}</div>`:'', body = msg.isImg ? `<img src="${ImgCache.get(msg.content)}" loading="lazy" decoding="async">` : msg.content;
                 contentHtml=`<div class="msg ${msg.role}">${quoteHtml}${body}</div>`;
@@ -810,7 +584,7 @@ const Chat={
             const targetEl=row.querySelector('.msg')||row.querySelector('.money-card')||row.querySelector('.survey-card');
             if(targetEl){
                 targetEl.onclick=(e)=>{
-                    if(targetEl.classList.contains('money-card')||targetEl.classList.contains('audio-msg')) return;
+                    if(targetEl.classList.contains('money-card')) return;
                     if(s.timeDisplay==='click'&&targetEl.classList.contains('msg')){
                         const t=targetEl.nextElementSibling;
                         if(t&&t.classList.contains('msg-time-bottom'))t.classList.toggle('show');
@@ -834,7 +608,7 @@ const Chat={
     showMsgActions(msg){
         const sheet=$('action-sheet'), content=$('action-content'); content.innerHTML='';
         
-        if(msg.role==='user'&&!msg.isImg&&!msg.isAudio&&msg.type!=='red'&&msg.type!=='transfer'){
+        if(msg.role==='user'&&!msg.isImg&&msg.type!=='red'&&msg.type!=='transfer'){
             const btnCard=document.createElement('div');btnCard.className='action-btn';btnCard.innerText='加入字卡库';
             btnCard.onclick=()=>{const group=prompt('输入分组名称','快捷添加');if(group!==null){let g=App.data.cards.find(c=>c.group===group);if(!g){g={group,items:[],collapsed:false};App.data.cards.push(g);}if(!g.items.includes(msg.content))g.items.push(msg.content);App.saveData();App.toast('已加入');}sheet.classList.remove('show');};
             content.appendChild(btnCard);
@@ -855,7 +629,7 @@ const Chat={
         // 引用
         if(msg.type!=='red'&&msg.type!=='transfer'&&msg.type!=='survey'){
             const btnQuote=document.createElement('div');btnQuote.className='action-btn';btnQuote.innerText='引用';
-            btnQuote.onclick=()=>{this.quoteMsg=msg;$('quote-preview').style.display='flex';$('quote-text').innerText=msg.isImg?'[图片]':(msg.isAudio?'[语音]':msg.content);sheet.classList.remove('show');};
+            btnQuote.onclick=()=>{this.quoteMsg=msg;$('quote-preview').style.display='flex';$('quote-text').innerText=msg.isImg?'[图片]':msg.content;sheet.classList.remove('show');};
             content.appendChild(btnQuote);
         }
         
@@ -912,19 +686,11 @@ const Chat={
         if(!App.data.settings.soundEnabled)return;
         try{if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(App.audioCtx.state==='suspended')App.audioCtx.resume();const osc=App.audioCtx.createOscillator();const gain=App.audioCtx.createGain();osc.type='sine';osc.frequency.value=800;gain.gain.setValueAtTime(0.1,App.audioCtx.currentTime);gain.gain.exponentialRampToValueAtTime(0.001,App.audioCtx.currentTime+0.1);osc.connect(gain);gain.connect(App.audioCtx.destination);osc.start();setTimeout(()=>{osc.stop();osc.disconnect();},150);}catch(e){}
     },
-    sendUserMsg(textOverride,isImgOverride,extraData){
+    sendUserMsg(textOverride,isImgOverride){
         const input=$('msg-input'), text=textOverride||input.value.trim(); if(!text)return;
         
-        if(extraData && extraData.isAudio) {
-            const newMsg={id:Date.now(),role:'user',isAudio:true,audioData:extraData.audioData,duration:extraData.duration,time:Date.now(),content:'[语音]'};
-            App.data.messages.push(newMsg);
-            this.currentLimit=50;this.render();App.saveData();this.playSound();
-            this.triggerReply('[语音]');
-            return;
-        }
-
         const newMsg={id:Date.now(),role:'user',content:text,time:Date.now(),isImg:isImgOverride};
-        if(this.quoteMsg){newMsg.quote={id:this.quoteMsg.id,content:this.quoteMsg.isImg?'[图片]':(this.quoteMsg.isAudio?'[语音]':this.quoteMsg.content)};}
+        if(this.quoteMsg){newMsg.quote={id:this.quoteMsg.id,content:this.quoteMsg.isImg?'[图片]':this.quoteMsg.content};}
         App.data.messages.push(newMsg);if(!textOverride){input.value='';}this.quoteMsg=null;$('quote-preview').style.display='none';
         this.currentLimit=50;this.render();App.saveData();this.playSound();this.triggerReply(isImgOverride?'[表情包]':text);
     },
