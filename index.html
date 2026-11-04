@@ -170,9 +170,8 @@
         .call-msg .call-name { font-size: 15px; font-weight: bold; }
         .call-msg .call-status { font-size: 12px; opacity: 0.8; }
         
-        /* 红包/转账卡片底部操作栏 */
-        .money-card-actions { display: flex; justify-content: space-between; padding: 8px 15px; font-size: 12px; background: rgba(0,0,0,0.05); }
-        .money-card-actions span { cursor: pointer; font-weight: bold; }
+        /* 红包/转账卡片底部操作 */
+        .money-card-actions { padding: 8px 15px; font-size: 13px; font-weight: bold; background: rgba(0,0,0,0.1); text-align: center; color: #fff; cursor: pointer; }
     `;
     document.head.appendChild(style);
 })();
@@ -542,7 +541,7 @@ const Chat={
         },2000);
     },
     
-    // 新增：直接领取
+    // 点击卡片领取
     receiveMoney(index) {
         const m = App.data.messages[index];
         if (!m || m.status !== 'unread' || m.role !== 'other') return;
@@ -552,7 +551,7 @@ const Chat={
         this.render(); App.saveData(); this.playSound();
     },
 
-    // 新增：直接退回
+    // 点击退回文字退回
     returnMoney(index) {
         const m = App.data.messages[index];
         if (!m || m.status !== 'unread' || m.role !== 'other') return;
@@ -584,16 +583,18 @@ const Chat={
             if(msg.type==='red'||msg.type==='transfer'){
                 const isOpened=msg.status==='opened', isReturned=msg.status==='returned', icon=msg.type==='red'?'🧧':'💸';
                 let bottomHtml = '';
+                
                 if (msg.role === 'other' && msg.status === 'unread') {
-                    bottomHtml = `<div class="money-card-actions">
-                        <span onclick="event.stopPropagation(); Chat.receiveMoney(${i})">领取</span>
-                        <span onclick="event.stopPropagation(); Chat.returnMoney(${i})">退回</span>
-                    </div>`;
+                    // 对方发来的未领取状态：底部显示“退回”文字，点击阻断冒泡并退回
+                    bottomHtml = `<div class="money-card-actions" onclick="event.stopPropagation(); Chat.returnMoney(${i})">退回</div>`;
+                    // 整个卡片点击直接领取
+                    contentHtml=`<div class="money-card ${msg.type}" onclick="Chat.receiveMoney(${i})"><div class="money-card-top"><div class="money-icon">${icon}</div><div class="money-info"><h4>${msg.note}</h4><p>¥${msg.amount}</p></div></div>${bottomHtml}</div>`;
                 } else {
+                    // 其他情况：显示状态文字，不可点击
                     let bottomText = isOpened ? '已领取' : (isReturned ? '已退回' : '等待对方处理');
-                    bottomHtml = `<div class="money-card-bottom">${bottomText}</div>`;
+                    bottomHtml = `<div class="money-card-bottom" style="text-align:center;">${bottomText}</div>`;
+                    contentHtml=`<div class="money-card ${msg.type} ${isOpened||isReturned?'opened':''}"><div class="money-card-top"><div class="money-icon">${icon}</div><div class="money-info"><h4>${msg.note}</h4><p>¥${msg.amount}</p></div></div>${bottomHtml}</div>`;
                 }
-                contentHtml=`<div class="money-card ${msg.type} ${isOpened||isReturned?'opened':''}" onclick="if('${msg.role}'==='other' && '${msg.status}'==='unread'){ Chat.receiveMoney(${i}) }"><div class="money-card-top"><div class="money-icon">${icon}</div><div class="money-info"><h4>${msg.note}</h4><p>¥${msg.amount}</p></div></div>${bottomHtml}</div>`;
             }else if(msg.type==='survey'){
                 let optsHtml='';
                 if(!msg.isText){optsHtml=msg.options.map((opt,oi)=>`<div class="survey-option ${opt.selected?'selected':''}"><div class="survey-opt-key">${String.fromCharCode(65+oi)}</div><div class="survey-radio"></div><div>${opt.text}</div>${opt.selected?'<div class="survey-check">✓</div>':''}</div>`).join('');}
@@ -626,7 +627,9 @@ const Chat={
             const targetEl=row.querySelector('.msg')||row.querySelector('.money-card')||row.querySelector('.survey-card');
             if(targetEl){
                 targetEl.onclick=(e)=>{
-                    if(targetEl.classList.contains('money-card') || targetEl.classList.contains('call-msg')) return;
+                    // 这里的 return 已经阻止了 money-card 的冒泡，防止触发下面的 showMsgActions
+                    if(targetEl.classList.contains('money-card') || targetEl.classList.contains('call-msg')) return; 
+                    
                     if(s.timeDisplay==='click'&&targetEl.classList.contains('msg')){
                         const t=targetEl.nextElementSibling;
                         if(t&&t.classList.contains('msg-time-bottom'))t.classList.toggle('show');
