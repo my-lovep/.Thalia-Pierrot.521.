@@ -171,9 +171,11 @@
         .call-msg .call-status { font-size: 12px; opacity: 0.8; }
         
         /* 红包/转账卡片底部操作 */
-        .money-card-actions { display: flex; justify-content: space-between; padding: 8px 15px; font-size: 12px; background: rgba(0,0,0,0.1); color: #fff; }
-        .money-card-actions span { flex: 1; text-align: center; }
+        .money-card-actions { display: flex; background: rgba(0,0,0,0.1); border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; overflow: hidden; }
+        .money-card-actions span { flex: 1; text-align: center; padding: 10px 0; font-size: 13px; font-weight: bold; color: #fff; }
         .money-card-actions span.clickable { cursor: pointer; }
+        .money-card-actions span.clickable:active { background: rgba(0,0,0,0.15); }
+        .money-card-actions span:not(:last-child) { border-right: 1px solid rgba(255,255,255,0.2); }
     `;
     document.head.appendChild(style);
 })();
@@ -594,26 +596,26 @@ const Chat={
                 let bottomHtml = '';
                 let cardClickAction = '';
                 
-                if (msg.role === 'other' && msg.status === 'unread') {
-                    cardClickAction = `onclick="Chat.receiveMoney(${i})"`;
-                    bottomHtml = `<div class="money-card-actions">
-                        <span class="clickable" onclick="event.stopPropagation(); Chat.receiveMoney(${i})">领取</span>
-                        <span class="clickable" onclick="event.stopPropagation(); Chat.returnMoney(${i})">退回</span>
-                    </div>`;
-                } else if (msg.role === 'other' && msg.status === 'opened') {
-                    bottomHtml = `<div class="money-card-actions" style="justify-content:center;"><span>已领取</span></div>`;
-                } else if (msg.role === 'other' && msg.status === 'returned') {
-                    bottomHtml = `<div class="money-card-actions" style="justify-content:center;"><span>已退回</span></div>`;
-                } else if (msg.role === 'user' && msg.status === 'unread') {
-                    cardClickAction = `onclick="App.toast('等待对方处理')"`;
-                    bottomHtml = `<div class="money-card-actions" style="opacity:0.8;">
-                        <span>领取</span>
-                        <span>退回</span>
-                    </div>`;
-                } else if (msg.role === 'user' && msg.status === 'opened') {
-                    bottomHtml = `<div class="money-card-actions" style="justify-content:center;"><span>已领取</span></div>`;
-                } else if (msg.role === 'user' && msg.status === 'returned') {
-                    bottomHtml = `<div class="money-card-actions" style="justify-content:center;"><span>已退回</span></div>`;
+                if (msg.status === 'unread') {
+                    if (msg.role === 'other') {
+                        // 对方发来的，可以操作
+                        cardClickAction = `onclick="Chat.receiveMoney(${i})"`;
+                        bottomHtml = `<div class="money-card-actions">
+                            <span class="clickable" onclick="event.stopPropagation(); Chat.receiveMoney(${i})">领取</span>
+                            <span class="clickable" onclick="event.stopPropagation(); Chat.returnMoney(${i})">退回</span>
+                        </div>`;
+                    } else {
+                        // 自己发的，只是显示文字
+                        cardClickAction = `onclick="App.toast('等待对方处理')"`;
+                        bottomHtml = `<div class="money-card-actions" style="opacity:0.6;">
+                            <span>领取</span>
+                            <span>退回</span>
+                        </div>`;
+                    }
+                } else if (msg.status === 'opened') {
+                    bottomHtml = `<div class="money-card-actions" style="justify-content:center; opacity:0.8;"><span>已领取</span></div>`;
+                } else if (msg.status === 'returned') {
+                    bottomHtml = `<div class="money-card-actions" style="justify-content:center; opacity:0.8;"><span>已退回</span></div>`;
                 }
 
                 contentHtml=`<div class="money-card ${msg.type} ${isOpened||isReturned?'opened':''}" ${cardClickAction}><div class="money-card-top"><div class="money-icon">${icon}</div><div class="money-info"><h4>${msg.note}</h4><p>¥${msg.amount}</p></div></div>${bottomHtml}</div>`;
