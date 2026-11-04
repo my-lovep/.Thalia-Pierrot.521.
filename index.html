@@ -171,15 +171,11 @@
         .audio-msg.playing .audio-icon { animation: audio-pulse 0.8s infinite alternate; }
         @keyframes audio-pulse { from { opacity: 0.4; } to { opacity: 1; } }
         
-        /* 按住说话按钮 */
-        #btn-hold-talk { flex: 1; min-width: 0; height: 38px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; display: none; justify-content: center; align-items: center; font-size: 15px; font-weight: bold; color: var(--text-color); cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: none; }
+        /* 底部按住说话按钮 */
+        #btn-hold-talk { flex: 1; min-width: 0; height: 38px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; display: none; justify-content: center; align-items: center; font-size: 15px; font-weight: bold; color: var(--text-color); cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: none; transition: background 0.1s; }
         #btn-hold-talk.active { background: #dcdcdc; color: #333; }
+        #btn-hold-talk.cancel { background: #ff3b30; color: #fff; border-color: #ff3b30; }
         [data-theme="dark"] #btn-hold-talk.active { background: #333; color: #eee; }
-        
-        /* 录音悬浮提示 */
-        #record-indicator { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: #fff; padding: 20px 30px; border-radius: 12px; display: none; flex-direction: column; align-items: center; gap: 15px; z-index: 9999; font-size: 14px; }
-        #record-indicator .record-time { font-size: 24px; font-weight: bold; }
-        #record-indicator .record-icon { font-size: 40px; }
     `;
     document.head.appendChild(style);
 })();
@@ -335,7 +331,7 @@ document.body.addEventListener('touchstart',function unlockAudio(){try{if(!App.a
 
 const Chat={
     currentLimit:50,isFetchingHistory:false,quoteMsg:null,patTimer:null,editingProfileIsMe:false,
-    isVoiceMode: false, mediaRecorder: null, audioChunks: [], recordStartTime: 0, recordTimer: null,
+    isVoiceMode: false, mediaRecorder: null, audioChunks: [], recordStartTime: 0,
     audioMimeType: '',
     
     init(){
@@ -468,7 +464,6 @@ const Chat={
             isCancelled = false;
             startY = e.touches ? e.touches[0].clientY : e.clientY;
             
-            // 获取麦克风流 (浏览器会自动记住权限，下次直接通过)
             let stream;
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -477,7 +472,6 @@ const Chat={
                 return App.toast('无法访问麦克风，请检查权限');
             }
 
-            // 兼容性检测：优先选择 iOS 支持的 mp4 格式
             if (!this.audioMimeType) {
                 if (window.MediaRecorder && MediaRecorder.isTypeSupported) {
                     const types = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'];
@@ -512,16 +506,16 @@ const Chat={
                 if (event.data.size > 0) this.audioChunks.push(event.data);
             };
             
-            // 录音结束后，立刻释放麦克风占用（避免手机顶部一直有红点）
             this.mediaRecorder.onstop = () => {
                 stream.getTracks().forEach(track => track.stop());
             };
 
             this.mediaRecorder.start();
             this.recordStartTime = Date.now();
+            
+            // 按钮交互
             btn.classList.add('active');
             btn.innerText = '松开 结束';
-            this.showRecordIndicator();
         };
 
         const endRecord = (e) => {
@@ -529,8 +523,8 @@ const Chat={
             if (!this.mediaRecorder || this.mediaRecorder.state === 'inactive') return;
             
             btn.classList.remove('active');
+            btn.classList.remove('cancel');
             btn.innerText = '按住 说话';
-            this.hideRecordIndicator();
 
             const duration = Math.round((Date.now() - this.recordStartTime) / 1000);
             
@@ -538,7 +532,7 @@ const Chat={
             
             if (isCancelled) {
                 this.mediaRecorder = null;
-                return App.toast('已取消');
+                return;
             }
             if (duration < 1) {
                 this.mediaRecorder = null;
@@ -563,16 +557,14 @@ const Chat={
             if (startY - currentY > 50) {
                 if (!isCancelled) {
                     isCancelled = true;
+                    btn.classList.add('cancel');
                     btn.innerText = '松开 取消';
-                    $('record-indicator').querySelector('.record-text').innerText = '松开手指，取消发送';
-                    $('record-indicator').style.background = 'rgba(220, 38, 38, 0.9)';
                 }
             } else {
                 if (isCancelled) {
                     isCancelled = false;
+                    btn.classList.remove('cancel');
                     btn.innerText = '松开 结束';
-                    $('record-indicator').querySelector('.record-text').innerText = '上滑取消发送';
-                    $('record-indicator').style.background = 'rgba(0,0,0,0.8)';
                 }
             }
         };
@@ -580,6 +572,7 @@ const Chat={
         btn.addEventListener('touchstart', startRecord, {passive: false});
         btn.addEventListener('touchend', endRecord, {passive: false});
         btn.addEventListener('touchmove', moveRecord, {passive: false});
+        btn.addEventListener('touchcancel', endRecord);
         
         btn.addEventListener('mousedown', startRecord);
         btn.addEventListener('mouseup', endRecord);
@@ -589,41 +582,6 @@ const Chat={
                 endRecord(e);
             }
         });
-    },
-
-    showRecordIndicator() {
-        let ind = $('record-indicator');
-        if (!ind) {
-            ind = document.createElement('div');
-            ind.id = 'record-indicator';
-            ind.innerHTML = `<div class="record-icon">🎙️</div><div class="record-time" id="record-time-display">00:00</div><div class="record-text" style="font-size:12px;color:#aaa;margin-top:10px;">上滑取消发送</div>`;
-            document.body.appendChild(ind);
-        }
-        ind.style.display = 'flex';
-        ind.style.background = 'rgba(0,0,0,0.8)';
-        ind.querySelector('.record-time').innerText = '00:00';
-        ind.querySelector('.record-text').innerText = '上滑取消发送';
-        
-        let sec = 0;
-        this.recordTimer = setInterval(() => {
-            sec++;
-            const m = Math.floor(sec/60).toString().padStart(2,'0');
-            const s = (sec%60).toString().padStart(2,'0');
-            ind.querySelector('.record-time').innerText = `${m}:${s}`;
-            if (sec >= 60) {
-                App.toast('录音最长60秒');
-                $('btn-hold-talk').dispatchEvent(new Event('touchend'));
-            }
-        }, 1000);
-    },
-
-    hideRecordIndicator() {
-        if (this.recordTimer) {
-            clearInterval(this.recordTimer);
-            this.recordTimer = null;
-        }
-        const ind = $('record-indicator');
-        if (ind) ind.style.display = 'none';
     },
 
     playAudioMsg(el, url) {
