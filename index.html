@@ -169,6 +169,10 @@
         .call-msg .call-info { display: flex; flex-direction: column; gap: 4px; }
         .call-msg .call-name { font-size: 15px; font-weight: bold; }
         .call-msg .call-status { font-size: 12px; opacity: 0.8; }
+        
+        /* 红包/转账卡片底部操作栏 */
+        .money-card-actions { display: flex; justify-content: space-between; padding: 8px 15px; font-size: 12px; background: rgba(0,0,0,0.05); }
+        .money-card-actions span { cursor: pointer; font-weight: bold; }
     `;
     document.head.appendChild(style);
 })();
@@ -537,20 +541,27 @@ const Chat={
             this.render();App.saveData();
         },2000);
     },
-    openCard(index){
-        const m=App.data.messages[index];
-        if(m.status === 'opened') return App.toast('该笔款项已领取');
-        if(m.status === 'returned') return App.toast('该笔款项已退回');
-        if(m.role === 'user') return App.toast('等待对方处理');
-        const sheet=$('action-sheet'), content=$('action-content'); content.innerHTML='';
-        const btnReceive=document.createElement('div'); btnReceive.className='action-btn'; btnReceive.innerText='领取';
-        btnReceive.onclick=()=>{App.data.wallet.my=(parseFloat(App.data.wallet.my)+parseFloat(m.amount)).toFixed(2);m.status='opened';App.data.messages.push({role:'system',content:`你已领取了对方的${m.type==='red'?'红包':'转账'} ${m.amount} 元`,time:Date.now()});this.render(); App.saveData(); App.closeAllOverlays(); this.playSound();};
-        const btnReturn=document.createElement('div'); btnReturn.className='action-btn'; btnReturn.innerText='退回';
-        btnReturn.onclick=()=>{App.data.wallet.bot=(parseFloat(App.data.wallet.bot)+parseFloat(m.amount)).toFixed(2);m.status='returned';App.data.messages.push({role:'system',content:`你退回了对方的${m.type==='red'?'红包':'转账'} ${m.amount} 元`,time:Date.now()});this.render(); App.saveData(); App.closeAllOverlays();};
-        const btnCancel=document.createElement('div'); btnCancel.className='action-btn action-cancel'; btnCancel.innerText='取消';
-        btnCancel.onclick=()=>App.closeAllOverlays();
-        content.appendChild(btnReceive); content.appendChild(btnReturn); content.appendChild(btnCancel); sheet.classList.add('show');
+    
+    // 新增：直接领取
+    receiveMoney(index) {
+        const m = App.data.messages[index];
+        if (!m || m.status !== 'unread' || m.role !== 'other') return;
+        App.data.wallet.my = (parseFloat(App.data.wallet.my) + parseFloat(m.amount)).toFixed(2);
+        m.status = 'opened';
+        App.data.messages.push({ role: 'system', content: `你已领取了对方的${m.type === 'red' ? '红包' : '转账'} ${m.amount} 元`, time: Date.now() });
+        this.render(); App.saveData(); this.playSound();
     },
+
+    // 新增：直接退回
+    returnMoney(index) {
+        const m = App.data.messages[index];
+        if (!m || m.status !== 'unread' || m.role !== 'other') return;
+        App.data.wallet.bot = (parseFloat(App.data.wallet.bot) + parseFloat(m.amount)).toFixed(2);
+        m.status = 'returned';
+        App.data.messages.push({ role: 'system', content: `你退回了对方的${m.type === 'red' ? '红包' : '转账'} ${m.amount} 元`, time: Date.now() });
+        this.render(); App.saveData();
+    },
+
     render(){
         if($('chat-title')) $('chat-title').innerText = App.data.settings.botName;
         const area=$('chat-area'), total=App.data.messages.length; if(total===0){area.innerHTML='';return;}
@@ -572,8 +583,17 @@ const Chat={
             
             if(msg.type==='red'||msg.type==='transfer'){
                 const isOpened=msg.status==='opened', isReturned=msg.status==='returned', icon=msg.type==='red'?'🧧':'💸';
-                let bottomText = isOpened ? '已领取' : (isReturned ? '已退回' : '点击查看');
-                contentHtml=`<div class="money-card ${msg.type} ${isOpened||isReturned?'opened':''}" onclick="Chat.openCard(${i})"><div class="money-card-top"><div class="money-icon">${icon}</div><div class="money-info"><h4>${msg.note}</h4><p>¥${msg.amount}</p></div></div><div class="money-card-bottom">${bottomText}</div></div>`;
+                let bottomHtml = '';
+                if (msg.role === 'other' && msg.status === 'unread') {
+                    bottomHtml = `<div class="money-card-actions">
+                        <span onclick="event.stopPropagation(); Chat.receiveMoney(${i})">领取</span>
+                        <span onclick="event.stopPropagation(); Chat.returnMoney(${i})">退回</span>
+                    </div>`;
+                } else {
+                    let bottomText = isOpened ? '已领取' : (isReturned ? '已退回' : '等待对方处理');
+                    bottomHtml = `<div class="money-card-bottom">${bottomText}</div>`;
+                }
+                contentHtml=`<div class="money-card ${msg.type} ${isOpened||isReturned?'opened':''}" onclick="if('${msg.role}'==='other' && '${msg.status}'==='unread'){ Chat.receiveMoney(${i}) }"><div class="money-card-top"><div class="money-icon">${icon}</div><div class="money-info"><h4>${msg.note}</h4><p>¥${msg.amount}</p></div></div>${bottomHtml}</div>`;
             }else if(msg.type==='survey'){
                 let optsHtml='';
                 if(!msg.isText){optsHtml=msg.options.map((opt,oi)=>`<div class="survey-option ${opt.selected?'selected':''}"><div class="survey-opt-key">${String.fromCharCode(65+oi)}</div><div class="survey-radio"></div><div>${opt.text}</div>${opt.selected?'<div class="survey-check">✓</div>':''}</div>`).join('');}
