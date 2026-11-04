@@ -156,12 +156,19 @@
 <style id="dynamic-bubble-style"></style>
 
 <script>
-// ====== 动态注入 CSS (保留输入框防挤压，去掉所有语音相关样式) ======
+// ====== 动态注入 CSS ======
 (function() {
     const style = document.createElement('style');
     style.textContent = `
         .input-area input { flex: 1; min-width: 0 !important; padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 8px; outline: none; font-size: 15px; background: var(--bg-color); color: var(--text-color); }
         .btn-send { flex-shrink: 0 !important; min-width: 56px !important; white-space: nowrap; background: var(--bubble-user); color: var(--bubble-user-text); border: none; border-radius: 6px; height: 34px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 14px; font-weight: bold; box-sizing: border-box; padding: 0 12px; }
+        
+        /* 通话记录卡片样式 */
+        .call-msg { display: flex; align-items: center; gap: 10px; min-width: 100px; cursor: default; }
+        .call-msg .call-icon { width: 20px; height: 20px; fill: currentColor; }
+        .call-msg .call-info { display: flex; flex-direction: column; gap: 4px; }
+        .call-msg .call-name { font-size: 15px; font-weight: bold; }
+        .call-msg .call-status { font-size: 12px; opacity: 0.8; }
     `;
     document.head.appendChild(style);
 })();
@@ -176,10 +183,9 @@ if ('serviceWorker' in navigator) {
 const DB_KEY='appData_v31_final', $=id=>document.getElementById(id);
 const compressImage=(file,cb)=>{const r=new FileReader();r.readAsDataURL(file);r.onload=(e)=>{const i=new Image();i.src=e.target.result;i.onload=()=>{let w=i.width,h=i.height,m=300;if(w>m){h=Math.round(h*m/w);w=m;}if(h>m){w=Math.round(w*m/h);h=m;}const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',.6));};};};
 
-// ====== 默认头像 (已修复乱码问题：改用单引号包裹) ======
+// ====== 默认头像 ======
 const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
 
-// ====== 图片 blob 缓存 ======
 const ImgCache = {
     map: new Map(),
     get(dataUrl) {
@@ -574,6 +580,22 @@ const Chat={
                 let statusText=msg.status==='answered'?'已回答':'待回答';
                 let footerText = msg.role==='user' ? (msg.status==='answered'?`${App.data.settings.botName} 选了「${msg.selectedText}」`:'等待对方作答...') : (msg.status==='answered'?`你选了「${msg.selectedText}」`:'等待你作答...');
                 contentHtml=`<div class="survey-card"><div class="survey-header"><div class="survey-tag">问问TA</div><div class="survey-status">${statusText}</div></div><div class="survey-question">${msg.question}</div><div class="survey-options">${optsHtml}</div><div class="survey-footer">${footerText}</div></div>`;
+            }else if(msg.type==='call'){
+                const icon = msg.isVideo ? '<svg viewBox="0 0 24 24" class="call-icon"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>' : '<svg viewBox="0 0 24 24" class="call-icon"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>';
+                const text = msg.isVideo ? '视频通话' : '语音通话';
+                let statusText = '';
+                if (msg.status === 'connected') {
+                    const m = Math.floor(msg.duration / 60).toString().padStart(2, '0');
+                    const s = (msg.duration % 60).toString().padStart(2, '0');
+                    statusText = `通话时长 ${m}:${s}`;
+                } else if (msg.status === 'cancelled') {
+                    statusText = '已取消';
+                } else if (msg.status === 'rejected') {
+                    statusText = '已拒绝';
+                } else if (msg.status === 'missed') {
+                    statusText = '未接听';
+                }
+                contentHtml = `<div class="msg ${msg.role} call-msg"><div class="call-info"><div style="display:flex;align-items:center;gap:6px;">${icon} ${text}</div><div class="call-status">${statusText}</div></div></div>`;
             }else{
                 let quoteHtml=msg.quote?`<div class="msg quote">${msg.quote.content}</div>`:'', body = msg.isImg ? `<img src="${ImgCache.get(msg.content)}" loading="lazy" decoding="async">` : msg.content;
                 contentHtml=`<div class="msg ${msg.role}">${quoteHtml}${body}</div>`;
@@ -584,7 +606,7 @@ const Chat={
             const targetEl=row.querySelector('.msg')||row.querySelector('.money-card')||row.querySelector('.survey-card');
             if(targetEl){
                 targetEl.onclick=(e)=>{
-                    if(targetEl.classList.contains('money-card')) return;
+                    if(targetEl.classList.contains('money-card') || targetEl.classList.contains('call-msg')) return;
                     if(s.timeDisplay==='click'&&targetEl.classList.contains('msg')){
                         const t=targetEl.nextElementSibling;
                         if(t&&t.classList.contains('msg-time-bottom'))t.classList.toggle('show');
@@ -608,14 +630,14 @@ const Chat={
     showMsgActions(msg){
         const sheet=$('action-sheet'), content=$('action-content'); content.innerHTML='';
         
-        if(msg.role==='user'&&!msg.isImg&&msg.type!=='red'&&msg.type!=='transfer'){
+        if(msg.role==='user'&&!msg.isImg&&msg.type!=='red'&&msg.type!=='transfer'&&msg.type!=='call'){
             const btnCard=document.createElement('div');btnCard.className='action-btn';btnCard.innerText='加入字卡库';
             btnCard.onclick=()=>{const group=prompt('输入分组名称','快捷添加');if(group!==null){let g=App.data.cards.find(c=>c.group===group);if(!g){g={group,items:[],collapsed:false};App.data.cards.push(g);}if(!g.items.includes(msg.content))g.items.push(msg.content);App.saveData();App.toast('已加入');}sheet.classList.remove('show');};
             content.appendChild(btnCard);
         }
         
         // 撤回
-        if (msg.role === 'user' && msg.type !== 'red' && msg.type !== 'transfer') {
+        if (msg.role === 'user' && msg.type !== 'red' && msg.type !== 'transfer' && msg.type !== 'call') {
             const btnRevoke = document.createElement('div');
             btnRevoke.className = 'action-btn';
             btnRevoke.innerText = '撤回';
@@ -627,7 +649,7 @@ const Chat={
         }
 
         // 引用
-        if(msg.type!=='red'&&msg.type!=='transfer'&&msg.type!=='survey'){
+        if(msg.type!=='red'&&msg.type!=='transfer'&&msg.type!=='survey'&&msg.type!=='call'){
             const btnQuote=document.createElement('div');btnQuote.className='action-btn';btnQuote.innerText='引用';
             btnQuote.onclick=()=>{this.quoteMsg=msg;$('quote-preview').style.display='flex';$('quote-text').innerText=msg.isImg?'[图片]':msg.content;sheet.classList.remove('show');};
             content.appendChild(btnQuote);
@@ -951,7 +973,7 @@ const Music={
 };
 
 const Call={
-    isVideo:false,timer:null,seconds:0,localStream:null,currentFacingMode:'user',isMinimized:false,callTimeout:null,videoEnabled:false,
+    isVideo:false,timer:null,seconds:0,localStream:null,currentFacingMode:'user',isMinimized:false,callTimeout:null,videoEnabled:false,isIncoming:false,logRecorded:false,
     init(){
         $('btn-switch-camera').onclick=()=>this.switchCamera();$('btn-toggle-camera').onclick=()=>this.toggleCamera();
         document.querySelector('.call-minimize-btn').onclick=()=>this.minimize();$('btn-hangup-action').onclick=()=>this.hangup(false);
@@ -959,7 +981,8 @@ const Call={
     },
     toggleVideoView(){if(!this.videoEnabled)return;const l=$('local-video-preview'),b=$('call-bg');if(l.classList.contains('is-main')){l.classList.remove('is-main');b.classList.remove('is-pip');}else{l.classList.add('is-main');b.classList.add('is-pip');}},
     start(isVideo){
-        this.isVideo=isVideo;this.isMinimized=false;this.videoEnabled=false;$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');
+        this.isVideo=isVideo;this.isMinimized=false;this.videoEnabled=false;this.isIncoming=false;this.logRecorded=false;
+        $('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');
         const avatar=App.data.settings.botAvatar||DEFAULT_AVATAR;
         $('call-avatar-img').src=avatar;$('mini-avatar').src=avatar;$('call-name-text').innerText=App.data.settings.botName;$('call-status-text').innerText='正在呼叫...';$('call-actions-ongoing').style.display='flex';$('btn-hangup-action').innerText='取消';$('call-actions-incoming').style.display='none';
         const b=$('call-bg');b.classList.remove('is-pip');b.style.display='flex';const l=$('local-video-preview');l.style.display='none';l.classList.remove('is-main');
@@ -970,7 +993,7 @@ const Call={
     startIncoming(isVideo){
         if($('call-overlay').classList.contains('show'))return;
         if(this.timer||this.callTimeout)return;
-        this.isVideo=isVideo;this.isMinimized=false;this.videoEnabled=false;
+        this.isVideo=isVideo;this.isMinimized=false;this.videoEnabled=false;this.isIncoming=true;this.logRecorded=false;
         $('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');
         const avatar=App.data.settings.botAvatar||DEFAULT_AVATAR;
         $('call-avatar-img').src=avatar;$('mini-avatar').src=avatar;
@@ -1005,7 +1028,46 @@ const Call={
         navigator.mediaDevices.getUserMedia({audio:true,video:{facingMode:this.currentFacingMode}}).then(stream=>{this.localStream=stream;const l=$('local-video-preview');l.srcObject=stream;l.style.display='block';l.style.transform=this.currentFacingMode==='user'?'scaleX(-1)':'none';$('call-bg').classList.remove('is-pip');l.classList.remove('is-main');}).catch(err=>{console.error('获取摄像头失败:',err);App.toast('无法打开摄像头，请检查权限');this.videoEnabled=false;$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';});
     },
     switchCamera(){this.currentFacingMode=this.currentFacingMode==='user'?'environment':'user';this.startCamera();},
-    hangup(isRemote){if(this.timer)clearInterval(this.timer);if(this.callTimeout)clearTimeout(this.callTimeout);this.timer=null;this.callTimeout=null;if(this.localStream){this.localStream.getTracks().forEach(t=>t.stop());this.localStream=null;}$('local-video-preview').style.display='none';$('local-video-preview').srcObject=null;$('call-overlay').classList.remove('show');$('call-mini-bar').style.display='none';this.isMinimized=false;},
+    hangup(isRemote){
+        if(this.timer)clearInterval(this.timer);
+        if(this.callTimeout)clearTimeout(this.callTimeout);
+        
+        // 记录通话日志
+        if (!this.logRecorded) {
+            this.logRecorded = true;
+            let status = '';
+            let duration = 0;
+            if (this.timer) {
+                status = 'connected';
+                duration = this.seconds;
+            } else {
+                if (this.isIncoming) {
+                    status = isRemote ? 'missed' : 'rejected';
+                } else {
+                    status = isRemote ? 'rejected' : 'cancelled';
+                }
+            }
+            if (status !== '') {
+                App.data.messages.push({
+                    id: Date.now(),
+                    role: this.isIncoming ? 'other' : 'user',
+                    type: 'call',
+                    isVideo: this.isVideo,
+                    status: status,
+                    duration: duration,
+                    time: Date.now()
+                });
+                App.data.messages.sort((a, b) => a.time - b.time);
+                Chat.render();
+                App.saveData();
+            }
+        }
+
+        this.timer=null;this.callTimeout=null;
+        if(this.localStream){this.localStream.getTracks().forEach(t=>t.stop());this.localStream=null;}
+        $('local-video-preview').style.display='none';$('local-video-preview').srcObject=null;
+        $('call-overlay').classList.remove('show');$('call-mini-bar').style.display='none';this.isMinimized=false;
+    },
     minimize(){this.isMinimized=true;$('call-overlay').classList.remove('show');$('call-mini-bar').style.display='flex';},
     expand(){this.isMinimized=false;$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');}
 };
