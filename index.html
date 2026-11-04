@@ -336,6 +336,7 @@ document.body.addEventListener('touchstart',function unlockAudio(){try{if(!App.a
 const Chat={
     currentLimit:50,isFetchingHistory:false,quoteMsg:null,patTimer:null,editingProfileIsMe:false,
     isVoiceMode: false, mediaRecorder: null, audioChunks: [], recordStartTime: 0, recordTimer: null,
+    audioMimeType: '',
     
     init(){
         if(!$('profile-modal')){
@@ -458,32 +459,69 @@ const Chat={
         let startY = 0;
         let isCancelled = false;
         
-        const startRecord = (e) => {
+        const startRecord = async (e) => {
             e.preventDefault();
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 return App.toast('当前环境不支持录音');
             }
+            
             isCancelled = false;
             startY = e.touches ? e.touches[0].clientY : e.clientY;
             
-            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-                this.audioChunks = [];
-                this.mediaRecorder = new MediaRecorder(stream);
-                this.mediaRecorder.ondataavailable = event => {
-                    if (event.data.size > 0) this.audioChunks.push(event.data);
-                };
-                this.mediaRecorder.onstop = () => {
-                    stream.getTracks().forEach(track => track.stop());
-                };
-                this.mediaRecorder.start();
-                this.recordStartTime = Date.now();
-                btn.classList.add('active');
-                btn.innerText = '松开 结束';
-                this.showRecordIndicator();
-            }).catch(err => {
+            // 获取麦克风流 (浏览器会自动记住权限，下次直接通过)
+            let stream;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            } catch (err) {
                 console.error('麦克风错误', err);
-                App.toast('无法访问麦克风，请检查权限');
-            });
+                return App.toast('无法访问麦克风，请检查权限');
+            }
+
+            // 兼容性检测：优先选择 iOS 支持的 mp4 格式
+            if (!this.audioMimeType) {
+                if (window.MediaRecorder && MediaRecorder.isTypeSupported) {
+                    const types = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'];
+                    for (const t of types) {
+                        if (MediaRecorder.isTypeSupported(t)) {
+                            this.audioMimeType = t;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            this.audioChunks = [];
+            try {
+                if (this.audioMimeType) {
+                    this.mediaRecorder = new MediaRecorder(stream, { mimeType: this.audioMimeType });
+                } else {
+                    this.mediaRecorder = new MediaRecorder(stream);
+                    this.audioMimeType = this.mediaRecorder.mimeType || 'audio/webm';
+                }
+            } catch (err) {
+                console.error('MediaRecorder创建失败', err);
+                try {
+                    this.mediaRecorder = new MediaRecorder(stream);
+                    this.audioMimeType = this.mediaRecorder.mimeType || 'audio/webm';
+                } catch (e2) {
+                    return App.toast('当前浏览器不支持录音');
+                }
+            }
+
+            this.mediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) this.audioChunks.push(event.data);
+            };
+            
+            // 录音结束后，立刻释放麦克风占用（避免手机顶部一直有红点）
+            this.mediaRecorder.onstop = () => {
+                stream.getTracks().forEach(track => track.stop());
+            };
+
+            this.mediaRecorder.start();
+            this.recordStartTime = Date.now();
+            btn.classList.add('active');
+            btn.innerText = '松开 结束';
+            this.showRecordIndicator();
         };
 
         const endRecord = (e) => {
@@ -508,7 +546,7 @@ const Chat={
             }
 
             setTimeout(() => {
-                const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+                const audioBlob = new Blob(this.audioChunks, { type: this.audioMimeType });
                 const reader = new FileReader();
                 reader.readAsDataURL(audioBlob);
                 reader.onloadend = () => {
