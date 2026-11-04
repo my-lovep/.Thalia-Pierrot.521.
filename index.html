@@ -378,6 +378,31 @@ const Chat={
             document.body.appendChild(modal);
         }
 
+        // --- 注入问卷延迟回答 UI ---
+        if (!$('ask-delay-val')) {
+            const askModal = $('ask-modal');
+            if (askModal) {
+                const content = askModal.querySelector('.modal-content');
+                const btns = content.querySelector('.modal-btns');
+                if (btns) {
+                    const delayHtml = document.createElement('div');
+                    delayHtml.className = 'ask-form-group';
+                    delayHtml.style.marginTop = '10px';
+                    delayHtml.innerHTML = `
+                        <label>延迟回答</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="number" id="ask-delay-val" placeholder="输入时间" min="1" style="flex:1;" value="3">
+                            <select id="ask-delay-unit" style="flex:1; padding:10px; background:var(--bg-color); border:1px solid var(--border-color); border-radius:8px; color:var(--text-color); outline:none;">
+                                <option value="sec">秒后</option>
+                                <option value="min">分钟后</option>
+                            </select>
+                        </div>
+                    `;
+                    content.insertBefore(delayHtml, btns);
+                }
+            }
+        }
+
         const extraPanel = $('extra-panel');
         if(extraPanel && !$('btn-pat-user')){
             const btn = document.createElement('div');
@@ -509,21 +534,56 @@ const Chat={
     sendSurvey(){
         const q=$('ask-question-input').value.trim(); if(!q)return App.toast('请输入问题');
         const activeTab=document.querySelector('.ask-tab.active').dataset.askTab;
-        let options=[], isText=false;
-        if(activeTab==='single'){const texts=$('ask-options-single').value.split('\n').filter(t=>t.trim());if(texts.length<2)return App.toast('至少需要两个选项');options=texts.map(t=>({text:t.trim(),selected:false}));}
-        else if(activeTab==='multi'){const texts=$('ask-options-multi').value.split('\n').filter(t=>t.trim());if(texts.length<2)return App.toast('至少需要两个选项');options=texts.map(t=>({text:t.trim(),selected:false}));}
-        else{isText=true;}
+        let options=[], isText=false, maxSelect=3;
+        
+        if(activeTab==='single'){
+            const texts=$('ask-options-single').value.split('\n').filter(t=>t.trim());
+            if(texts.length<2)return App.toast('至少需要两个选项');
+            options=texts.map(t=>({text:t.trim(),selected:false}));
+        } else if(activeTab==='multi'){
+            const texts=$('ask-options-multi').value.split('\n').filter(t=>t.trim());
+            if(texts.length<2)return App.toast('至少需要两个选项');
+            options=texts.map(t=>({text:t.trim(),selected:false}));
+            maxSelect = parseInt($('ask-max-select').value) || 2;
+            if (maxSelect > options.length) maxSelect = options.length;
+            if (maxSelect < 2) maxSelect = 2;
+        } else {
+            isText=true;
+        }
+
+        const delayVal = parseInt($('ask-delay-val').value) || 3;
+        const delayUnit = $('ask-delay-unit').value;
+        let delayMs = delayVal * 1000;
+        if (delayUnit === 'min') delayMs *= 60;
+
         const msgId=Date.now();
-        App.data.messages.push({id:msgId,role:'user',type:'survey',question:q,options:options,isText:isText,status:'pending',time:Date.now()});
-        App.closeModal('ask-modal');$('ask-question-input').value='';$('ask-options-single').value='';$('ask-options-multi').value='';
+        App.data.messages.push({id:msgId,role:'user',type:'survey',question:q,options:options,isText:isText,status:'pending',time:Date.now(),maxSelect:maxSelect});
+        App.closeModal('ask-modal');
+        $('ask-question-input').value='';$('ask-options-single').value='';$('ask-options-multi').value='';
         this.render();App.saveData();
+        
         setTimeout(()=>{
             const msg=App.data.messages.find(m=>m.id===msgId);if(!msg)return;
             msg.status='answered';
-            if(isText){const allCards=App.data.cards.flatMap(c=>c.items);msg.selectedText=allCards.length>0?allCards[Math.floor(Math.random()*allCards.length)]:'不知道哦';}
-            else{const selectedIdx=Math.floor(Math.random()*msg.options.length);msg.options[selectedIdx].selected=true;msg.selectedText=msg.options[selectedIdx].text;}
+            if(isText){
+                const allCards=App.data.cards.flatMap(c=>c.items);
+                msg.selectedText=allCards.length>0?allCards[Math.floor(Math.random()*allCards.length)]:'不知道哦';
+            } else {
+                if (activeTab === 'single') {
+                    const selectedIdx=Math.floor(Math.random()*msg.options.length);
+                    msg.options[selectedIdx].selected=true;
+                    msg.selectedText=msg.options[selectedIdx].text;
+                } else if (activeTab === 'multi') {
+                    // 多选逻辑：随机选 2 到 maxSelect 个
+                    const pickCount = Math.floor(Math.random() * (msg.maxSelect - 1)) + 2; // 至少2个，至多maxSelect个
+                    const shuffled = [...msg.options].sort(()=>Math.random()-0.5);
+                    const chosen = shuffled.slice(0, pickCount);
+                    chosen.forEach(o => o.selected = true);
+                    msg.selectedText = chosen.map(o=>o.text).join(', ');
+                }
+            }
             this.render();App.saveData();this.playSound();
-        },2000+Math.random()*2000);
+        }, delayMs);
     },
     sendMoney(){
         const amt=parseFloat($('money-amount').value), note=$('money-note').value.trim(), type=$('money-modal-title').dataset.type;
