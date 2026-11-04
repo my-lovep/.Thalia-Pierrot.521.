@@ -190,8 +190,9 @@ if ('serviceWorker' in navigator) {
 const DB_KEY='appData_v31_final', $=id=>document.getElementById(id);
 const compressImage=(file,cb)=>{const r=new FileReader();r.readAsDataURL(file);r.onload=(e)=>{const i=new Image();i.src=e.target.result;i.onload=()=>{let w=i.width,h=i.height,m=300;if(w>m){h=Math.round(h*m/w);w=m;}if(h>m){w=Math.round(w*m/h);h=m;}const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',.6));};};};
 
-// ====== 图片 blob 缓存 ======
-const DEFAULT_AVATAR = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+// ====== 修复乱码核心 Bug：改用单引号防止 HTML 截断 ======
+const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
+
 const ImgCache = {
     map: new Map(),
     get(dataUrl) {
@@ -331,7 +332,8 @@ document.body.addEventListener('touchstart',function unlockAudio(){try{if(!App.a
 
 const Chat={
     currentLimit:50,isFetchingHistory:false,quoteMsg:null,patTimer:null,editingProfileIsMe:false,
-    isVoiceMode: false, recordStream: null, recordCtx: null, recordProcessor: null, recordData: [], recordSampleRate: 44100, recordStartTime: 0,
+    isVoiceMode: false, mediaRecorder: null, audioChunks: [], recordStartTime: 0,
+    audioMimeType: '',
     
     init(){
         if(!$('profile-modal')){
@@ -422,7 +424,7 @@ const Chat={
         };
     },
 
-    // --- 语音功能核心逻辑 (PCM采集转WAV) ---
+    // --- 语音功能核心逻辑 ---
     toggleVoiceMode() {
         this.isVoiceMode = !this.isVoiceMode;
         const input = $('msg-input');
@@ -463,37 +465,64 @@ const Chat={
             isCancelled = false;
             startY = e.touches ? e.touches[0].clientY : e.clientY;
             
+            let stream;
             try {
-                this.recordStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             } catch (err) {
                 console.error('麦克风错误', err);
                 return App.toast('无法访问麦克风，请检查权限');
             }
 
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            this.recordCtx = new AudioContext();
-            this.recordSampleRate = this.recordCtx.sampleRate;
-            const source = this.recordCtx.createMediaStreamSource(this.recordStream);
-            this.recordProcessor = this.recordCtx.createScriptProcessor(4096, 1, 1);
-            this.recordData = [];
+            // 针对 iOS Safari 优化格式优先级
+            if (!this.audioMimeType) {
+                if (window.MediaRecorder && MediaRecorder.isTypeSupported) {
+                    const types = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'];
+                    for (const t of types) {
+                        if (MediaRecorder.isTypeSupported(t)) {
+                            this.audioMimeType = t;
+                            break;
+                        }
+                    }
+                }
+            }
 
-            this.recordProcessor.onaudioprocess = (ev) => {
-                const inputData = ev.inputBuffer.getChannelData(0);
-                this.recordData.push(new Float32Array(inputData));
+            this.audioChunks = [];
+            try {
+                if (this.audioMimeType) {
+                    this.mediaRecorder = new MediaRecorder(stream, { mimeType: this.audioMimeType });
+                } else {
+                    this.mediaRecorder = new MediaRecorder(stream);
+                    this.audioMimeType = this.mediaRecorder.mimeType || 'audio/webm';
+                }
+            } catch (err) {
+                console.error('MediaRecorder创建失败', err);
+                try {
+                    this.mediaRecorder = new MediaRecorder(stream);
+                    this.audioMimeType = this.mediaRecorder.mimeType || 'audio/webm';
+                } catch (e2) {
+                    return App.toast('当前浏览器不支持录音');
+                }
+            }
+
+            this.mediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) this.audioChunks.push(event.data);
+            };
+            
+            this.mediaRecorder.onstop = () => {
+                stream.getTracks().forEach(track => track.stop());
             };
 
-            source.connect(this.recordProcessor);
-            this.recordProcessor.connect(this.recordCtx.destination);
-            
+            this.mediaRecorder.start();
             this.recordStartTime = Date.now();
             
+            // 按钮交互
             btn.classList.add('active');
             btn.innerText = '松开 结束';
         };
 
         const endRecord = (e) => {
             e.preventDefault();
-            if (!this.recordCtx) return;
+            if (!this.mediaRecorder || this.mediaRecorder.state === 'inactive') return;
             
             btn.classList.remove('active');
             btn.classList.remove('cancel');
@@ -501,39 +530,31 @@ const Chat={
 
             const duration = Math.round((Date.now() - this.recordStartTime) / 1000);
             
-            // 停止采集并释放
-            this.recordProcessor.disconnect();
-            this.recordCtx.close();
-            this.recordStream.getTracks().forEach(track => track.stop());
+            this.mediaRecorder.stop();
             
             if (isCancelled) {
-                this.recordCtx = null;
+                this.mediaRecorder = null;
                 return;
             }
             if (duration < 1) {
-                this.recordCtx = null;
+                this.mediaRecorder = null;
                 return App.toast('说话时间太短');
             }
 
-            // 合并数据并转换为 WAV
-            let length = 0;
-            this.recordData.forEach(b => length += b.length);
-            const merged = new Float32Array(length);
-            let offset = 0;
-            this.recordData.forEach(b => { merged.set(b, offset); offset += b.length; });
-
-            const wavBlob = this.encodeWAV(merged, this.recordSampleRate);
-            const reader = new FileReader();
-            reader.readAsDataURL(wavBlob);
-            reader.onloadend = () => {
-                this.sendUserMsg('[语音]', false, { isAudio: true, audioData: reader.result, duration: duration });
-            };
-            
-            this.recordCtx = null;
+            setTimeout(() => {
+                const audioBlob = new Blob(this.audioChunks, { type: this.audioMimeType });
+                const reader = new FileReader();
+                reader.readAsDataURL(audioBlob);
+                reader.onloadend = () => {
+                    const base64data = reader.result;
+                    this.sendUserMsg('[语音]', false, { isAudio: true, audioData: base64data, duration: duration });
+                };
+                this.mediaRecorder = null;
+            }, 100);
         };
 
         const moveRecord = (e) => {
-            if (!this.recordCtx) return;
+            if (!this.mediaRecorder || this.mediaRecorder.state === 'inactive') return;
             const currentY = e.touches ? e.touches[0].clientY : e.clientY;
             if (startY - currentY > 50) {
                 if (!isCancelled) {
@@ -558,56 +579,36 @@ const Chat={
         btn.addEventListener('mousedown', startRecord);
         btn.addEventListener('mouseup', endRecord);
         btn.addEventListener('mouseleave', (e) => {
-            if (this.recordCtx) {
+            if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
                 isCancelled = true;
                 endRecord(e);
             }
         });
     },
 
-    // 将 Float32Array 的 PCM 数据转为 WAV Blob
-    encodeWAV(samples, sampleRate) {
-        const buffer = new ArrayBuffer(44 + samples.length * 2);
-        const view = new DataView(buffer);
-        const writeString = (view, offset, string) => {
-            for (let i = 0; i < string.length; i++) {
-                view.setUint8(offset + i, string.charCodeAt(i));
-            }
-        };
-        writeString(view, 0, 'RIFF');
-        view.setUint32(4, 36 + samples.length * 2, true);
-        writeString(view, 8, 'WAVE');
-        writeString(view, 12, 'fmt ');
-        view.setUint32(16, 16, true);
-        view.setUint16(20, 1, true);
-        view.setUint16(22, 1, true);
-        view.setUint32(24, sampleRate, true);
-        view.setUint32(28, sampleRate * 2, true);
-        view.setUint16(32, 2, true);
-        view.setUint16(34, 16, true);
-        writeString(view, 36, 'data');
-        view.setUint32(40, samples.length * 2, true);
-        
-        let offset = 44;
-        for (let i = 0; i < samples.length; i++, offset += 2) {
-            let s = Math.max(-1, Math.min(1, samples[i]));
-            view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-        }
-        return new Blob([view], { type: 'audio/wav' });
-    },
-
     playAudioMsg(el, url) {
         if (!url) return;
-        if (window._currentAudio && !window._currentAudio.paused) {
+        
+        // iOS 播放优化：每次点击强制重置 Audio 实例，绕过部分系统的播放限制
+        if (window._currentAudio) {
             window._currentAudio.pause();
             document.querySelectorAll('.audio-msg').forEach(e => e.classList.remove('playing'));
         }
-        if (!window._currentAudio || window._currentAudio.src !== url) {
-            window._currentAudio = new Audio(url);
-            window._currentAudio.onended = () => { el.classList.remove('playing'); };
+        
+        window._currentAudio = new Audio(url);
+        window._currentAudio.onended = () => { el.classList.remove('playing'); };
+        
+        let playPromise = window._currentAudio.play();
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                el.classList.add('playing');
+            }).catch(e => {
+                console.error('播放失败', e);
+                App.toast('播放失败，请重试');
+            });
+        } else {
+            el.classList.add('playing');
         }
-        window._currentAudio.play().catch(e => App.toast('播放失败'));
-        el.classList.add('playing');
     },
     // -------------------------
 
