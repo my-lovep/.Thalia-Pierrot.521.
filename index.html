@@ -174,8 +174,9 @@ if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.s
 const DB_KEY='appData_v31_final',$=id=>document.getElementById(id);
 const compressImage=(file,cb)=>{const r=new FileReader();r.readAsDataURL(file);r.onload=(e)=>{const i=new Image();i.src=e.target.result;i.onload=()=>{let w=i.width,h=i.height,m=300;if(w>m){h=Math.round(h*m/w);w=m;}if(h>m){w=Math.round(w*m/h);h=m;}const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',.6));};};};
 const DEFAULT_AVATAR="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
+// 本地兜底静音音频（1秒 WAV，正弦波，音量极小，用于保底）
 const SILENT_AUDIO_B64="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=";
-// 网易云外链空白音（已替换为直链）
+// 用户指定的网易云外链（带重定向，需要浏览器自动跟随）
 const NET_KEEP_ALIVE_SRC="http://music.163.com/song/media/outer/url?id=40249284.mp3";
 const ImgCache={map:new Map(),get(dataUrl){if(!dataUrl||!dataUrl.startsWith('data:image/'))return dataUrl||'';if(!dataUrl.includes(';base64,'))return dataUrl;if(this.map.has(dataUrl))return this.map.get(dataUrl);try{const comma=dataUrl.indexOf(',');const header=dataUrl.slice(0,comma);const b64=dataUrl.slice(comma+1);const mime=(header.match(/:(.*?);/)||[,'image/jpeg'])[1];const bin=atob(b64);const len=bin.length;const arr=new Uint8Array(len);for(let i=0;i<len;i++)arr[i]=bin.charCodeAt(i);const url=URL.createObjectURL(new Blob([arr],{type:mime}));this.map.set(dataUrl,url);if(this.map.size>500)this.map.clear();return url;}catch(e){return dataUrl;}}};
 const IDB={db:null,init(){return new Promise(resolve=>{if(!window.indexedDB)return resolve();const req=indexedDB.open('LoveAppDB',1);req.onupgradeneeded=e=>{const db=e.target.result;if(!db.objectStoreNames.contains('store'))db.createObjectStore('store');};req.onsuccess=e=>{this.db=e.target.result;resolve();};req.onerror=()=>resolve();});},get(key){return new Promise(resolve=>{if(!this.db)return resolve(null);try{const req=this.db.transaction('store','readonly').objectStore('store').get(key);req.onsuccess=()=>resolve(req.result);req.onerror=()=>resolve(null);}catch(e){resolve(null);}});},set(key,val){return new Promise(resolve=>{if(!this.db)return resolve();try{const req=this.db.transaction('store','readwrite').objectStore('store').put(val,key);req.onsuccess=()=>resolve();req.onerror=()=>resolve();}catch(e){resolve();}});}};
@@ -213,54 +214,120 @@ openMoneyModal(type){$('money-modal-title').innerText=type==='red'?'发红包':'
 downloadFile(content,fileName,mimeType){const a=document.createElement('a');const file=new Blob([content],{type:mimeType||'text/plain;charset=utf-8'});a.href=URL.createObjectURL(file);a.download=fileName;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);}
 };
 
-// ===== 后台保活（绑定空白音：优先网络链接，失败自动回退静音）=====
+// ===== 后台保活（双保险：Web Audio 振荡器 + 网易云外链空白音）=====
 const KeepAlive={
-audio:null,
-triedNetOnce:false,
-netFailed:false,
+audioCtx:null,
+osc:null,
+gain:null,
+audioEl:null,
+running:false,
+heartbeatTimer:null,
+netSrcLoaded:false,
 init(){
-this.audio=$('keep-alive-audio');
-if(!this.audio)return;
-this.audio.loop=true;
-this.audio.volume=0.01;
-this.audio.addEventListener('error',()=>{this.switchToSilent();});
-this.audio.addEventListener('stalled',()=>{if(!this.netFailed)setTimeout(()=>{if(this.audio.paused||this.audio.readyState<2)this.switchToSilent();},4000);});
-if(App.data.settings.keepAlive){setTimeout(()=>{this.start(true);},400);}
+this.audioEl=$('keep-alive-audio');
+// 恢复之前开启的状态
+if(App.data.settings.keepAlive){setTimeout(()=>this.start(true),500);}
+// 页面可见性恢复
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&this.running)this._ensureRunning();});
+window.addEventListener('focus',()=>{if(this.running)this._ensureRunning();});
+window.addEventListener('pageshow',()=>{if(this.running)this._ensureRunning();});
+// 心跳（每 25 秒检查一次）
+this.heartbeatTimer=setInterval(()=>{if(this.running)this._ensureRunning();},25000);
 },
-switchToSilent(){
-if(!this.audio)return;
-this.netFailed=true;
-this.audio.src=SILENT_AUDIO_B64;
-this.audio.load();
-try{this.audio.play().catch(()=>{});}catch(e){}
-},
-start(silent){
-if(!this.audio)return;
-const audio=this.audio;
-audio.loop=true;
-try{if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(App.audioCtx.state==='suspended')App.audioCtx.resume();}catch(e){}
-if(!this.netFailed&&!this.triedNetOnce){
-this.triedNetOnce=true;
-audio.src=NET_KEEP_ALIVE_SRC;
-audio.load();
-let resolved=false;
-const finalize=()=>{if(resolved)return;resolved=true;};
-const fail=()=>{if(resolved)return;resolved=true;this.switchToSilent();};
-const timer=setTimeout(()=>{if(audio.paused||audio.readyState<2)fail();},3500);
-audio.addEventListener('playing',()=>{clearTimeout(timer);finalize();if(!silent)App.toast('后台保活已开启');},{once:true});
-audio.addEventListener('error',()=>{clearTimeout(timer);fail();},{once:true});
+_createOscillator(){
+if(!this.audioCtx)return;
 try{
-audio.play().then(()=>{if(audio.readyState>=2){clearTimeout(timer);finalize();if(!silent)App.toast('后台保活已开启');}}).catch(()=>{clearTimeout(timer);fail();});
-}catch(e){clearTimeout(timer);fail();}
-}else{
-audio.play().then(()=>{if(!silent)App.toast('后台保活已开启');}).catch(()=>{if(!silent)App.toast('请轻触屏幕以允许保活');});
+if(this.osc){try{this.osc.stop();this.osc.disconnect();}catch(e){}}
+if(this.gain){try{this.gain.disconnect();}catch(e){}}
+this.osc=this.audioCtx.createOscillator();
+this.osc.type='sine';
+this.osc.frequency.value=440;
+this.gain=this.audioCtx.createGain();
+this.gain.gain.value=0.0001; // 极小音量，几乎不可闻，但浏览器认为有音频在播放
+this.osc.connect(this.gain);
+this.gain.connect(this.audioCtx.destination);
+this.osc.start();
+}catch(e){console.warn('[KeepAlive] 振荡器失败',e);}
+},
+_ensureRunning(){
+// AudioContext 恢复
+if(this.audioCtx&&this.audioCtx.state==='suspended'){
+this.audioCtx.resume().catch(()=>{});
+}
+// 振荡器丢失则重建
+if(this.audioCtx&&!this.osc){
+this._createOscillator();
+}
+// audio 元素若暂停则重播
+if(this.audioEl&&this.running&&this.audioEl.paused){
+this.audioEl.play().catch(()=>{});
 }
 },
-stop(){if(this.audio)this.audio.pause();}
+start(silent){
+if(this.running){this._ensureRunning();if(!silent)App.toast('后台保活已在运行');return;}
+this.running=true;
+// ① 主保活：Web Audio API 振荡器（跨平台最稳）
+try{
+if(!this.audioCtx)this.audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+if(this.audioCtx.state==='suspended')this.audioCtx.resume().catch(()=>{});
+if(!this.osc)this._createOscillator();
+}catch(e){console.error('[KeepAlive] AudioContext 初始化失败',e);}
+// ② 用户指定的网易云外链（先尝试）
+if(this.audioEl){
+this.audioEl.loop=true;
+this.audioEl.volume=0.05;
+this.audioEl.preload='auto';
+// 首次尝试网络链接
+if(!this.netSrcLoaded){
+try{
+this.audioEl.onerror=()=>{
+console.warn('[KeepAlive] 网易云链接播放失败，切换到静音兜底');
+this._useFallback();
+};
+this.audioEl.onstalled=()=>{};
+this.audioEl.src=NET_KEEP_ALIVE_SRC;
+this.audioEl.load();
+this.audioEl.play().then(()=>{
+this.netSrcLoaded=true;
+}).catch((err)=>{
+console.warn('[KeepAlive] 网易云链接被拦截或失败',err);
+this._useFallback();
+});
+}catch(e){this._useFallback();}
+}else{
+// 已经尝试过，直接 play
+this.audioEl.play().catch(()=>this._useFallback());
+}
+}
+if(!silent)App.toast('后台保活已开启');
+},
+_useFallback(){
+if(!this.audioEl)return;
+this.audioEl.onerror=null;
+this.audioEl.src=SILENT_AUDIO_B64;
+this.audioEl.loop=true;
+this.audioEl.volume=0.01;
+this.audioEl.load();
+this.audioEl.play().catch(()=>{});
+},
+stop(){
+this.running=false;
+if(this.osc){try{this.osc.stop();}catch(e){}try{this.osc.disconnect();}catch(e){}this.osc=null;}
+if(this.gain){try{this.gain.disconnect();}catch(e){}this.gain=null;}
+if(this.audioEl){try{this.audioEl.pause();}catch(e){}}
+},
+unlock(){
+// 用户交互后解锁 AudioContext（浏览器策略要求）
+if(this.audioCtx&&this.audioCtx.state==='suspended')this.audioCtx.resume().catch(()=>{});
+if(this.running)this._ensureRunning();
+}
 };
 
 document.body.addEventListener('click',function(e){const a=e.target.closest('.app-icon');if(a){App.openApp(a.dataset.app);return;}const b=e.target.closest('[data-close]');if(b){App.closeApp(b.dataset.close);return;}const c=e.target.closest('[data-close-modal]');if(c){$(c.dataset.closeModal).classList.remove('show');return;}if(e.target.classList.contains('modal'))e.target.classList.remove('show');if(e.target.id==='action-sheet')e.target.classList.remove('show');});
-document.body.addEventListener('touchstart',function unlockAudio(){try{if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();else if(App.audioCtx.state==='suspended')App.audioCtx.resume();if(App.data.settings.keepAlive&&KeepAlive.audio){KeepAlive.audio.play().catch(()=>{});}document.body.removeEventListener('touchstart',unlockAudio);}catch(e){}},{once:true});
+
+// 触摸/点击都尝试解锁音频，不再 once（因为用户可能先关着保活再开启）
+document.body.addEventListener('touchstart',function(){try{if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();else if(App.audioCtx.state==='suspended')App.audioCtx.resume();if(typeof KeepAlive!=='undefined')KeepAlive.unlock();}catch(e){}},{passive:true});
+document.body.addEventListener('click',function(){try{if(App.audioCtx&&App.audioCtx.state==='suspended')App.audioCtx.resume();if(typeof KeepAlive!=='undefined')KeepAlive.unlock();}catch(e){}},{passive:true});
 
 const Chat={
 currentLimit:50,isFetchingHistory:false,quoteMsg:null,patTimer:null,editingProfileIsMe:false,
@@ -436,7 +503,6 @@ $('btn-edit-card-confirm').onclick=()=>{const val=$('edit-card-text').value.trim
 
 const Letters={currentTab:'from_ta',init(){$('btn-write-letter').onclick=()=>{$('write-letter-title').value='';$('write-letter-content').value='';$('write-letter-modal').classList.add('show');};$('btn-send-letter').onclick=()=>this.send();document.querySelectorAll('.letter-tab').forEach(tab=>{tab.onclick=()=>{document.querySelectorAll('.letter-tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');this.currentTab=tab.dataset.tab;this.render();};});},render(){const list=$('letters-list');list.innerHTML='';const filtered=App.data.letters.filter(l=>l.type===this.currentTab);if(filtered.length===0){list.innerHTML=`<div style="text-align:center;padding:20px;color:#999;">暂无信件</div>`;return;}[...filtered].reverse().forEach(letter=>{const div=document.createElement('div');div.className='list-item';div.innerHTML=`<div class="list-item-info"><div class="list-item-title">${letter.title}</div><div class="list-item-desc">${letter.content}</div></div><div class="card-actions"><span onclick="Letters.read(${letter.id})">阅读</span></div>`;list.appendChild(div);});},send(){const title=$('write-letter-title').value.trim()||'无标题',content=$('write-letter-content').value.trim();if(!content)return App.toast('信件内容不能为空');App.data.letters.push({id:Date.now(),title,content,time:Date.now(),type:'from_me'});App.closeModal('write-letter-modal');App.saveData();if(this.currentTab==='from_me')this.render();App.toast('信件已寄出');if(Math.random()*100<App.data.settings.replyProb){const allCards=App.data.cards.flatMap(c=>c.items);setTimeout(()=>{const replyContent=allCards.length>0?allCards[Math.floor(Math.random()*allCards.length)]:'我收到你的信了。';App.data.letters.push({id:Date.now(),title:`回复: ${title}`,content:`看到你的信了。\n\n${replyContent}`,time:Date.now(),type:'reply'});App.saveData();if($('letter-app').style.display==='flex'&&this.currentTab==='reply')this.render();App.toast('收到了一封新回信');if(Notification.permission==='granted'&&App.data.settings.desktopNotify){try{new Notification('新信件',{body:'对方回复了你的信件'});}catch(e){}}},5000+Math.random()*5000);}},read(id){const letter=App.data.letters.find(l=>l.id===id);if(!letter)return;$('read-letter-title').innerText=letter.title;$('read-letter-meta').innerText=`${letter.type==='from_me'?'我':App.data.settings.botName} 写于 ${new Date(letter.time).toLocaleString()}`;$('read-letter-content').innerText=letter.content;$('read-letter-modal').classList.add('show');}};
 
-// ====== 音乐播放器（顺序 / 随机 / 单曲循环）======
 const Music={
 audio:$('global-audio'),
 MODES:['order','random','single'],
