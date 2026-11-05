@@ -174,6 +174,9 @@ if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.s
 const DB_KEY='appData_v31_final',$=id=>document.getElementById(id);
 const compressImage=(file,cb)=>{const r=new FileReader();r.readAsDataURL(file);r.onload=(e)=>{const i=new Image();i.src=e.target.result;i.onload=()=>{let w=i.width,h=i.height,m=300;if(w>m){h=Math.round(h*m/w);w=m;}if(h>m){w=Math.round(w*m/h);h=m;}const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',.6));};};};
 const DEFAULT_AVATAR="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
+const SILENT_AUDIO_B64="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=";
+// 网易云外链空白音（已替换为直链）
+const NET_KEEP_ALIVE_SRC="http://music.163.com/song/media/outer/url?id=40249284.mp3";
 const ImgCache={map:new Map(),get(dataUrl){if(!dataUrl||!dataUrl.startsWith('data:image/'))return dataUrl||'';if(!dataUrl.includes(';base64,'))return dataUrl;if(this.map.has(dataUrl))return this.map.get(dataUrl);try{const comma=dataUrl.indexOf(',');const header=dataUrl.slice(0,comma);const b64=dataUrl.slice(comma+1);const mime=(header.match(/:(.*?);/)||[,'image/jpeg'])[1];const bin=atob(b64);const len=bin.length;const arr=new Uint8Array(len);for(let i=0;i<len;i++)arr[i]=bin.charCodeAt(i);const url=URL.createObjectURL(new Blob([arr],{type:mime}));this.map.set(dataUrl,url);if(this.map.size>500)this.map.clear();return url;}catch(e){return dataUrl;}}};
 const IDB={db:null,init(){return new Promise(resolve=>{if(!window.indexedDB)return resolve();const req=indexedDB.open('LoveAppDB',1);req.onupgradeneeded=e=>{const db=e.target.result;if(!db.objectStoreNames.contains('store'))db.createObjectStore('store');};req.onsuccess=e=>{this.db=e.target.result;resolve();};req.onerror=()=>resolve();});},get(key){return new Promise(resolve=>{if(!this.db)return resolve(null);try{const req=this.db.transaction('store','readonly').objectStore('store').get(key);req.onsuccess=()=>resolve(req.result);req.onerror=()=>resolve(null);}catch(e){resolve(null);}});},set(key,val){return new Promise(resolve=>{if(!this.db)return resolve();try{const req=this.db.transaction('store','readwrite').objectStore('store').put(val,key);req.onsuccess=()=>resolve();req.onerror=()=>resolve();}catch(e){resolve();}});}};
 const DEFAULT_COMPOSE_SEPS=['，','、','；','。','！','～','…','？'];
@@ -209,8 +212,55 @@ toast(msg){const el=document.createElement('div');el.style.cssText='position:fix
 openMoneyModal(type){$('money-modal-title').innerText=type==='red'?'发红包':'转账';$('money-modal-title').dataset.type=type;$('money-amount').value='';$('money-note').value='';$('money-modal').classList.add('show');},
 downloadFile(content,fileName,mimeType){const a=document.createElement('a');const file=new Blob([content],{type:mimeType||'text/plain;charset=utf-8'});a.href=URL.createObjectURL(file);a.download=fileName;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);}
 };
+
+// ===== 后台保活（绑定空白音：优先网络链接，失败自动回退静音）=====
+const KeepAlive={
+audio:null,
+triedNetOnce:false,
+netFailed:false,
+init(){
+this.audio=$('keep-alive-audio');
+if(!this.audio)return;
+this.audio.loop=true;
+this.audio.volume=0.01;
+this.audio.addEventListener('error',()=>{this.switchToSilent();});
+this.audio.addEventListener('stalled',()=>{if(!this.netFailed)setTimeout(()=>{if(this.audio.paused||this.audio.readyState<2)this.switchToSilent();},4000);});
+if(App.data.settings.keepAlive){setTimeout(()=>{this.start(true);},400);}
+},
+switchToSilent(){
+if(!this.audio)return;
+this.netFailed=true;
+this.audio.src=SILENT_AUDIO_B64;
+this.audio.load();
+try{this.audio.play().catch(()=>{});}catch(e){}
+},
+start(silent){
+if(!this.audio)return;
+const audio=this.audio;
+audio.loop=true;
+try{if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(App.audioCtx.state==='suspended')App.audioCtx.resume();}catch(e){}
+if(!this.netFailed&&!this.triedNetOnce){
+this.triedNetOnce=true;
+audio.src=NET_KEEP_ALIVE_SRC;
+audio.load();
+let resolved=false;
+const finalize=()=>{if(resolved)return;resolved=true;};
+const fail=()=>{if(resolved)return;resolved=true;this.switchToSilent();};
+const timer=setTimeout(()=>{if(audio.paused||audio.readyState<2)fail();},3500);
+audio.addEventListener('playing',()=>{clearTimeout(timer);finalize();if(!silent)App.toast('后台保活已开启');},{once:true});
+audio.addEventListener('error',()=>{clearTimeout(timer);fail();},{once:true});
+try{
+audio.play().then(()=>{if(audio.readyState>=2){clearTimeout(timer);finalize();if(!silent)App.toast('后台保活已开启');}}).catch(()=>{clearTimeout(timer);fail();});
+}catch(e){clearTimeout(timer);fail();}
+}else{
+audio.play().then(()=>{if(!silent)App.toast('后台保活已开启');}).catch(()=>{if(!silent)App.toast('请轻触屏幕以允许保活');});
+}
+},
+stop(){if(this.audio)this.audio.pause();}
+};
+
 document.body.addEventListener('click',function(e){const a=e.target.closest('.app-icon');if(a){App.openApp(a.dataset.app);return;}const b=e.target.closest('[data-close]');if(b){App.closeApp(b.dataset.close);return;}const c=e.target.closest('[data-close-modal]');if(c){$(c.dataset.closeModal).classList.remove('show');return;}if(e.target.classList.contains('modal'))e.target.classList.remove('show');if(e.target.id==='action-sheet')e.target.classList.remove('show');});
-document.body.addEventListener('touchstart',function unlockAudio(){try{if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();else if(App.audioCtx.state==='suspended')App.audioCtx.resume();document.body.removeEventListener('touchstart',unlockAudio);}catch(e){}},{once:true});
+document.body.addEventListener('touchstart',function unlockAudio(){try{if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();else if(App.audioCtx.state==='suspended')App.audioCtx.resume();if(App.data.settings.keepAlive&&KeepAlive.audio){KeepAlive.audio.play().catch(()=>{});}document.body.removeEventListener('touchstart',unlockAudio);}catch(e){}},{once:true});
 
 const Chat={
 currentLimit:50,isFetchingHistory:false,quoteMsg:null,patTimer:null,editingProfileIsMe:false,
@@ -237,57 +287,9 @@ $('btn-submit-ask').onclick=()=>this.sendSurvey();
 document.querySelectorAll('.ask-tab').forEach(tab=>{tab.onclick=function(){document.querySelectorAll('.ask-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.ask-section').forEach(s=>s.classList.remove('active'));this.classList.add('active');$('ask-section-'+this.dataset.askTab).classList.add('active');};});
 $('btn-ask-money').onclick=()=>{App.closeAllOverlays();const askAmt=(Math.random()*50+10).toFixed(2);App.data.wallet.bot=(parseFloat(App.data.wallet.bot)+parseFloat(askAmt)).toFixed(2);App.data.messages.push({id:Date.now(),role:'system',content:`对方给自己申请了 ¥${askAmt} 余额（当前对方余额：¥${App.data.wallet.bot}）`,time:Date.now()});Chat.sendBotMoney();};
 },
-// 拼字卡
-shouldComposeCards(allCards){
-const s=App.data.settings;
-if(s.composeEnabled===false)return false;
-if(!Array.isArray(allCards)||allCards.length<2)return false;
-const minN=Math.max(2,parseInt(s.composeMin)||2);
-if(allCards.length<minN)return false;
-const p=parseFloat(s.composeProb);
-if(!(p>0))return false;
-return Math.random()*100<p;
-},
-composeCardsText(allCards){
-const s=App.data.settings;
-const seps=(Array.isArray(s.composeSeparators)?s.composeSeparators:[]).filter(x=>typeof x==='string'&&x.length>0);
-const minN=Math.max(2,parseInt(s.composeMin)||2);
-const maxN=Math.max(minN,parseInt(s.composeMax)||minN);
-const pool=allCards.slice();
-const cap=Math.min(maxN,pool.length);
-if(cap<2)return pool.length?pool[0]:'嗯。';
-const n=Math.floor(Math.random()*(cap-minN+1))+minN;
-const parts=[];
-for(let i=0;i<n&&pool.length>0;i++){parts.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);}
-if(parts.length<2)return parts.length?parts[0]:'嗯。';
-const sepArr=seps.length?seps:['，'];
-let out='';
-parts.forEach((t,i)=>{out+=t;if(i<parts.length-1)out+=sepArr[Math.floor(Math.random()*sepArr.length)];});
-return out;
-},
-buildBotMessage(userText,isProactive=false){
-const s=App.data.settings;
-const allCards=App.data.cards.flatMap(c=>c.items).filter(i=>!i.startsWith('!'));
-const pics=App.data.emojis.pic||[];
-const emojis=App.data.emojis.emoji||[];
-const kaomojis=App.data.emojis.text||[];
-let content='嗯。';let isImg=false;
-if(this.shouldComposeCards(allCards)){
-content=this.composeCardsText(allCards);
-}else{
-const choices=[];
-if(allCards.length>0)choices.push({type:'text',weight:50,arr:allCards});
-if(pics.length>0)choices.push({type:'pic',weight:s.picProb??25,arr:pics});
-if(emojis.length>0)choices.push({type:'emoji',weight:s.emojiProb??15,arr:emojis});
-if(kaomojis.length>0)choices.push({type:'kaomoji',weight:s.textProb??10,arr:kaomojis});
-if(choices.length>0){const total=choices.reduce((a,c)=>a+c.weight,0);let r=Math.random()*total;let picked=choices[0];for(const c of choices){r-=c.weight;if(r<=0){picked=c;break;}}const arr=picked.arr;content=arr[Math.floor(Math.random()*arr.length)];if(picked.type==='pic')isImg=true;}
-else{const fallbacks=['嗯。','好的~','知道了','嗯嗯','哦~'];content=fallbacks[Math.floor(Math.random()*fallbacks.length)];}
-}
-const replyMsg={id:Date.now(),role:'other',content,time:Date.now()};
-if(isImg)replyMsg.isImg=true;
-if(!isProactive&&userText&&Math.random()*100<s.quoteProb){const recentUserMsgs=App.data.messages.filter(m=>m.role==='user').slice(-10);if(recentUserMsgs.length>0){const q=recentUserMsgs[Math.floor(Math.random()*recentUserMsgs.length)];replyMsg.quote={id:q.id,content:q.isImg?'[图片]':q.content};}}
-return replyMsg;
-},
+shouldComposeCards(allCards){const s=App.data.settings;if(s.composeEnabled===false)return false;if(!Array.isArray(allCards)||allCards.length<2)return false;const minN=Math.max(2,parseInt(s.composeMin)||2);if(allCards.length<minN)return false;const p=parseFloat(s.composeProb);if(!(p>0))return false;return Math.random()*100<p;},
+composeCardsText(allCards){const s=App.data.settings;const seps=(Array.isArray(s.composeSeparators)?s.composeSeparators:[]).filter(x=>typeof x==='string'&&x.length>0);const minN=Math.max(2,parseInt(s.composeMin)||2);const maxN=Math.max(minN,parseInt(s.composeMax)||minN);const pool=allCards.slice();const cap=Math.min(maxN,pool.length);if(cap<2)return pool.length?pool[0]:'嗯。';const n=Math.floor(Math.random()*(cap-minN+1))+minN;const parts=[];for(let i=0;i<n&&pool.length>0;i++){parts.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);}if(parts.length<2)return parts.length?parts[0]:'嗯。';const sepArr=seps.length?seps:['，'];let out='';parts.forEach((t,i)=>{out+=t;if(i<parts.length-1)out+=sepArr[Math.floor(Math.random()*sepArr.length)];});return out;},
+buildBotMessage(userText,isProactive=false){const s=App.data.settings;const allCards=App.data.cards.flatMap(c=>c.items).filter(i=>!i.startsWith('!'));const pics=App.data.emojis.pic||[];const emojis=App.data.emojis.emoji||[];const kaomojis=App.data.emojis.text||[];let content='嗯。';let isImg=false;if(this.shouldComposeCards(allCards)){content=this.composeCardsText(allCards);}else{const choices=[];if(allCards.length>0)choices.push({type:'text',weight:50,arr:allCards});if(pics.length>0)choices.push({type:'pic',weight:s.picProb??25,arr:pics});if(emojis.length>0)choices.push({type:'emoji',weight:s.emojiProb??15,arr:emojis});if(kaomojis.length>0)choices.push({type:'kaomoji',weight:s.textProb??10,arr:kaomojis});if(choices.length>0){const total=choices.reduce((a,c)=>a+c.weight,0);let r=Math.random()*total;let picked=choices[0];for(const c of choices){r-=c.weight;if(r<=0){picked=c;break;}}const arr=picked.arr;content=arr[Math.floor(Math.random()*arr.length)];if(picked.type==='pic')isImg=true;}else{const fallbacks=['嗯。','好的~','知道了','嗯嗯','哦~'];content=fallbacks[Math.floor(Math.random()*fallbacks.length)];}}const replyMsg={id:Date.now(),role:'other',content,time:Date.now()};if(isImg)replyMsg.isImg=true;if(!isProactive&&userText&&Math.random()*100<s.quoteProb){const recentUserMsgs=App.data.messages.filter(m=>m.role==='user').slice(-10);if(recentUserMsgs.length>0){const q=recentUserMsgs[Math.floor(Math.random()*recentUserMsgs.length)];replyMsg.quote={id:q.id,content:q.isImg?'[图片]':q.content};}}return replyMsg;},
 sendBotMoney(){const sendAmt=(Math.random()*20+5).toFixed(2);const type=Math.random()>0.5?'red':'transfer';const note=type==='red'?'给你发个红包~':'拿去买好吃的';App.data.messages.push({id:Date.now(),role:'other',type,amount:sendAmt,note,status:'unread',time:Date.now()});this.currentLimit=Math.max(this.currentLimit,50);this.render();this.scrollToBottom(true);App.saveData();this.playSound();},
 answerBotSurvey(msgIndex,optionIndex){const msg=App.data.messages[msgIndex];if(!msg||msg.type!=='survey'||msg.status==='answered')return;msg.options.forEach((o,i)=>o.selected=i===optionIndex);msg.status='answered';msg.selectedText=msg.options[optionIndex].text;App.data.messages.push({id:Date.now(),role:'system',content:`你选择了「${msg.selectedText}」`,time:Date.now()});this.render();App.saveData();this.playSound();setTimeout(()=>{this.triggerReply("",true);},1500+Math.random()*1500);},
 editProfile(isMe){this.editingProfileIsMe=isMe;$('profile-modal-title').innerText=isMe?'我的资料':'对方资料';$('profile-modal-name').value=isMe?App.data.settings.myName:App.data.settings.botName;$('profile-modal-avatar').src=(isMe?App.data.settings.myAvatar:App.data.settings.botAvatar)||DEFAULT_AVATAR;$('profile-modal').classList.add('show');},
@@ -434,7 +436,40 @@ $('btn-edit-card-confirm').onclick=()=>{const val=$('edit-card-text').value.trim
 
 const Letters={currentTab:'from_ta',init(){$('btn-write-letter').onclick=()=>{$('write-letter-title').value='';$('write-letter-content').value='';$('write-letter-modal').classList.add('show');};$('btn-send-letter').onclick=()=>this.send();document.querySelectorAll('.letter-tab').forEach(tab=>{tab.onclick=()=>{document.querySelectorAll('.letter-tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');this.currentTab=tab.dataset.tab;this.render();};});},render(){const list=$('letters-list');list.innerHTML='';const filtered=App.data.letters.filter(l=>l.type===this.currentTab);if(filtered.length===0){list.innerHTML=`<div style="text-align:center;padding:20px;color:#999;">暂无信件</div>`;return;}[...filtered].reverse().forEach(letter=>{const div=document.createElement('div');div.className='list-item';div.innerHTML=`<div class="list-item-info"><div class="list-item-title">${letter.title}</div><div class="list-item-desc">${letter.content}</div></div><div class="card-actions"><span onclick="Letters.read(${letter.id})">阅读</span></div>`;list.appendChild(div);});},send(){const title=$('write-letter-title').value.trim()||'无标题',content=$('write-letter-content').value.trim();if(!content)return App.toast('信件内容不能为空');App.data.letters.push({id:Date.now(),title,content,time:Date.now(),type:'from_me'});App.closeModal('write-letter-modal');App.saveData();if(this.currentTab==='from_me')this.render();App.toast('信件已寄出');if(Math.random()*100<App.data.settings.replyProb){const allCards=App.data.cards.flatMap(c=>c.items);setTimeout(()=>{const replyContent=allCards.length>0?allCards[Math.floor(Math.random()*allCards.length)]:'我收到你的信了。';App.data.letters.push({id:Date.now(),title:`回复: ${title}`,content:`看到你的信了。\n\n${replyContent}`,time:Date.now(),type:'reply'});App.saveData();if($('letter-app').style.display==='flex'&&this.currentTab==='reply')this.render();App.toast('收到了一封新回信');if(Notification.permission==='granted'&&App.data.settings.desktopNotify){try{new Notification('新信件',{body:'对方回复了你的信件'});}catch(e){}}},5000+Math.random()*5000);}},read(id){const letter=App.data.letters.find(l=>l.id===id);if(!letter)return;$('read-letter-title').innerText=letter.title;$('read-letter-meta').innerText=`${letter.type==='from_me'?'我':App.data.settings.botName} 写于 ${new Date(letter.time).toLocaleString()}`;$('read-letter-content').innerText=letter.content;$('read-letter-modal').classList.add('show');}};
 
-const Music={audio:$('global-audio'),init(){this.audio.addEventListener('timeupdate',()=>{if(!this.audio.duration)return;const p=(this.audio.currentTime/this.audio.duration)*100;$('music-progress-bar').value=p;$('music-cur-time').innerText=this.formatTime(this.audio.currentTime);$('music-total-time').innerText=this.formatTime(this.audio.duration);});this.audio.addEventListener('ended',()=>this.next());$('btn-play').onclick=()=>this.togglePlay();$('btn-next').onclick=()=>this.next();$('btn-prev').onclick=()=>this.prev();$('btn-mode').onclick=()=>this.toggleMode();$('btn-add-music-url').onclick=()=>this.addUrl();$('btn-add-music-file').onclick=()=>$('music-file-input').click();$('music-file-input').onchange=e=>{const file=e.target.files[0];if(!file)return;if(file.size>4*1024*1024)return App.toast('本地音乐过大，建议使用URL(4MB内)');const reader=new FileReader();reader.onload=ev=>{App.data.music.list.push({name:file.name,url:ev.target.result});App.saveData();this.renderList();};reader.readAsDataURL(file);e.target.value='';};$('music-progress-bar').oninput=function(){if(Music.audio.duration)Music.audio.currentTime=(this.value/100)*Music.audio.duration;};},formatTime(s){if(isNaN(s))return '00:00';const m=Math.floor(s/60);const sec=Math.floor(s%60);return `${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;},renderList(){const list=$('music-list');list.innerHTML='';if(App.data.music.list.length===0){list.innerHTML='<div style="text-align:center;padding:20px;color:#999;font-size:14px;">暂无音乐，请添加</div>';return;}App.data.music.list.forEach((item,idx)=>{const div=document.createElement('div');div.className='list-item';div.innerHTML=`<div class="list-item-info"><div class="list-item-title" style="color:${idx===App.data.music.currentIndex?'var(--accent)':'var(--text-color)'}">${item.name}</div></div><div class="card-actions"><span onclick="Music.play(${idx})">播放</span><span onclick="Music.rename(${idx})">改名</span><span onclick="Music.remove(${idx})">删除</span></div>`;list.appendChild(div);});},addUrl(){const url=$('music-url-input').value.trim();if(!url)return;App.data.music.list.push({name:'网络音乐',url});App.saveData();this.renderList();$('music-url-input').value='';},rename(idx){const name=prompt('输入新名称',App.data.music.list[idx].name);if(name){App.data.music.list[idx].name=name;App.saveData();this.renderList();if(App.data.music.currentIndex===idx)$('music-title').innerText=name;}},remove(idx){if(App.data.music.currentIndex===idx){this.audio.pause();App.data.music.currentIndex=-1;$('music-title').innerText='未在播放';$('btn-play').innerText='▶';}App.data.music.list.splice(idx,1);App.saveData();this.renderList();},play(idx){if(idx<0||idx>=App.data.music.list.length)return;App.data.music.currentIndex=idx;this.audio.src=App.data.music.list[idx].url;this.audio.play().catch(e=>App.toast('播放失败: '+e.message));$('music-title').innerText=App.data.music.list[idx].name;$('btn-play').innerText='⏸';this.renderList();},togglePlay(){if(App.data.music.currentIndex===-1&&App.data.music.list.length>0)return this.play(0);if(this.audio.paused){this.audio.play().catch(e=>App.toast('播放失败'));$('btn-play').innerText='⏸';}else{this.audio.pause();$('btn-play').innerText='▶';}},next(){if(App.data.music.list.length===0)return;let idx=App.data.music.currentIndex;if(App.data.music.mode==='random'){idx=Math.floor(Math.random()*App.data.music.list.length);}else{idx=(idx+1)%App.data.music.list.length;}this.play(idx);},prev(){if(App.data.music.list.length===0)return;let idx=App.data.music.currentIndex;if(App.data.music.mode==='random'){idx=Math.floor(Math.random()*App.data.music.list.length);}else{idx=(idx-1+App.data.music.list.length)%App.data.music.list.length;}this.play(idx);},toggleMode(){const m=App.data.music.mode==='order'?'random':'order';App.data.music.mode=m;$('btn-mode').innerText=m==='order'?'🔁':'🔀';App.toast(m==='order'?'顺序播放':'随机播放');App.saveData();}};
+// ====== 音乐播放器（顺序 / 随机 / 单曲循环）======
+const Music={
+audio:$('global-audio'),
+MODES:['order','random','single'],
+ICONS:{order:'🔁',random:'🔀',single:'🔂'},
+NAMES:{order:'顺序播放',random:'随机播放',single:'单曲循环'},
+init(){
+this.audio.addEventListener('ended',()=>{
+if(App.data.music.mode==='single'&&App.data.music.currentIndex>=0){
+this.audio.currentTime=0;
+this.audio.play().catch(()=>{});
+}else{
+this.next();
+}
+});
+this.audio.addEventListener('timeupdate',()=>{if(!this.audio.duration)return;const p=(this.audio.currentTime/this.audio.duration)*100;$('music-progress-bar').value=p;$('music-cur-time').innerText=this.formatTime(this.audio.currentTime);$('music-total-time').innerText=this.formatTime(this.audio.duration);});
+$('btn-play').onclick=()=>this.togglePlay();$('btn-next').onclick=()=>this.next();$('btn-prev').onclick=()=>this.prev();$('btn-mode').onclick=()=>this.toggleMode();
+$('btn-add-music-url').onclick=()=>this.addUrl();$('btn-add-music-file').onclick=()=>$('music-file-input').click();
+$('music-file-input').onchange=e=>{const file=e.target.files[0];if(!file)return;if(file.size>4*1024*1024)return App.toast('本地音乐过大，建议使用URL(4MB内)');const reader=new FileReader();reader.onload=ev=>{App.data.music.list.push({name:file.name,url:ev.target.result});App.saveData();this.renderList();};reader.readAsDataURL(file);e.target.value='';};
+$('music-progress-bar').oninput=function(){if(Music.audio.duration)Music.audio.currentTime=(this.value/100)*Music.audio.duration;};
+this.refreshModeBtn();
+},
+refreshModeBtn(){const btn=$('btn-mode');if(!btn)return;const m=App.data.music.mode||'order';btn.innerText=this.ICONS[m]||'🔁';btn.title=this.NAMES[m]||'顺序播放';},
+formatTime(s){if(isNaN(s))return '00:00';const m=Math.floor(s/60);const sec=Math.floor(s%60);return `${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;},
+renderList(){const list=$('music-list');list.innerHTML='';if(App.data.music.list.length===0){list.innerHTML='<div style="text-align:center;padding:20px;color:#999;font-size:14px;">暂无音乐，请添加</div>';return;}App.data.music.list.forEach((item,idx)=>{const div=document.createElement('div');div.className='list-item';div.innerHTML=`<div class="list-item-info"><div class="list-item-title" style="color:${idx===App.data.music.currentIndex?'var(--accent)':'var(--text-color)'}">${item.name}</div></div><div class="card-actions"><span onclick="Music.play(${idx})">播放</span><span onclick="Music.rename(${idx})">改名</span><span onclick="Music.remove(${idx})">删除</span></div>`;list.appendChild(div);});},
+addUrl(){const url=$('music-url-input').value.trim();if(!url)return;App.data.music.list.push({name:'网络音乐',url});App.saveData();this.renderList();$('music-url-input').value='';},
+rename(idx){const name=prompt('输入新名称',App.data.music.list[idx].name);if(name){App.data.music.list[idx].name=name;App.saveData();this.renderList();if(App.data.music.currentIndex===idx)$('music-title').innerText=name;}},
+remove(idx){if(App.data.music.currentIndex===idx){this.audio.pause();App.data.music.currentIndex=-1;$('music-title').innerText='未在播放';$('btn-play').innerText='▶';}App.data.music.list.splice(idx,1);App.saveData();this.renderList();},
+play(idx){if(idx<0||idx>=App.data.music.list.length)return;App.data.music.currentIndex=idx;this.audio.src=App.data.music.list[idx].url;this.audio.play().catch(e=>App.toast('播放失败: '+e.message));$('music-title').innerText=App.data.music.list[idx].name;$('btn-play').innerText='⏸';this.renderList();},
+togglePlay(){if(App.data.music.currentIndex===-1&&App.data.music.list.length>0)return this.play(0);if(this.audio.paused){this.audio.play().catch(e=>App.toast('播放失败'));$('btn-play').innerText='⏸';}else{this.audio.pause();$('btn-play').innerText='▶';}},
+next(){if(App.data.music.list.length===0)return;let idx=App.data.music.currentIndex;if(App.data.music.mode==='random'){idx=Math.floor(Math.random()*App.data.music.list.length);}else{idx=(idx+1)%App.data.music.list.length;}this.play(idx);},
+prev(){if(App.data.music.list.length===0)return;let idx=App.data.music.currentIndex;if(App.data.music.mode==='random'){idx=Math.floor(Math.random()*App.data.music.list.length);}else{idx=(idx-1+App.data.music.list.length)%App.data.music.list.length;}this.play(idx);},
+toggleMode(){const cur=App.data.music.mode||'order';const nextIdx=(this.MODES.indexOf(cur)+1)%this.MODES.length;const m=this.MODES[nextIdx];App.data.music.mode=m;this.refreshModeBtn();App.toast(this.NAMES[m]);App.saveData();}
+};
 
 const Call={isVideo:false,timer:null,seconds:0,localStream:null,currentFacingMode:'user',isMinimized:false,callTimeout:null,videoEnabled:false,isIncoming:false,logRecorded:false,init(){$('btn-switch-camera').onclick=()=>this.switchCamera();$('btn-toggle-camera').onclick=()=>this.toggleCamera();document.querySelector('.call-minimize-btn').onclick=()=>this.minimize();$('btn-hangup-action').onclick=()=>this.hangup(false);$('local-video-preview').onclick=()=>this.toggleVideoView();},toggleVideoView(){if(!this.videoEnabled)return;const l=$('local-video-preview'),b=$('call-bg');if(l.classList.contains('is-main')){l.classList.remove('is-main');b.classList.remove('is-pip');}else{l.classList.add('is-main');b.classList.add('is-pip');}},start(isVideo){this.isVideo=isVideo;this.isMinimized=false;this.videoEnabled=false;this.isIncoming=false;this.logRecorded=false;$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');const avatar=App.data.settings.botAvatar||DEFAULT_AVATAR;$('call-avatar-img').src=avatar;$('mini-avatar').src=avatar;$('call-name-text').innerText=App.data.settings.botName;$('call-status-text').innerText='正在呼叫...';$('call-actions-ongoing').style.display='flex';$('btn-hangup-action').innerText='取消';$('call-actions-incoming').style.display='none';const b=$('call-bg');b.classList.remove('is-pip');b.style.display='flex';const l=$('local-video-preview');l.style.display='none';l.classList.remove('is-main');$('btn-toggle-camera').style.display=this.isVideo?'flex':'none';$('btn-switch-camera').style.display='none';$('btn-toggle-camera').innerText='📷';if(this.callTimeout)clearTimeout(this.callTimeout);this.callTimeout=setTimeout(()=>{if(Math.random()*100<App.data.settings.answerProb){this.connected();}else{this.hangup(true);App.toast('对方拒绝了通话');}},3000);},startIncoming(isVideo){if($('call-overlay').classList.contains('show'))return;if(this.timer||this.callTimeout)return;this.isVideo=isVideo;this.isMinimized=false;this.videoEnabled=false;this.isIncoming=true;this.logRecorded=false;$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');const avatar=App.data.settings.botAvatar||DEFAULT_AVATAR;$('call-avatar-img').src=avatar;$('mini-avatar').src=avatar;$('call-name-text').innerText=App.data.settings.botName;$('call-status-text').innerText=isVideo?'邀请你视频通话...':'邀请你语音通话...';$('call-actions-incoming').style.display='flex';$('call-actions-ongoing').style.display='none';const b=$('call-bg');b.classList.remove('is-pip');b.style.display='flex';const l=$('local-video-preview');l.style.display='none';l.classList.remove('is-main');$('btn-toggle-camera').style.display='none';$('btn-switch-camera').style.display='none';if(this.callTimeout)clearTimeout(this.callTimeout);this.callTimeout=setTimeout(()=>{if($('call-actions-incoming').style.display!=='none'){App.toast('未接听，通话已取消');this.hangup(true);}},30000);},connected(){if(this.callTimeout)clearTimeout(this.callTimeout);$('call-status-text').innerText='00:00';$('mini-status').innerText='通话中';$('call-actions-incoming').style.display='none';$('call-actions-ongoing').style.display='flex';$('btn-hangup-action').innerText='挂断';$('btn-toggle-camera').style.display=this.isVideo?'flex':'none';this.seconds=0;this.timer=setInterval(()=>{this.seconds++;const m=Math.floor(this.seconds/60).toString().padStart(2,'0');const s=(this.seconds%60).toString().padStart(2,'0');$('call-status-text').innerText=`${m}:${s}`;if(Math.random()*100<(App.data.settings.hangupProb/60)){this.hangup(true);App.toast('对方挂断了通话');}},1000);if(this.isVideo){this.toggleCamera();}},toggleCamera(){if(!this.videoEnabled){this.videoEnabled=true;this.startCamera();$('btn-toggle-camera').innerText='🚫';$('btn-switch-camera').style.display='flex';}else{this.videoEnabled=false;if(this.localStream){this.localStream.getTracks().forEach(t=>t.stop());this.localStream=null;}const l=$('local-video-preview');l.style.display='none';l.srcObject=null;l.classList.remove('is-main');$('call-bg').classList.remove('is-pip');$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';}},answer(){this.connected();},startCamera(){if(!this.videoEnabled)return;if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){App.toast('当前环境不支持摄像头');this.videoEnabled=false;$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';return;}if(this.localStream)this.localStream.getTracks().forEach(t=>t.stop());navigator.mediaDevices.getUserMedia({audio:true,video:{facingMode:this.currentFacingMode}}).then(stream=>{this.localStream=stream;const l=$('local-video-preview');l.srcObject=stream;l.style.display='block';l.style.transform=this.currentFacingMode==='user'?'scaleX(-1)':'none';$('call-bg').classList.remove('is-pip');l.classList.remove('is-main');}).catch(err=>{console.error('获取摄像头失败:',err);App.toast('无法打开摄像头，请检查权限');this.videoEnabled=false;$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';});},switchCamera(){this.currentFacingMode=this.currentFacingMode==='user'?'environment':'user';this.startCamera();},hangup(isRemote){if(this.timer)clearInterval(this.timer);if(this.callTimeout)clearTimeout(this.callTimeout);if(!this.logRecorded){this.logRecorded=true;let status='';let duration=0;if(this.timer){status='connected';duration=this.seconds;}else{if(this.isIncoming){status=isRemote?'missed':'rejected';}else{status=isRemote?'rejected':'cancelled';}}if(status!==''){App.data.messages.push({id:Date.now(),role:this.isIncoming?'other':'user',type:'call',isVideo:this.isVideo,status,duration,time:Date.now()});App.data.messages.sort((a,b)=>a.time-b.time);Chat.currentLimit=Math.max(Chat.currentLimit,50);Chat.render();App.saveData();}}this.timer=null;this.callTimeout=null;if(this.localStream){this.localStream.getTracks().forEach(t=>t.stop());this.localStream=null;}$('local-video-preview').style.display='none';$('local-video-preview').srcObject=null;$('call-overlay').classList.remove('show');$('call-mini-bar').style.display='none';this.isMinimized=false;setTimeout(()=>{Chat.scrollToBottom(true);},100);},minimize(){this.isMinimized=true;$('call-overlay').classList.remove('show');$('call-mini-bar').style.display='flex';},expand(){this.isMinimized=false;$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');}};
 
@@ -482,7 +517,7 @@ e.target.value='';
 };
 $('btn-reset-all').onclick=()=>{if(confirm('确定重置所有数据？不可恢复！')){localStorage.removeItem(DB_KEY);document.cookie="myName=; max-age=0; path=/";location.reload();}};
 $('set-desktop-notify').onchange=function(){if(this.checked){if(!('Notification' in window)){App.toast('您的浏览器不支持通知');return;}if(Notification.permission!=='granted'){Notification.requestPermission().then(perm=>{if(perm==='granted')App.toast('通知权限已开启');else App.toast('通知权限被拒绝');}).catch(e=>App.toast('当前环境无法请求通知'));}else App.toast('通知权限已开启');}};
-$('set-keep-alive').onchange=function(){const audio=$('keep-alive-audio');if(this.checked){if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(App.audioCtx.state==='suspended')App.audioCtx.resume();audio.play().then(()=>App.toast('后台保活已开启')).catch(e=>App.toast('请轻触屏幕以允许保活'));}else{audio.pause();App.toast('后台保活已关闭');}};
+$('set-keep-alive').onchange=function(){if(this.checked){KeepAlive.start();}else{KeepAlive.stop();App.toast('后台保活已关闭');}};
 const autoSaveIds=['set-my-balance','set-bot-balance','set-my-name','set-bot-name','set-time-display','set-show-avatar','set-show-name','set-show-read','set-sound-enabled','set-theme','set-delay-min','set-delay-max','set-proactive-min','set-proactive-max','set-letter-min','set-letter-max','set-font-url','set-bubble-css','set-compose-enabled','set-compose-min','set-compose-max'];
 autoSaveIds.forEach(id=>{const el=$(id);if(el){el.addEventListener('change',()=>this.save());if(el.type==='text'||el.type==='number'||el.tagName==='TEXTAREA'){el.addEventListener('blur',()=>this.save());}}});
 ['ignore','quote','pat-prob','call-prob','answer-prob','hangup-prob','letter-prob','reply-prob','revoke-prob','pic-prob','emoji-prob','text-prob','compose-prob','font-size'].forEach(id=>{const el=$('slider-'+id);if(el)el.addEventListener('change',()=>this.save());});
@@ -630,8 +665,8 @@ try{
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 await IDB.init();
 await App.loadData();
-Chat.init();Cards.init();Pat.init();Emoji.init();Letters.init();Music.init();Call.init();Settings.init();Settings.applyStyles();
-const modeBtn=$('btn-mode');if(modeBtn)modeBtn.innerText=(App.data.music&&App.data.music.mode==='random')?'🔀':'🔁';
+Chat.init();Cards.init();Pat.init();Emoji.init();Letters.init();Music.init();Call.init();Settings.init();Settings.applyStyles();KeepAlive.init();
+Music.refreshModeBtn();
 Proactive.init();LetterProactive.init();CallProactive.init();PatProactive.init();
 }catch(err){console.error('[boot] 初始化崩溃: ',err);}
 })();
