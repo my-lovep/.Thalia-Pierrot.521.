@@ -210,81 +210,22 @@ openMoneyModal(type){$('money-modal-title').innerText=type==='red'?'发红包':'
 downloadFile(content,fileName,mimeType){const a=document.createElement('a');const file=new Blob([content],{type:mimeType||'text/plain;charset=utf-8'});a.href=URL.createObjectURL(file);a.download=fileName;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);}
 };
 
-// ===== 后台保活（Web Audio 实时生成极低振幅白噪声，30秒 buffer 循环 = 无限时长，完全听不见）=====
 const KeepAlive={
-audioCtx:null,
-sourceNode:null,
-gainNode:null,
-running:false,
-heartbeatTimer:null,
-bufferCache:null,
-init(){
-if(App.data.settings.keepAlive){setTimeout(()=>this.start(true),500);}
+audioCtx:null,sourceNode:null,gainNode:null,running:false,heartbeatTimer:null,bufferCache:null,
+init(){if(App.data.settings.keepAlive){setTimeout(()=>this.start(true),500);}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&this.running)this._ensureRunning();});
 window.addEventListener('focus',()=>{if(this.running)this._ensureRunning();});
 window.addEventListener('pageshow',()=>{if(this.running)this._ensureRunning();});
-this.heartbeatTimer=setInterval(()=>{if(this.running)this._ensureRunning();},25000);
-},
-_generateSilentBuffer(){
-try{
-if(this.bufferCache)return this.bufferCache;
-const ctx=this.audioCtx;
-const sampleRate=ctx.sampleRate;
-const duration=30;
-const length=sampleRate*duration;
-const buffer=ctx.createBuffer(1,length,sampleRate);
-const data=buffer.getChannelData(0);
-// 极低振幅白噪声：约 -86dB，人耳完全听不见，但浏览器认为有音频在播
-const amp=0.00005;
-for(let i=0;i<length;i++){data[i]=(Math.random()*2-1)*amp;}
-this.bufferCache=buffer;
-return buffer;
-}catch(e){console.warn('[KeepAlive] 生成 buffer 失败',e);return null;}
-},
-_playBuffer(){
-if(!this.audioCtx)return;
-try{
-if(this.sourceNode){try{this.sourceNode.stop();}catch(e){}try{this.sourceNode.disconnect();}catch(e){}this.sourceNode=null;}
-const buffer=this._generateSilentBuffer();
-if(!buffer)return;
-this.sourceNode=this.audioCtx.createBufferSource();
-this.sourceNode.buffer=buffer;
-this.sourceNode.loop=true;
-this.gainNode=this.audioCtx.createGain();
-this.gainNode.gain.value=1.0;
-this.sourceNode.connect(this.gainNode);
-this.gainNode.connect(this.audioCtx.destination);
-this.sourceNode.start();
-}catch(e){console.warn('[KeepAlive] 播放 buffer 失败',e);}
-},
-_ensureRunning(){
-if(this.audioCtx&&this.audioCtx.state==='suspended'){this.audioCtx.resume().catch(()=>{});}
-if(this.audioCtx&&!this.sourceNode){this._playBuffer();}
-},
-start(silent){
-if(this.running){this._ensureRunning();if(!silent)App.toast('后台保活已在运行');return;}
-this.running=true;
-try{
-if(!this.audioCtx)this.audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-if(this.audioCtx.state==='suspended')this.audioCtx.resume().catch(()=>{});
-this._playBuffer();
-}catch(e){console.error('[KeepAlive] 初始化失败',e);}
-if(!silent)App.toast('后台保活已开启');
-},
-stop(){
-this.running=false;
-if(this.sourceNode){try{this.sourceNode.stop();}catch(e){}try{this.sourceNode.disconnect();}catch(e){}this.sourceNode=null;}
-if(this.gainNode){try{this.gainNode.disconnect();}catch(e){}this.gainNode=null;}
-},
-unlock(){
-if(this.audioCtx&&this.audioCtx.state==='suspended')this.audioCtx.resume().catch(()=>{});
-if(this.running)this._ensureRunning();
-}
+this.heartbeatTimer=setInterval(()=>{if(this.running)this._ensureRunning();},25000);},
+_generateSilentBuffer(){try{if(this.bufferCache)return this.bufferCache;const ctx=this.audioCtx;const sampleRate=ctx.sampleRate;const duration=30;const length=sampleRate*duration;const buffer=ctx.createBuffer(1,length,sampleRate);const data=buffer.getChannelData(0);const amp=0.00005;for(let i=0;i<length;i++){data[i]=(Math.random()*2-1)*amp;}this.bufferCache=buffer;return buffer;}catch(e){console.warn('[KeepAlive] buffer',e);return null;}},
+_playBuffer(){if(!this.audioCtx)return;try{if(this.sourceNode){try{this.sourceNode.stop();}catch(e){}try{this.sourceNode.disconnect();}catch(e){}this.sourceNode=null;}const buffer=this._generateSilentBuffer();if(!buffer)return;this.sourceNode=this.audioCtx.createBufferSource();this.sourceNode.buffer=buffer;this.sourceNode.loop=true;this.gainNode=this.audioCtx.createGain();this.gainNode.gain.value=1.0;this.sourceNode.connect(this.gainNode);this.gainNode.connect(this.audioCtx.destination);this.sourceNode.start();}catch(e){console.warn('[KeepAlive] play',e);}},
+_ensureRunning(){if(this.audioCtx&&this.audioCtx.state==='suspended'){this.audioCtx.resume().catch(()=>{});}if(this.audioCtx&&!this.sourceNode){this._playBuffer();}},
+start(silent){if(this.running){this._ensureRunning();if(!silent)App.toast('后台保活已在运行');return;}this.running=true;try{if(!this.audioCtx)this.audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(this.audioCtx.state==='suspended')this.audioCtx.resume().catch(()=>{});this._playBuffer();}catch(e){console.error('[KeepAlive] init',e);}if(!silent)App.toast('后台保活已开启');},
+stop(){this.running=false;if(this.sourceNode){try{this.sourceNode.stop();}catch(e){}try{this.sourceNode.disconnect();}catch(e){}this.sourceNode=null;}if(this.gainNode){try{this.gainNode.disconnect();}catch(e){}this.gainNode=null;}},
+unlock(){if(this.audioCtx&&this.audioCtx.state==='suspended')this.audioCtx.resume().catch(()=>{});if(this.running)this._ensureRunning();}
 };
 
 document.body.addEventListener('click',function(e){const a=e.target.closest('.app-icon');if(a){App.openApp(a.dataset.app);return;}const b=e.target.closest('[data-close]');if(b){App.closeApp(b.dataset.close);return;}const c=e.target.closest('[data-close-modal]');if(c){$(c.dataset.closeModal).classList.remove('show');return;}if(e.target.classList.contains('modal'))e.target.classList.remove('show');if(e.target.id==='action-sheet')e.target.classList.remove('show');});
-
-// 触摸/点击都尝试解锁音频（不再 once）
 document.body.addEventListener('touchstart',function(){try{if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();else if(App.audioCtx.state==='suspended')App.audioCtx.resume();if(typeof KeepAlive!=='undefined')KeepAlive.unlock();}catch(e){}},{passive:true});
 document.body.addEventListener('click',function(){try{if(App.audioCtx&&App.audioCtx.state==='suspended')App.audioCtx.resume();if(typeof KeepAlive!=='undefined')KeepAlive.unlock();}catch(e){}},{passive:true});
 
@@ -294,11 +235,8 @@ init(){
 if(!$('profile-modal')){const modal=document.createElement('div');modal.id='profile-modal';modal.className='modal';modal.innerHTML=`<div class="modal-content"><h3 style="text-align:center;" id="profile-modal-title">修改资料</h3><div class="profile-edit" style="flex-direction:column;align-items:center;gap:10px;margin-bottom:10px;"><img id="profile-modal-avatar" src="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;"><input type="file" id="profile-modal-file" accept="image/*" style="width:100%;"></div><input type="text" id="profile-modal-name" placeholder="输入名字"><div class="modal-btns"><button class="btn-cancel" data-close-modal="profile-modal">取消</button><button class="btn-confirm" id="profile-modal-save">保存</button></div></div>`;document.body.appendChild(modal);$('profile-modal-file').onchange=function(e){const file=e.target.files[0];if(!file)return;compressImage(file,base64=>{$('profile-modal-avatar').src=base64;});e.target.value='';};$('profile-modal-save').onclick=()=>{const name=$('profile-modal-name').value.trim();const avatar=$('profile-modal-avatar').src;const isMe=this.editingProfileIsMe;if(isMe){App.data.settings.myName=name||'我';App.data.settings.myAvatar=avatar.startsWith('data:')?avatar:'';}else{App.data.settings.botName=name||'对方';App.data.settings.botAvatar=avatar.startsWith('data:')?avatar:'';$('chat-title').innerText=App.data.settings.botName;}App.saveData();this.render();App.closeModal('profile-modal');};}
 if(!$('pat-select-modal')){const modal=document.createElement('div');modal.id='pat-select-modal';modal.className='modal';modal.innerHTML=`<div class="modal-content"><h3 style="text-align:center;">选择拍一拍动作</h3><div class="list-container" id="pat-select-list" style="max-height:50vh;padding:0;margin-bottom:15px;overflow-y:auto;"></div><div class="modal-btns"><button class="btn-cancel" data-close-modal="pat-select-modal">取消</button></div></div>`;document.body.appendChild(modal);}
 if(!$('ask-delay-val')){const askModal=$('ask-modal');if(askModal){const content=askModal.querySelector('.modal-content');const btns=content.querySelector('.modal-btns');if(btns){const delayHtml=document.createElement('div');delayHtml.className='ask-form-group';delayHtml.style.marginTop='10px';delayHtml.innerHTML=`<label>延迟回答</label><div style="display:flex;gap:10px;"><input type="number" id="ask-delay-val" placeholder="输入时间" min="1" style="flex:1;" value="3"><select id="ask-delay-unit" style="flex:1;padding:10px;background:var(--bg-color);border:1px solid var(--border-color);border-radius:8px;color:var(--text-color);outline:none;"><option value="sec">秒后</option><option value="min">分钟后</option></select></div>`;content.insertBefore(delayHtml,btns);}}}
-
-// 删除"要零花钱"按钮
 const askMoneyBtn=$('btn-ask-money');
 if(askMoneyBtn&&askMoneyBtn.parentNode)askMoneyBtn.parentNode.removeChild(askMoneyBtn);
-
 const extraPanel=$('extra-panel');if(extraPanel&&!$('btn-pat-user')){const btn=document.createElement('div');btn.className='panel-action';btn.id='btn-pat-user';btn.innerHTML=`<div class="icon-box" style="font-size:24px;">👋</div><span>拍一拍</span>`;extraPanel.appendChild(btn);btn.onclick=()=>{App.closeAllOverlays();this.showPatSelection();};}
 const area=$('chat-area');area.addEventListener('scroll',()=>{if(area.scrollTop<=10&&!this.isFetchingHistory){if(this.currentLimit>=App.data.messages.length)return;this.isFetchingHistory=true;const oldHeight=area.scrollHeight;this.currentLimit+=50;this.render();requestAnimationFrame(()=>{area.scrollTop=area.scrollHeight-oldHeight+area.scrollTop;this.isFetchingHistory=false;});}},{passive:true});
 $('chat-title').innerText=App.data.settings.botName;
@@ -489,7 +427,6 @@ $('btn-add-music-url').onclick=()=>this.addUrl();$('btn-add-music-file').onclick
 $('music-file-input').onchange=e=>{const file=e.target.files[0];if(!file)return;if(file.size>4*1024*1024)return App.toast('本地音乐过大，建议使用URL(4MB内)');const reader=new FileReader();reader.onload=ev=>{App.data.music.list.push({name:file.name,url:ev.target.result});App.saveData();this.renderList();};reader.readAsDataURL(file);e.target.value='';};
 $('music-progress-bar').oninput=function(){if(Music.audio.duration)Music.audio.currentTime=(this.value/100)*Music.audio.duration;};
 this.refreshModeBtn();
-// 页面重新可见时，同步按钮状态（防止浏览器后台暂停后图标不同步）
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){const b=$('btn-play');if(b)b.innerText=this.audio.paused?'▶':'⏸';}});
 },
 refreshModeBtn(){const btn=$('btn-mode');if(!btn)return;const m=App.data.music.mode||'order';btn.innerText=this.ICONS[m]||'🔁';btn.title=this.NAMES[m]||'顺序播放';},
@@ -514,7 +451,120 @@ prev(){if(App.data.music.list.length===0)return;let idx=App.data.music.currentIn
 toggleMode(){const cur=App.data.music.mode||'order';const nextIdx=(this.MODES.indexOf(cur)+1)%this.MODES.length;const m=this.MODES[nextIdx];App.data.music.mode=m;this.refreshModeBtn();App.toast(this.NAMES[m]);App.saveData();}
 };
 
-const Call={isVideo:false,timer:null,seconds:0,localStream:null,currentFacingMode:'user',isMinimized:false,callTimeout:null,videoEnabled:false,isIncoming:false,logRecorded:false,init(){$('btn-switch-camera').onclick=()=>this.switchCamera();$('btn-toggle-camera').onclick=()=>this.toggleCamera();document.querySelector('.call-minimize-btn').onclick=()=>this.minimize();$('btn-hangup-action').onclick=()=>this.hangup(false);$('local-video-preview').onclick=()=>this.toggleVideoView();},toggleVideoView(){if(!this.videoEnabled)return;const l=$('local-video-preview'),b=$('call-bg');if(l.classList.contains('is-main')){l.classList.remove('is-main');b.classList.remove('is-pip');}else{l.classList.add('is-main');b.classList.add('is-pip');}},start(isVideo){this.isVideo=isVideo;this.isMinimized=false;this.videoEnabled=false;this.isIncoming=false;this.logRecorded=false;$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');const avatar=App.data.settings.botAvatar||DEFAULT_AVATAR;$('call-avatar-img').src=avatar;$('mini-avatar').src=avatar;$('call-name-text').innerText=App.data.settings.botName;$('call-status-text').innerText='正在呼叫...';$('call-actions-ongoing').style.display='flex';$('btn-hangup-action').innerText='取消';$('call-actions-incoming').style.display='none';const b=$('call-bg');b.classList.remove('is-pip');b.style.display='flex';const l=$('local-video-preview');l.style.display='none';l.classList.remove('is-main');$('btn-toggle-camera').style.display=this.isVideo?'flex':'none';$('btn-switch-camera').style.display='none';$('btn-toggle-camera').innerText='📷';if(this.callTimeout)clearTimeout(this.callTimeout);this.callTimeout=setTimeout(()=>{if(Math.random()*100<App.data.settings.answerProb){this.connected();}else{this.hangup(true);App.toast('对方拒绝了通话');}},3000);},startIncoming(isVideo){if($('call-overlay').classList.contains('show'))return;if(this.timer!==null||this.callTimeout!==null)return;this.isVideo=isVideo;this.isMinimized=false;this.videoEnabled=false;this.isIncoming=true;this.logRecorded=false;$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');const avatar=App.data.settings.botAvatar||DEFAULT_AVATAR;$('call-avatar-img').src=avatar;$('mini-avatar').src=avatar;$('call-name-text').innerText=App.data.settings.botName;$('call-status-text').innerText=isVideo?'邀请你视频通话...':'邀请你语音通话...';$('call-actions-incoming').style.display='flex';$('call-actions-ongoing').style.display='none';const b=$('call-bg');b.classList.remove('is-pip');b.style.display='flex';const l=$('local-video-preview');l.style.display='none';l.classList.remove('is-main');$('btn-toggle-camera').style.display='none';$('btn-switch-camera').style.display='none';if(this.callTimeout)clearTimeout(this.callTimeout);this.callTimeout=setTimeout(()=>{if($('call-actions-incoming').style.display!=='none'){App.toast('未接听，通话已取消');this.hangup(true);}},30000);},connected(){if(this.callTimeout)clearTimeout(this.callTimeout);this.callTimeout=null;$('call-status-text').innerText='00:00';$('mini-status').innerText='通话中';$('call-actions-incoming').style.display='none';$('call-actions-ongoing').style.display='flex';$('btn-hangup-action').innerText='挂断';$('btn-toggle-camera').style.display=this.isVideo?'flex':'none';this.seconds=0;this.timer=setInterval(()=>{this.seconds++;const m=Math.floor(this.seconds/60).toString().padStart(2,'0');const s=(this.seconds%60).toString().padStart(2,'0');$('call-status-text').innerText=`${m}:${s}`;if(Math.random()*100<(App.data.settings.hangupProb/60)){this.hangup(true);App.toast('对方挂断了通话');}},1000);if(this.isVideo){this.toggleCamera();}},toggleCamera(){if(!this.videoEnabled){this.videoEnabled=true;this.startCamera();$('btn-toggle-camera').innerText='🚫';$('btn-switch-camera').style.display='flex';}else{this.videoEnabled=false;if(this.localStream){this.localStream.getTracks().forEach(t=>t.stop());this.localStream=null;}const l=$('local-video-preview');l.style.display='none';l.srcObject=null;l.classList.remove('is-main');$('call-bg').classList.remove('is-pip');$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';}},answer(){this.connected();},startCamera(){if(!this.videoEnabled)return;if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){App.toast('当前环境不支持摄像头');this.videoEnabled=false;$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';return;}if(this.localStream)this.localStream.getTracks().forEach(t=>t.stop());navigator.mediaDevices.getUserMedia({audio:true,video:{facingMode:this.currentFacingMode}}).then(stream=>{this.localStream=stream;const l=$('local-video-preview');l.srcObject=stream;l.style.display='block';l.style.transform=this.currentFacingMode==='user'?'scaleX(-1)':'none';$('call-bg').classList.remove('is-pip');l.classList.remove('is-main');}).catch(err=>{console.error('获取摄像头失败:',err);App.toast('无法打开摄像头，请检查权限');this.videoEnabled=false;$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';});},switchCamera(){this.currentFacingMode=this.currentFacingMode==='user'?'environment':'user';this.startCamera();},hangup(isRemote){if(this.timer!==null){clearInterval(this.timer);}if(this.callTimeout!==null){clearTimeout(this.callTimeout);}if(!this.logRecorded){this.logRecorded=true;let status='';let duration=0;if(this.timer!==null){status='connected';duration=this.seconds;}else{if(this.isIncoming){status=isRemote?'missed':'rejected';}else{status=isRemote?'rejected':'cancelled';}}if(status!==''){App.data.messages.push({id:Date.now(),role:this.isIncoming?'other':'user',type:'call',isVideo:this.isVideo,status,duration,time:Date.now()});App.data.messages.sort((a,b)=>a.time-b.time);Chat.currentLimit=Math.max(Chat.currentLimit,50);Chat.render();App.saveData();}}this.timer=null;this.callTimeout=null;if(this.localStream){this.localStream.getTracks().forEach(t=>t.stop());this.localStream=null;}$('local-video-preview').style.display='none';$('local-video-preview').srcObject=null;$('call-overlay').classList.remove('show');$('call-mini-bar').style.display='none';this.isMinimized=false;setTimeout(()=>{Chat.scrollToBottom(true);},100);},minimize(){this.isMinimized=true;$('call-overlay').classList.remove('show');$('call-mini-bar').style.display='flex';},expand(){this.isMinimized=false;$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');}};
+// ==================== 来电/通话（无铃声、无震动，仅桌面通知 + 标题闪烁）====================
+const Call={
+isVideo:false,timer:null,seconds:0,localStream:null,currentFacingMode:'user',isMinimized:false,callTimeout:null,videoEnabled:false,isIncoming:false,logRecorded:false,
+_notify:null,_originalTitle:null,_titleBlinkTimer:null,
+init(){
+$('btn-switch-camera').onclick=()=>this.switchCamera();
+$('btn-toggle-camera').onclick=()=>this.toggleCamera();
+document.querySelector('.call-minimize-btn').onclick=()=>this.minimize();
+$('btn-hangup-action').onclick=()=>this.hangup(false);
+$('local-video-preview').onclick=()=>this.toggleVideoView();
+},
+// 来电提示：仅桌面通知 + 标题闪烁（无铃声、无震动）
+_startNotify(){
+this._stopNotify();
+if('Notification' in window && Notification.permission==='granted'){
+try{
+this._notify=new Notification(App.data.settings.botName,{
+body:(this.isVideo?'邀请你视频通话...':'邀请你语音通话...'),
+tag:'incoming-call',
+requireInteraction:true,
+icon:App.data.settings.botAvatar||''
+});
+}catch(e){}
+}
+if(!this._originalTitle)this._originalTitle=document.title||'爱恋';
+if(this._titleBlinkTimer)clearInterval(this._titleBlinkTimer);
+this._titleBlinkTimer=setInterval(()=>{
+document.title=document.title==='【来电】'?this._originalTitle:'【来电】';
+},900);
+},
+_stopNotify(){
+if(this._notify){try{this._notify.close();}catch(e){}this._notify=null;}
+if(this._titleBlinkTimer){clearInterval(this._titleBlinkTimer);this._titleBlinkTimer=null;}
+if(this._originalTitle){document.title=this._originalTitle;this._originalTitle=null;}
+},
+toggleVideoView(){if(!this.videoEnabled)return;const l=$('local-video-preview'),b=$('call-bg');if(l.classList.contains('is-main')){l.classList.remove('is-main');b.classList.remove('is-pip');}else{l.classList.add('is-main');b.classList.add('is-pip');}},
+start(isVideo){
+this.isVideo=isVideo;this.isMinimized=false;this.videoEnabled=false;this.isIncoming=false;this.logRecorded=false;
+$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');
+const avatar=App.data.settings.botAvatar||DEFAULT_AVATAR;
+$('call-avatar-img').src=avatar;$('mini-avatar').src=avatar;$('call-name-text').innerText=App.data.settings.botName;$('call-status-text').innerText='正在呼叫...';$('call-actions-ongoing').style.display='flex';$('btn-hangup-action').innerText='取消';$('call-actions-incoming').style.display='none';
+const b=$('call-bg');b.classList.remove('is-pip');b.style.display='flex';const l=$('local-video-preview');l.style.display='none';l.classList.remove('is-main');
+$('btn-toggle-camera').style.display=this.isVideo?'flex':'none';$('btn-switch-camera').style.display='none';$('btn-toggle-camera').innerText='📷';
+if(this.callTimeout)clearTimeout(this.callTimeout);
+this.callTimeout=setTimeout(()=>{if(Math.random()*100<App.data.settings.answerProb){this.connected();}else{this.hangup(true);App.toast('对方拒绝了通话');}},3000);
+},
+startIncoming(isVideo){
+if($('call-overlay').classList.contains('show'))return;
+if(this.timer!==null||this.callTimeout!==null)return;
+this.isVideo=isVideo;this.isMinimized=false;this.videoEnabled=false;this.isIncoming=true;this.logRecorded=false;
+$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');
+const avatar=App.data.settings.botAvatar||DEFAULT_AVATAR;
+$('call-avatar-img').src=avatar;$('mini-avatar').src=avatar;
+$('call-name-text').innerText=App.data.settings.botName;
+$('call-status-text').innerText=isVideo?'邀请你视频通话...':'邀请你语音通话...';
+$('call-actions-incoming').style.display='flex';$('call-actions-ongoing').style.display='none';
+const b=$('call-bg');b.classList.remove('is-pip');b.style.display='flex';
+const l=$('local-video-preview');l.style.display='none';l.classList.remove('is-main');
+$('btn-toggle-camera').style.display='none';$('btn-switch-camera').style.display='none';
+if(this.callTimeout)clearTimeout(this.callTimeout);
+// 桌面通知 + 标题闪烁（无铃声、无震动）
+this._startNotify();
+// 60 秒（1 分钟）未接听才算未接听
+this.callTimeout=setTimeout(()=>{
+if($('call-actions-incoming').style.display!=='none'){
+App.toast('未接听，通话已取消');
+this.hangup(true);
+}
+},60000);
+},
+connected(){
+this._stopNotify();
+if(this.callTimeout)clearTimeout(this.callTimeout);
+this.callTimeout=null;
+$('call-status-text').innerText='00:00';$('mini-status').innerText='通话中';$('call-actions-incoming').style.display='none';$('call-actions-ongoing').style.display='flex';$('btn-hangup-action').innerText='挂断';
+$('btn-toggle-camera').style.display=this.isVideo?'flex':'none';
+this.seconds=0;this.timer=setInterval(()=>{this.seconds++;const m=Math.floor(this.seconds/60).toString().padStart(2,'0');const s=(this.seconds%60).toString().padStart(2,'0');$('call-status-text').innerText=`${m}:${s}`;if(Math.random()*100<(App.data.settings.hangupProb/60)){this.hangup(true);App.toast('对方挂断了通话');}},1000);
+if(this.isVideo){this.toggleCamera();}
+},
+toggleCamera(){if(!this.videoEnabled){this.videoEnabled=true;this.startCamera();$('btn-toggle-camera').innerText='🚫';$('btn-switch-camera').style.display='flex';}else{this.videoEnabled=false;if(this.localStream){this.localStream.getTracks().forEach(t=>t.stop());this.localStream=null;}const l=$('local-video-preview');l.style.display='none';l.srcObject=null;l.classList.remove('is-main');$('call-bg').classList.remove('is-pip');$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';}},
+answer(){this.connected();},
+startCamera(){
+if(!this.videoEnabled)return;
+if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){App.toast('当前环境不支持摄像头');this.videoEnabled=false;$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';return;}
+if(this.localStream)this.localStream.getTracks().forEach(t=>t.stop());
+navigator.mediaDevices.getUserMedia({audio:true,video:{facingMode:this.currentFacingMode}}).then(stream=>{this.localStream=stream;const l=$('local-video-preview');l.srcObject=stream;l.style.display='block';l.style.transform=this.currentFacingMode==='user'?'scaleX(-1)':'none';$('call-bg').classList.remove('is-pip');l.classList.remove('is-main');}).catch(err=>{console.error('摄像头失败:',err);App.toast('无法打开摄像头，请检查权限');this.videoEnabled=false;$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';});
+},
+switchCamera(){this.currentFacingMode=this.currentFacingMode==='user'?'environment':'user';this.startCamera();},
+hangup(isRemote){
+this._stopNotify();
+if(this.timer!==null){clearInterval(this.timer);}
+if(this.callTimeout!==null){clearTimeout(this.callTimeout);}
+if(!this.logRecorded){
+this.logRecorded=true;
+let status='';let duration=0;
+if(this.timer!==null){status='connected';duration=this.seconds;}
+else{if(this.isIncoming){status=isRemote?'missed':'rejected';}else{status=isRemote?'rejected':'cancelled';}}
+if(status!==''){
+App.data.messages.push({id:Date.now(),role:this.isIncoming?'other':'user',type:'call',isVideo:this.isVideo,status,duration,time:Date.now()});
+App.data.messages.sort((a,b)=>a.time-b.time);
+Chat.currentLimit=Math.max(Chat.currentLimit,50);
+Chat.render();
+App.saveData();
+}
+}
+this.timer=null;this.callTimeout=null;
+if(this.localStream){this.localStream.getTracks().forEach(t=>t.stop());this.localStream=null;}
+$('local-video-preview').style.display='none';$('local-video-preview').srcObject=null;
+$('call-overlay').classList.remove('show');$('call-mini-bar').style.display='none';this.isMinimized=false;
+setTimeout(()=>{Chat.scrollToBottom(true);},100);
+},
+minimize(){this.isMinimized=true;$('call-overlay').classList.remove('show');$('call-mini-bar').style.display='flex';},
+expand(){this.isMinimized=false;$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');}
+};
 
 const CallProactive={timer:null,init(){this.schedule();},schedule(){if(this.timer){clearTimeout(this.timer);this.timer=null;}const prob=parseInt(App.data.settings.callProb)||0;if(prob<=0)return;const delayMs=(3*60*1000)+Math.random()*60*1000;this.timer=setTimeout(()=>{try{const p=parseInt(App.data.settings.callProb)||0;if(p>0&&Math.random()*100<p)Call.startIncoming(Math.random()<0.5);}catch(e){console.error('[CallProactive]',e);}this.schedule();},delayMs);}};
 const PatProactive={timer:null,init(){this.schedule();},schedule(){if(this.timer){clearTimeout(this.timer);this.timer=null;}const prob=parseInt(App.data.settings.patProb)||0;if(prob<=0)return;const delayMs=(5*60*1000)+Math.random()*60*1000;this.timer=setTimeout(()=>{try{const p=parseInt(App.data.settings.patProb)||0;if(p>0&&Math.random()*100<p)Chat.triggerPat(false);}catch(e){console.error('[PatProactive]',e);}this.schedule();},delayMs);}};
