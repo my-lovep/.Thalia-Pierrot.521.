@@ -174,10 +174,6 @@ if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.s
 const DB_KEY='appData_v31_final',$=id=>document.getElementById(id);
 const compressImage=(file,cb)=>{const r=new FileReader();r.readAsDataURL(file);r.onload=(e)=>{const i=new Image();i.src=e.target.result;i.onload=()=>{let w=i.width,h=i.height,m=300;if(w>m){h=Math.round(h*m/w);w=m;}if(h>m){w=Math.round(w*m/h);h=m;}const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',.6));};};};
 const DEFAULT_AVATAR="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
-// 本地兜底静音音频（1秒 WAV，正弦波，音量极小，用于保底）
-const SILENT_AUDIO_B64="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=";
-// 用户指定的网易云外链（带重定向，需要浏览器自动跟随）
-const NET_KEEP_ALIVE_SRC="http://music.163.com/song/media/outer/url?id=40249284.mp3";
 const ImgCache={map:new Map(),get(dataUrl){if(!dataUrl||!dataUrl.startsWith('data:image/'))return dataUrl||'';if(!dataUrl.includes(';base64,'))return dataUrl;if(this.map.has(dataUrl))return this.map.get(dataUrl);try{const comma=dataUrl.indexOf(',');const header=dataUrl.slice(0,comma);const b64=dataUrl.slice(comma+1);const mime=(header.match(/:(.*?);/)||[,'image/jpeg'])[1];const bin=atob(b64);const len=bin.length;const arr=new Uint8Array(len);for(let i=0;i<len;i++)arr[i]=bin.charCodeAt(i);const url=URL.createObjectURL(new Blob([arr],{type:mime}));this.map.set(dataUrl,url);if(this.map.size>500)this.map.clear();return url;}catch(e){return dataUrl;}}};
 const IDB={db:null,init(){return new Promise(resolve=>{if(!window.indexedDB)return resolve();const req=indexedDB.open('LoveAppDB',1);req.onupgradeneeded=e=>{const db=e.target.result;if(!db.objectStoreNames.contains('store'))db.createObjectStore('store');};req.onsuccess=e=>{this.db=e.target.result;resolve();};req.onerror=()=>resolve();});},get(key){return new Promise(resolve=>{if(!this.db)return resolve(null);try{const req=this.db.transaction('store','readonly').objectStore('store').get(key);req.onsuccess=()=>resolve(req.result);req.onerror=()=>resolve(null);}catch(e){resolve(null);}});},set(key,val){return new Promise(resolve=>{if(!this.db)return resolve();try{const req=this.db.transaction('store','readwrite').objectStore('store').put(val,key);req.onsuccess=()=>resolve();req.onerror=()=>resolve();}catch(e){resolve();}});}};
 const DEFAULT_COMPOSE_SEPS=['，','、','；','。','！','～','…','？'];
@@ -214,110 +210,73 @@ openMoneyModal(type){$('money-modal-title').innerText=type==='red'?'发红包':'
 downloadFile(content,fileName,mimeType){const a=document.createElement('a');const file=new Blob([content],{type:mimeType||'text/plain;charset=utf-8'});a.href=URL.createObjectURL(file);a.download=fileName;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);}
 };
 
-// ===== 后台保活（双保险：Web Audio 振荡器 + 网易云外链空白音）=====
+// ===== 后台保活（Web Audio 实时生成极低振幅白噪声，30秒 buffer 循环 = 无限时长，完全听不见）=====
 const KeepAlive={
 audioCtx:null,
-osc:null,
-gain:null,
-audioEl:null,
+sourceNode:null,
+gainNode:null,
 running:false,
 heartbeatTimer:null,
-netSrcLoaded:false,
+bufferCache:null,
 init(){
-this.audioEl=$('keep-alive-audio');
-// 恢复之前开启的状态
 if(App.data.settings.keepAlive){setTimeout(()=>this.start(true),500);}
-// 页面可见性恢复
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&this.running)this._ensureRunning();});
 window.addEventListener('focus',()=>{if(this.running)this._ensureRunning();});
 window.addEventListener('pageshow',()=>{if(this.running)this._ensureRunning();});
-// 心跳（每 25 秒检查一次）
 this.heartbeatTimer=setInterval(()=>{if(this.running)this._ensureRunning();},25000);
 },
-_createOscillator(){
+_generateSilentBuffer(){
+try{
+if(this.bufferCache)return this.bufferCache;
+const ctx=this.audioCtx;
+const sampleRate=ctx.sampleRate;
+const duration=30;
+const length=sampleRate*duration;
+const buffer=ctx.createBuffer(1,length,sampleRate);
+const data=buffer.getChannelData(0);
+// 极低振幅白噪声：约 -86dB，人耳完全听不见，但浏览器认为有音频在播
+const amp=0.00005;
+for(let i=0;i<length;i++){data[i]=(Math.random()*2-1)*amp;}
+this.bufferCache=buffer;
+return buffer;
+}catch(e){console.warn('[KeepAlive] 生成 buffer 失败',e);return null;}
+},
+_playBuffer(){
 if(!this.audioCtx)return;
 try{
-if(this.osc){try{this.osc.stop();this.osc.disconnect();}catch(e){}}
-if(this.gain){try{this.gain.disconnect();}catch(e){}}
-this.osc=this.audioCtx.createOscillator();
-this.osc.type='sine';
-this.osc.frequency.value=440;
-this.gain=this.audioCtx.createGain();
-this.gain.gain.value=0.0001; // 极小音量，几乎不可闻，但浏览器认为有音频在播放
-this.osc.connect(this.gain);
-this.gain.connect(this.audioCtx.destination);
-this.osc.start();
-}catch(e){console.warn('[KeepAlive] 振荡器失败',e);}
+if(this.sourceNode){try{this.sourceNode.stop();}catch(e){}try{this.sourceNode.disconnect();}catch(e){}this.sourceNode=null;}
+const buffer=this._generateSilentBuffer();
+if(!buffer)return;
+this.sourceNode=this.audioCtx.createBufferSource();
+this.sourceNode.buffer=buffer;
+this.sourceNode.loop=true;
+this.gainNode=this.audioCtx.createGain();
+this.gainNode.gain.value=1.0;
+this.sourceNode.connect(this.gainNode);
+this.gainNode.connect(this.audioCtx.destination);
+this.sourceNode.start();
+}catch(e){console.warn('[KeepAlive] 播放 buffer 失败',e);}
 },
 _ensureRunning(){
-// AudioContext 恢复
-if(this.audioCtx&&this.audioCtx.state==='suspended'){
-this.audioCtx.resume().catch(()=>{});
-}
-// 振荡器丢失则重建
-if(this.audioCtx&&!this.osc){
-this._createOscillator();
-}
-// audio 元素若暂停则重播
-if(this.audioEl&&this.running&&this.audioEl.paused){
-this.audioEl.play().catch(()=>{});
-}
+if(this.audioCtx&&this.audioCtx.state==='suspended'){this.audioCtx.resume().catch(()=>{});}
+if(this.audioCtx&&!this.sourceNode){this._playBuffer();}
 },
 start(silent){
 if(this.running){this._ensureRunning();if(!silent)App.toast('后台保活已在运行');return;}
 this.running=true;
-// ① 主保活：Web Audio API 振荡器（跨平台最稳）
 try{
 if(!this.audioCtx)this.audioCtx=new(window.AudioContext||window.webkitAudioContext)();
 if(this.audioCtx.state==='suspended')this.audioCtx.resume().catch(()=>{});
-if(!this.osc)this._createOscillator();
-}catch(e){console.error('[KeepAlive] AudioContext 初始化失败',e);}
-// ② 用户指定的网易云外链（先尝试）
-if(this.audioEl){
-this.audioEl.loop=true;
-this.audioEl.volume=0.05;
-this.audioEl.preload='auto';
-// 首次尝试网络链接
-if(!this.netSrcLoaded){
-try{
-this.audioEl.onerror=()=>{
-console.warn('[KeepAlive] 网易云链接播放失败，切换到静音兜底');
-this._useFallback();
-};
-this.audioEl.onstalled=()=>{};
-this.audioEl.src=NET_KEEP_ALIVE_SRC;
-this.audioEl.load();
-this.audioEl.play().then(()=>{
-this.netSrcLoaded=true;
-}).catch((err)=>{
-console.warn('[KeepAlive] 网易云链接被拦截或失败',err);
-this._useFallback();
-});
-}catch(e){this._useFallback();}
-}else{
-// 已经尝试过，直接 play
-this.audioEl.play().catch(()=>this._useFallback());
-}
-}
+this._playBuffer();
+}catch(e){console.error('[KeepAlive] 初始化失败',e);}
 if(!silent)App.toast('后台保活已开启');
-},
-_useFallback(){
-if(!this.audioEl)return;
-this.audioEl.onerror=null;
-this.audioEl.src=SILENT_AUDIO_B64;
-this.audioEl.loop=true;
-this.audioEl.volume=0.01;
-this.audioEl.load();
-this.audioEl.play().catch(()=>{});
 },
 stop(){
 this.running=false;
-if(this.osc){try{this.osc.stop();}catch(e){}try{this.osc.disconnect();}catch(e){}this.osc=null;}
-if(this.gain){try{this.gain.disconnect();}catch(e){}this.gain=null;}
-if(this.audioEl){try{this.audioEl.pause();}catch(e){}}
+if(this.sourceNode){try{this.sourceNode.stop();}catch(e){}try{this.sourceNode.disconnect();}catch(e){}this.sourceNode=null;}
+if(this.gainNode){try{this.gainNode.disconnect();}catch(e){}this.gainNode=null;}
 },
 unlock(){
-// 用户交互后解锁 AudioContext（浏览器策略要求）
 if(this.audioCtx&&this.audioCtx.state==='suspended')this.audioCtx.resume().catch(()=>{});
 if(this.running)this._ensureRunning();
 }
@@ -325,7 +284,7 @@ if(this.running)this._ensureRunning();
 
 document.body.addEventListener('click',function(e){const a=e.target.closest('.app-icon');if(a){App.openApp(a.dataset.app);return;}const b=e.target.closest('[data-close]');if(b){App.closeApp(b.dataset.close);return;}const c=e.target.closest('[data-close-modal]');if(c){$(c.dataset.closeModal).classList.remove('show');return;}if(e.target.classList.contains('modal'))e.target.classList.remove('show');if(e.target.id==='action-sheet')e.target.classList.remove('show');});
 
-// 触摸/点击都尝试解锁音频，不再 once（因为用户可能先关着保活再开启）
+// 触摸/点击都尝试解锁音频（不再 once）
 document.body.addEventListener('touchstart',function(){try{if(!App.audioCtx)App.audioCtx=new(window.AudioContext||window.webkitAudioContext)();else if(App.audioCtx.state==='suspended')App.audioCtx.resume();if(typeof KeepAlive!=='undefined')KeepAlive.unlock();}catch(e){}},{passive:true});
 document.body.addEventListener('click',function(){try{if(App.audioCtx&&App.audioCtx.state==='suspended')App.audioCtx.resume();if(typeof KeepAlive!=='undefined')KeepAlive.unlock();}catch(e){}},{passive:true});
 
@@ -335,6 +294,11 @@ init(){
 if(!$('profile-modal')){const modal=document.createElement('div');modal.id='profile-modal';modal.className='modal';modal.innerHTML=`<div class="modal-content"><h3 style="text-align:center;" id="profile-modal-title">修改资料</h3><div class="profile-edit" style="flex-direction:column;align-items:center;gap:10px;margin-bottom:10px;"><img id="profile-modal-avatar" src="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;"><input type="file" id="profile-modal-file" accept="image/*" style="width:100%;"></div><input type="text" id="profile-modal-name" placeholder="输入名字"><div class="modal-btns"><button class="btn-cancel" data-close-modal="profile-modal">取消</button><button class="btn-confirm" id="profile-modal-save">保存</button></div></div>`;document.body.appendChild(modal);$('profile-modal-file').onchange=function(e){const file=e.target.files[0];if(!file)return;compressImage(file,base64=>{$('profile-modal-avatar').src=base64;});e.target.value='';};$('profile-modal-save').onclick=()=>{const name=$('profile-modal-name').value.trim();const avatar=$('profile-modal-avatar').src;const isMe=this.editingProfileIsMe;if(isMe){App.data.settings.myName=name||'我';App.data.settings.myAvatar=avatar.startsWith('data:')?avatar:'';}else{App.data.settings.botName=name||'对方';App.data.settings.botAvatar=avatar.startsWith('data:')?avatar:'';$('chat-title').innerText=App.data.settings.botName;}App.saveData();this.render();App.closeModal('profile-modal');};}
 if(!$('pat-select-modal')){const modal=document.createElement('div');modal.id='pat-select-modal';modal.className='modal';modal.innerHTML=`<div class="modal-content"><h3 style="text-align:center;">选择拍一拍动作</h3><div class="list-container" id="pat-select-list" style="max-height:50vh;padding:0;margin-bottom:15px;overflow-y:auto;"></div><div class="modal-btns"><button class="btn-cancel" data-close-modal="pat-select-modal">取消</button></div></div>`;document.body.appendChild(modal);}
 if(!$('ask-delay-val')){const askModal=$('ask-modal');if(askModal){const content=askModal.querySelector('.modal-content');const btns=content.querySelector('.modal-btns');if(btns){const delayHtml=document.createElement('div');delayHtml.className='ask-form-group';delayHtml.style.marginTop='10px';delayHtml.innerHTML=`<label>延迟回答</label><div style="display:flex;gap:10px;"><input type="number" id="ask-delay-val" placeholder="输入时间" min="1" style="flex:1;" value="3"><select id="ask-delay-unit" style="flex:1;padding:10px;background:var(--bg-color);border:1px solid var(--border-color);border-radius:8px;color:var(--text-color);outline:none;"><option value="sec">秒后</option><option value="min">分钟后</option></select></div>`;content.insertBefore(delayHtml,btns);}}}
+
+// 删除"要零花钱"按钮
+const askMoneyBtn=$('btn-ask-money');
+if(askMoneyBtn&&askMoneyBtn.parentNode)askMoneyBtn.parentNode.removeChild(askMoneyBtn);
+
 const extraPanel=$('extra-panel');if(extraPanel&&!$('btn-pat-user')){const btn=document.createElement('div');btn.className='panel-action';btn.id='btn-pat-user';btn.innerHTML=`<div class="icon-box" style="font-size:24px;">👋</div><span>拍一拍</span>`;extraPanel.appendChild(btn);btn.onclick=()=>{App.closeAllOverlays();this.showPatSelection();};}
 const area=$('chat-area');area.addEventListener('scroll',()=>{if(area.scrollTop<=10&&!this.isFetchingHistory){if(this.currentLimit>=App.data.messages.length)return;this.isFetchingHistory=true;const oldHeight=area.scrollHeight;this.currentLimit+=50;this.render();requestAnimationFrame(()=>{area.scrollTop=area.scrollHeight-oldHeight+area.scrollTop;this.isFetchingHistory=false;});}},{passive:true});
 $('chat-title').innerText=App.data.settings.botName;
@@ -352,7 +316,6 @@ $('btn-call-voice').onclick=()=>Call.start(false);$('btn-call-video').onclick=()
 $('btn-open-ask').onclick=()=>{App.closeAllOverlays();setTimeout(()=>{$('ask-modal').classList.add('show');},50);};
 $('btn-submit-ask').onclick=()=>this.sendSurvey();
 document.querySelectorAll('.ask-tab').forEach(tab=>{tab.onclick=function(){document.querySelectorAll('.ask-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.ask-section').forEach(s=>s.classList.remove('active'));this.classList.add('active');$('ask-section-'+this.dataset.askTab).classList.add('active');};});
-$('btn-ask-money').onclick=()=>{App.closeAllOverlays();const askAmt=(Math.random()*50+10).toFixed(2);App.data.wallet.bot=(parseFloat(App.data.wallet.bot)+parseFloat(askAmt)).toFixed(2);App.data.messages.push({id:Date.now(),role:'system',content:`对方给自己申请了 ¥${askAmt} 余额（当前对方余额：¥${App.data.wallet.bot}）`,time:Date.now()});Chat.sendBotMoney();};
 },
 shouldComposeCards(allCards){const s=App.data.settings;if(s.composeEnabled===false)return false;if(!Array.isArray(allCards)||allCards.length<2)return false;const minN=Math.max(2,parseInt(s.composeMin)||2);if(allCards.length<minN)return false;const p=parseFloat(s.composeProb);if(!(p>0))return false;return Math.random()*100<p;},
 composeCardsText(allCards){const s=App.data.settings;const seps=(Array.isArray(s.composeSeparators)?s.composeSeparators:[]).filter(x=>typeof x==='string'&&x.length>0);const minN=Math.max(2,parseInt(s.composeMin)||2);const maxN=Math.max(minN,parseInt(s.composeMax)||minN);const pool=allCards.slice();const cap=Math.min(maxN,pool.length);if(cap<2)return pool.length?pool[0]:'嗯。';const n=Math.floor(Math.random()*(cap-minN+1))+minN;const parts=[];for(let i=0;i<n&&pool.length>0;i++){parts.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);}if(parts.length<2)return parts.length?parts[0]:'嗯。';const sepArr=seps.length?seps:['，'];let out='';parts.forEach((t,i)=>{out+=t;if(i<parts.length-1)out+=sepArr[Math.floor(Math.random()*sepArr.length)];});return out;},
@@ -517,17 +480,31 @@ this.audio.play().catch(()=>{});
 this.next();
 }
 });
+this.audio.addEventListener('play',()=>{const b=$('btn-play');if(b)b.innerText='⏸';});
+this.audio.addEventListener('pause',()=>{const b=$('btn-play');if(b)b.innerText='▶';});
 this.audio.addEventListener('timeupdate',()=>{if(!this.audio.duration)return;const p=(this.audio.currentTime/this.audio.duration)*100;$('music-progress-bar').value=p;$('music-cur-time').innerText=this.formatTime(this.audio.currentTime);$('music-total-time').innerText=this.formatTime(this.audio.duration);});
+this.audio.addEventListener('error',()=>{App.toast('音频加载失败，请检查 URL 是否为音频直链（.mp3/.m4a 等）');});
 $('btn-play').onclick=()=>this.togglePlay();$('btn-next').onclick=()=>this.next();$('btn-prev').onclick=()=>this.prev();$('btn-mode').onclick=()=>this.toggleMode();
 $('btn-add-music-url').onclick=()=>this.addUrl();$('btn-add-music-file').onclick=()=>$('music-file-input').click();
 $('music-file-input').onchange=e=>{const file=e.target.files[0];if(!file)return;if(file.size>4*1024*1024)return App.toast('本地音乐过大，建议使用URL(4MB内)');const reader=new FileReader();reader.onload=ev=>{App.data.music.list.push({name:file.name,url:ev.target.result});App.saveData();this.renderList();};reader.readAsDataURL(file);e.target.value='';};
 $('music-progress-bar').oninput=function(){if(Music.audio.duration)Music.audio.currentTime=(this.value/100)*Music.audio.duration;};
 this.refreshModeBtn();
+// 页面重新可见时，同步按钮状态（防止浏览器后台暂停后图标不同步）
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){const b=$('btn-play');if(b)b.innerText=this.audio.paused?'▶':'⏸';}});
 },
 refreshModeBtn(){const btn=$('btn-mode');if(!btn)return;const m=App.data.music.mode||'order';btn.innerText=this.ICONS[m]||'🔁';btn.title=this.NAMES[m]||'顺序播放';},
 formatTime(s){if(isNaN(s))return '00:00';const m=Math.floor(s/60);const sec=Math.floor(s%60);return `${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;},
 renderList(){const list=$('music-list');list.innerHTML='';if(App.data.music.list.length===0){list.innerHTML='<div style="text-align:center;padding:20px;color:#999;font-size:14px;">暂无音乐，请添加</div>';return;}App.data.music.list.forEach((item,idx)=>{const div=document.createElement('div');div.className='list-item';div.innerHTML=`<div class="list-item-info"><div class="list-item-title" style="color:${idx===App.data.music.currentIndex?'var(--accent)':'var(--text-color)'}">${item.name}</div></div><div class="card-actions"><span onclick="Music.play(${idx})">播放</span><span onclick="Music.rename(${idx})">改名</span><span onclick="Music.remove(${idx})">删除</span></div>`;list.appendChild(div);});},
-addUrl(){const url=$('music-url-input').value.trim();if(!url)return;App.data.music.list.push({name:'网络音乐',url});App.saveData();this.renderList();$('music-url-input').value='';},
+addUrl(){const url=$('music-url-input').value.trim();if(!url)return;
+if(!/^https?:\/\//i.test(url)&&!/^data:audio\//i.test(url)&&!/^blob:/i.test(url)){
+App.toast('请输入以 http(s):// 开头的音频直链');
+return;
+}
+if(/music\.163\.com\/song\?id=/i.test(url)){
+App.toast('这是网易云页面链接，不是音频直链，无法播放');
+return;
+}
+App.data.music.list.push({name:'网络音乐',url});App.saveData();this.renderList();$('music-url-input').value='';},
 rename(idx){const name=prompt('输入新名称',App.data.music.list[idx].name);if(name){App.data.music.list[idx].name=name;App.saveData();this.renderList();if(App.data.music.currentIndex===idx)$('music-title').innerText=name;}},
 remove(idx){if(App.data.music.currentIndex===idx){this.audio.pause();App.data.music.currentIndex=-1;$('music-title').innerText='未在播放';$('btn-play').innerText='▶';}App.data.music.list.splice(idx,1);App.saveData();this.renderList();},
 play(idx){if(idx<0||idx>=App.data.music.list.length)return;App.data.music.currentIndex=idx;this.audio.src=App.data.music.list[idx].url;this.audio.play().catch(e=>App.toast('播放失败: '+e.message));$('music-title').innerText=App.data.music.list[idx].name;$('btn-play').innerText='⏸';this.renderList();},
@@ -537,7 +514,7 @@ prev(){if(App.data.music.list.length===0)return;let idx=App.data.music.currentIn
 toggleMode(){const cur=App.data.music.mode||'order';const nextIdx=(this.MODES.indexOf(cur)+1)%this.MODES.length;const m=this.MODES[nextIdx];App.data.music.mode=m;this.refreshModeBtn();App.toast(this.NAMES[m]);App.saveData();}
 };
 
-const Call={isVideo:false,timer:null,seconds:0,localStream:null,currentFacingMode:'user',isMinimized:false,callTimeout:null,videoEnabled:false,isIncoming:false,logRecorded:false,init(){$('btn-switch-camera').onclick=()=>this.switchCamera();$('btn-toggle-camera').onclick=()=>this.toggleCamera();document.querySelector('.call-minimize-btn').onclick=()=>this.minimize();$('btn-hangup-action').onclick=()=>this.hangup(false);$('local-video-preview').onclick=()=>this.toggleVideoView();},toggleVideoView(){if(!this.videoEnabled)return;const l=$('local-video-preview'),b=$('call-bg');if(l.classList.contains('is-main')){l.classList.remove('is-main');b.classList.remove('is-pip');}else{l.classList.add('is-main');b.classList.add('is-pip');}},start(isVideo){this.isVideo=isVideo;this.isMinimized=false;this.videoEnabled=false;this.isIncoming=false;this.logRecorded=false;$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');const avatar=App.data.settings.botAvatar||DEFAULT_AVATAR;$('call-avatar-img').src=avatar;$('mini-avatar').src=avatar;$('call-name-text').innerText=App.data.settings.botName;$('call-status-text').innerText='正在呼叫...';$('call-actions-ongoing').style.display='flex';$('btn-hangup-action').innerText='取消';$('call-actions-incoming').style.display='none';const b=$('call-bg');b.classList.remove('is-pip');b.style.display='flex';const l=$('local-video-preview');l.style.display='none';l.classList.remove('is-main');$('btn-toggle-camera').style.display=this.isVideo?'flex':'none';$('btn-switch-camera').style.display='none';$('btn-toggle-camera').innerText='📷';if(this.callTimeout)clearTimeout(this.callTimeout);this.callTimeout=setTimeout(()=>{if(Math.random()*100<App.data.settings.answerProb){this.connected();}else{this.hangup(true);App.toast('对方拒绝了通话');}},3000);},startIncoming(isVideo){if($('call-overlay').classList.contains('show'))return;if(this.timer||this.callTimeout)return;this.isVideo=isVideo;this.isMinimized=false;this.videoEnabled=false;this.isIncoming=true;this.logRecorded=false;$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');const avatar=App.data.settings.botAvatar||DEFAULT_AVATAR;$('call-avatar-img').src=avatar;$('mini-avatar').src=avatar;$('call-name-text').innerText=App.data.settings.botName;$('call-status-text').innerText=isVideo?'邀请你视频通话...':'邀请你语音通话...';$('call-actions-incoming').style.display='flex';$('call-actions-ongoing').style.display='none';const b=$('call-bg');b.classList.remove('is-pip');b.style.display='flex';const l=$('local-video-preview');l.style.display='none';l.classList.remove('is-main');$('btn-toggle-camera').style.display='none';$('btn-switch-camera').style.display='none';if(this.callTimeout)clearTimeout(this.callTimeout);this.callTimeout=setTimeout(()=>{if($('call-actions-incoming').style.display!=='none'){App.toast('未接听，通话已取消');this.hangup(true);}},30000);},connected(){if(this.callTimeout)clearTimeout(this.callTimeout);$('call-status-text').innerText='00:00';$('mini-status').innerText='通话中';$('call-actions-incoming').style.display='none';$('call-actions-ongoing').style.display='flex';$('btn-hangup-action').innerText='挂断';$('btn-toggle-camera').style.display=this.isVideo?'flex':'none';this.seconds=0;this.timer=setInterval(()=>{this.seconds++;const m=Math.floor(this.seconds/60).toString().padStart(2,'0');const s=(this.seconds%60).toString().padStart(2,'0');$('call-status-text').innerText=`${m}:${s}`;if(Math.random()*100<(App.data.settings.hangupProb/60)){this.hangup(true);App.toast('对方挂断了通话');}},1000);if(this.isVideo){this.toggleCamera();}},toggleCamera(){if(!this.videoEnabled){this.videoEnabled=true;this.startCamera();$('btn-toggle-camera').innerText='🚫';$('btn-switch-camera').style.display='flex';}else{this.videoEnabled=false;if(this.localStream){this.localStream.getTracks().forEach(t=>t.stop());this.localStream=null;}const l=$('local-video-preview');l.style.display='none';l.srcObject=null;l.classList.remove('is-main');$('call-bg').classList.remove('is-pip');$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';}},answer(){this.connected();},startCamera(){if(!this.videoEnabled)return;if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){App.toast('当前环境不支持摄像头');this.videoEnabled=false;$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';return;}if(this.localStream)this.localStream.getTracks().forEach(t=>t.stop());navigator.mediaDevices.getUserMedia({audio:true,video:{facingMode:this.currentFacingMode}}).then(stream=>{this.localStream=stream;const l=$('local-video-preview');l.srcObject=stream;l.style.display='block';l.style.transform=this.currentFacingMode==='user'?'scaleX(-1)':'none';$('call-bg').classList.remove('is-pip');l.classList.remove('is-main');}).catch(err=>{console.error('获取摄像头失败:',err);App.toast('无法打开摄像头，请检查权限');this.videoEnabled=false;$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';});},switchCamera(){this.currentFacingMode=this.currentFacingMode==='user'?'environment':'user';this.startCamera();},hangup(isRemote){if(this.timer)clearInterval(this.timer);if(this.callTimeout)clearTimeout(this.callTimeout);if(!this.logRecorded){this.logRecorded=true;let status='';let duration=0;if(this.timer){status='connected';duration=this.seconds;}else{if(this.isIncoming){status=isRemote?'missed':'rejected';}else{status=isRemote?'rejected':'cancelled';}}if(status!==''){App.data.messages.push({id:Date.now(),role:this.isIncoming?'other':'user',type:'call',isVideo:this.isVideo,status,duration,time:Date.now()});App.data.messages.sort((a,b)=>a.time-b.time);Chat.currentLimit=Math.max(Chat.currentLimit,50);Chat.render();App.saveData();}}this.timer=null;this.callTimeout=null;if(this.localStream){this.localStream.getTracks().forEach(t=>t.stop());this.localStream=null;}$('local-video-preview').style.display='none';$('local-video-preview').srcObject=null;$('call-overlay').classList.remove('show');$('call-mini-bar').style.display='none';this.isMinimized=false;setTimeout(()=>{Chat.scrollToBottom(true);},100);},minimize(){this.isMinimized=true;$('call-overlay').classList.remove('show');$('call-mini-bar').style.display='flex';},expand(){this.isMinimized=false;$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');}};
+const Call={isVideo:false,timer:null,seconds:0,localStream:null,currentFacingMode:'user',isMinimized:false,callTimeout:null,videoEnabled:false,isIncoming:false,logRecorded:false,init(){$('btn-switch-camera').onclick=()=>this.switchCamera();$('btn-toggle-camera').onclick=()=>this.toggleCamera();document.querySelector('.call-minimize-btn').onclick=()=>this.minimize();$('btn-hangup-action').onclick=()=>this.hangup(false);$('local-video-preview').onclick=()=>this.toggleVideoView();},toggleVideoView(){if(!this.videoEnabled)return;const l=$('local-video-preview'),b=$('call-bg');if(l.classList.contains('is-main')){l.classList.remove('is-main');b.classList.remove('is-pip');}else{l.classList.add('is-main');b.classList.add('is-pip');}},start(isVideo){this.isVideo=isVideo;this.isMinimized=false;this.videoEnabled=false;this.isIncoming=false;this.logRecorded=false;$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');const avatar=App.data.settings.botAvatar||DEFAULT_AVATAR;$('call-avatar-img').src=avatar;$('mini-avatar').src=avatar;$('call-name-text').innerText=App.data.settings.botName;$('call-status-text').innerText='正在呼叫...';$('call-actions-ongoing').style.display='flex';$('btn-hangup-action').innerText='取消';$('call-actions-incoming').style.display='none';const b=$('call-bg');b.classList.remove('is-pip');b.style.display='flex';const l=$('local-video-preview');l.style.display='none';l.classList.remove('is-main');$('btn-toggle-camera').style.display=this.isVideo?'flex':'none';$('btn-switch-camera').style.display='none';$('btn-toggle-camera').innerText='📷';if(this.callTimeout)clearTimeout(this.callTimeout);this.callTimeout=setTimeout(()=>{if(Math.random()*100<App.data.settings.answerProb){this.connected();}else{this.hangup(true);App.toast('对方拒绝了通话');}},3000);},startIncoming(isVideo){if($('call-overlay').classList.contains('show'))return;if(this.timer!==null||this.callTimeout!==null)return;this.isVideo=isVideo;this.isMinimized=false;this.videoEnabled=false;this.isIncoming=true;this.logRecorded=false;$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');const avatar=App.data.settings.botAvatar||DEFAULT_AVATAR;$('call-avatar-img').src=avatar;$('mini-avatar').src=avatar;$('call-name-text').innerText=App.data.settings.botName;$('call-status-text').innerText=isVideo?'邀请你视频通话...':'邀请你语音通话...';$('call-actions-incoming').style.display='flex';$('call-actions-ongoing').style.display='none';const b=$('call-bg');b.classList.remove('is-pip');b.style.display='flex';const l=$('local-video-preview');l.style.display='none';l.classList.remove('is-main');$('btn-toggle-camera').style.display='none';$('btn-switch-camera').style.display='none';if(this.callTimeout)clearTimeout(this.callTimeout);this.callTimeout=setTimeout(()=>{if($('call-actions-incoming').style.display!=='none'){App.toast('未接听，通话已取消');this.hangup(true);}},30000);},connected(){if(this.callTimeout)clearTimeout(this.callTimeout);this.callTimeout=null;$('call-status-text').innerText='00:00';$('mini-status').innerText='通话中';$('call-actions-incoming').style.display='none';$('call-actions-ongoing').style.display='flex';$('btn-hangup-action').innerText='挂断';$('btn-toggle-camera').style.display=this.isVideo?'flex':'none';this.seconds=0;this.timer=setInterval(()=>{this.seconds++;const m=Math.floor(this.seconds/60).toString().padStart(2,'0');const s=(this.seconds%60).toString().padStart(2,'0');$('call-status-text').innerText=`${m}:${s}`;if(Math.random()*100<(App.data.settings.hangupProb/60)){this.hangup(true);App.toast('对方挂断了通话');}},1000);if(this.isVideo){this.toggleCamera();}},toggleCamera(){if(!this.videoEnabled){this.videoEnabled=true;this.startCamera();$('btn-toggle-camera').innerText='🚫';$('btn-switch-camera').style.display='flex';}else{this.videoEnabled=false;if(this.localStream){this.localStream.getTracks().forEach(t=>t.stop());this.localStream=null;}const l=$('local-video-preview');l.style.display='none';l.srcObject=null;l.classList.remove('is-main');$('call-bg').classList.remove('is-pip');$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';}},answer(){this.connected();},startCamera(){if(!this.videoEnabled)return;if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){App.toast('当前环境不支持摄像头');this.videoEnabled=false;$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';return;}if(this.localStream)this.localStream.getTracks().forEach(t=>t.stop());navigator.mediaDevices.getUserMedia({audio:true,video:{facingMode:this.currentFacingMode}}).then(stream=>{this.localStream=stream;const l=$('local-video-preview');l.srcObject=stream;l.style.display='block';l.style.transform=this.currentFacingMode==='user'?'scaleX(-1)':'none';$('call-bg').classList.remove('is-pip');l.classList.remove('is-main');}).catch(err=>{console.error('获取摄像头失败:',err);App.toast('无法打开摄像头，请检查权限');this.videoEnabled=false;$('btn-toggle-camera').innerText='📷';$('btn-switch-camera').style.display='none';});},switchCamera(){this.currentFacingMode=this.currentFacingMode==='user'?'environment':'user';this.startCamera();},hangup(isRemote){if(this.timer!==null){clearInterval(this.timer);}if(this.callTimeout!==null){clearTimeout(this.callTimeout);}if(!this.logRecorded){this.logRecorded=true;let status='';let duration=0;if(this.timer!==null){status='connected';duration=this.seconds;}else{if(this.isIncoming){status=isRemote?'missed':'rejected';}else{status=isRemote?'rejected':'cancelled';}}if(status!==''){App.data.messages.push({id:Date.now(),role:this.isIncoming?'other':'user',type:'call',isVideo:this.isVideo,status,duration,time:Date.now()});App.data.messages.sort((a,b)=>a.time-b.time);Chat.currentLimit=Math.max(Chat.currentLimit,50);Chat.render();App.saveData();}}this.timer=null;this.callTimeout=null;if(this.localStream){this.localStream.getTracks().forEach(t=>t.stop());this.localStream=null;}$('local-video-preview').style.display='none';$('local-video-preview').srcObject=null;$('call-overlay').classList.remove('show');$('call-mini-bar').style.display='none';this.isMinimized=false;setTimeout(()=>{Chat.scrollToBottom(true);},100);},minimize(){this.isMinimized=true;$('call-overlay').classList.remove('show');$('call-mini-bar').style.display='flex';},expand(){this.isMinimized=false;$('call-mini-bar').style.display='none';$('call-overlay').classList.add('show');}};
 
 const CallProactive={timer:null,init(){this.schedule();},schedule(){if(this.timer){clearTimeout(this.timer);this.timer=null;}const prob=parseInt(App.data.settings.callProb)||0;if(prob<=0)return;const delayMs=(3*60*1000)+Math.random()*60*1000;this.timer=setTimeout(()=>{try{const p=parseInt(App.data.settings.callProb)||0;if(p>0&&Math.random()*100<p)Call.startIncoming(Math.random()<0.5);}catch(e){console.error('[CallProactive]',e);}this.schedule();},delayMs);}};
 const PatProactive={timer:null,init(){this.schedule();},schedule(){if(this.timer){clearTimeout(this.timer);this.timer=null;}const prob=parseInt(App.data.settings.patProb)||0;if(prob<=0)return;const delayMs=(5*60*1000)+Math.random()*60*1000;this.timer=setTimeout(()=>{try{const p=parseInt(App.data.settings.patProb)||0;if(p>0&&Math.random()*100<p)Chat.triggerPat(false);}catch(e){console.error('[PatProactive]',e);}this.schedule();},delayMs);}};
